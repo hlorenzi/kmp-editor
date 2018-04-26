@@ -1,0 +1,14 @@
+{
+  "name": "kmp-editor",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^1.8.4"
+  },
+  "dependencies": {
+    "electron-progressbar": "^1.0.4"
+  }
+}

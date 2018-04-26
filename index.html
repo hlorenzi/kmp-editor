@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+
+
+<html>
+
+	<head>
+		<title>KMP Editor</title>
+		<meta charset="UTF-8">
+	</head>
+	
+	<style>
+		html, body
+		{
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+		}
+		
+		#canvasMain
+		{
+			width: 100%;
+			height: 100%;
+		}
+	</style>
+	
+	<body onload="main()">
+		<canvas id="canvasMain"></canvas>
+		
+		<script>
+			const { main } = require("./src/mainWindow.js")
+		</script>
+	</body>
+	
+</html>
