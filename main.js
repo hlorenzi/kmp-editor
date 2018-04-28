@@ -1,9 +1,12 @@
-const { app, BrowserWindow, Menu, MenuItem } = require('electron')
+const { app, BrowserWindow, Menu, MenuItem, ipcMain } = require('electron')
 
 const path = require('path')
 const url = require('url')
 
+const ProgressBar = require("electron-progressbar")
+
 let mainWindow = null
+
 
 function createWindow()
 {
@@ -32,4 +35,16 @@ app.on('activate', function()
 {
 	if (mainWindow === null)
 		createWindow()
+})
+
+let progressBar = null
+
+ipcMain.on("showProgress", (event, arg) =>
+{
+	progressBar = new ProgressBar({})
+})
+
+ipcMain.on("hideProgress", (event, arg) =>
+{
+	progressBar.close()
 })

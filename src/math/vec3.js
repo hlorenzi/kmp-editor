@@ -94,6 +94,30 @@ class Vec3
 	}
 	
 	
+	min(other)
+	{
+		if (other == null)
+			return this
+		
+		return new Vec3(
+			Math.min(this.x, other.x),
+			Math.min(this.y, other.y),
+			Math.min(this.z, other.z))
+	}
+	
+	
+	max(other)
+	{
+		if (other == null)
+			return this
+		
+		return new Vec3(
+			Math.max(this.x, other.x),
+			Math.max(this.y, other.y),
+			Math.max(this.z, other.z))
+	}
+	
+	
 	project(other)
 	{
 		return other.scale(this.dot(other) / other.dot(other))

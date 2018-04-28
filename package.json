@@ -9,6 +9,7 @@
     "electron": "^1.8.4"
   },
   "dependencies": {
-    "electron-progressbar": "^1.0.4"
+    "electron-progressbar": "^1.0.4",
+    "npm": "^6.0.0"
   }
 }

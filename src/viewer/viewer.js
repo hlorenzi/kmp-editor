@@ -1,5 +1,5 @@
 const { GLProgram } = require("../gl/shader.js")
-const { GfxScene, GfxCamera, GfxMaterial, GfxModel, GfxNodeRenderer } = require("../gl/scene.js")
+const { GfxScene, GfxCamera, GfxMaterial, GfxModel, GfxNodeRenderer, GfxNodeRendererTransform } = require("../gl/scene.js")
 const { ModelBuilder } = require("../util/modelBuilder.js")
 const { Vec3 } = require("../math/vec3.js")
 const { Mat4 } = require("../math/mat4.js")
@@ -14,14 +14,17 @@ class Viewer
 		this.canvas.onmousedown = (ev) => this.onMouseDown(ev)
 		this.canvas.onmousemove = (ev) => this.onMouseMove(ev)
 		this.canvas.onmouseup = (ev) => this.onMouseUp(ev)
+		this.canvas.onwheel = (ev) => this.onMouseWheel(ev)
 		
 		this.mouseDown = false
+		this.mouseLastClickDate = new Date()
+		this.mouseAction = null
 		this.mouseLast = null
 		
 		this.cameraFocus = new Vec3(0, 0, 0)
-		this.cameraHorzAngle = 1.0
-		this.cameraVertAngle = 0.8
-		this.cameraDist = 5
+		this.cameraHorzAngle = Math.PI / 2
+		this.cameraVertAngle = 1
+		this.cameraDist = 10000
 		
 		this.gl = canvas.getContext("webgl")
 		
@@ -37,23 +40,35 @@ class Viewer
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT)
 		
 		this.scene = new GfxScene()
-		this.camera = new GfxCamera()
 		
 		this.material = new GfxMaterial()
 			.setProgram(
 				GLProgram.makeFromSrc(this.gl, vertexSrc, fragmentSrc)
 				.registerLocations(this.gl, ["aPosition", "aNormal"], ["uMatProj", "uMatView", "uMatModel", "uDiffuseColor"]))
 				
-		let model = new ModelBuilder()
-			.addCube(-1, -1, -1, 1, 1, 1)
+		let builder = new ModelBuilder()
+			.addCube(-1000, -1000, -1000, 1000, 1000, 1000)
 			.calculateNormals()
-			.makeModel(this.gl)
 			
-		let renderer = new GfxNodeRenderer()
+		this.model = builder.makeModel(this.gl)
+		this.collision = builder.makeCollision().buildCacheSubdiv()
+			
+		this.renderer = new GfxNodeRenderer()
 			.attach(this.scene.root)
-			.setModel(model)
+			.setModel(this.model)
 			.setMaterial(this.material)
 			.setDiffuseColor([1, 1, 1, 1])
+			
+			
+		let debugRaycastBuilder = new ModelBuilder()
+			.addSphere(-100, -100, -100, 100, 100, 100)
+			.calculateNormals()
+			
+		this.debugRaycastRenderer = new GfxNodeRendererTransform()
+			.attach(this.scene.root)
+			.setModel(debugRaycastBuilder.makeModel(this.gl))
+			.setMaterial(this.material)
+			.setDiffuseColor([1, 0, 0, 1])
 		
 		this.render()
 	}
@@ -70,7 +85,22 @@ class Viewer
 	}
 	
 	
+	setModel(model, collision)
+	{
+		this.model = model
+		this.renderer.setModel(model)
+		
+		this.collision = collision
+	}
+	
+	
 	render()
+	{
+		this.scene.render(this.gl, this.getCurrentCamera())
+	}
+	
+	
+	getCurrentCameraPosition()
 	{
 		let eyeZDist = Math.cos(this.cameraVertAngle)
 		
@@ -79,11 +109,34 @@ class Viewer
 			-Math.sin(this.cameraHorzAngle) * this.cameraDist * eyeZDist,
 			-Math.sin(this.cameraVertAngle) * this.cameraDist)
 		
-		this.camera
-			.setProjection(Mat4.perspective(30 * Math.PI / 180, this.width / this.height, 1, 400))
-			.setView(Mat4.lookat(this.cameraFocus.add(cameraEyeOffset), this.cameraFocus, new Vec3(0, 0, -1)))
+		return this.cameraFocus.add(cameraEyeOffset)
+	}
+	
+	
+	getCurrentCamera()
+	{
+		return new GfxCamera()
+			.setProjection(Mat4.perspective(30 * Math.PI / 180, this.width / this.height, 100, 250000))
+			.setView(Mat4.lookat(this.getCurrentCameraPosition(), this.cameraFocus, new Vec3(0, 0, -1)))
+	}
+	
+	
+	getScreenRay(x, y)
+	{
+		let camera = this.getCurrentCamera()
 		
-		this.scene.render(this.gl, this.camera)
+		let xViewport = (x / this.width) * 2 - 1
+		let yViewport = (y / this.height) * 2 - 1
+		
+		let matrix = camera.view.mul(camera.projection).invert()
+		
+		let near = matrix.mulVec4([xViewport, -yViewport, -1, 1])
+		let far = matrix.mulVec4([xViewport, -yViewport, 1, 1])
+			
+		near = new Vec3(near[0], near[1], near[2]).scale(1 / near[3])
+		far = new Vec3(far[0], far[1], far[2]).scale(1 / far[3])
+		
+		return { origin: near, direction: far.sub(near) }
 	}
 	
 	
@@ -102,8 +155,32 @@ class Viewer
 	{
 		let mouse = this.getMousePosFromEvent(ev)
 		
+		let doubleClick = (new Date().getTime() - this.mouseLastClickDate.getTime()) < 300
+		
 		this.mouseDown = true
 		this.mouseLast = mouse
+		this.mouseAction = null
+		
+		if (ev.button == 2)
+		{
+			if (doubleClick)
+			{
+				let ray = this.getScreenRay(mouse.x, mouse.y)
+				let hit = this.collision.raycast(ray.origin, ray.direction)
+				if (hit != null)
+				{
+					this.cameraFocus = hit.position
+					this.cameraDist = 4000
+				}
+			}
+			else
+				this.mouseAction = "pan"
+		}
+		else if (ev.button == 1)
+			this.mouseAction = "orbit"
+		
+		this.mouseLastClickDate = new Date()
+		this.render()
 	}
 	
 	
@@ -116,12 +193,32 @@ class Viewer
 			let dx = mouse.x - this.mouseLast.x
 			let dy = mouse.y - this.mouseLast.y
 			
-			this.cameraHorzAngle += dx * 0.0075
-			this.cameraVertAngle += dy * 0.0075
-			
-			this.cameraVertAngle = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, this.cameraVertAngle))
+			if (this.mouseAction == "pan")
+			{
+				let matrix = this.getCurrentCamera().view
+				let offset = matrix.mulDirection(new Vec3(-dx * this.cameraDist / 500, -dy * this.cameraDist / 500, 0))
+				
+				this.cameraFocus = this.cameraFocus.add(offset)
+			}
+			else if (this.mouseAction == "orbit")
+			{
+				this.cameraHorzAngle += dx * 0.0075
+				this.cameraVertAngle += dy * 0.0075
+				
+				this.cameraVertAngle = Math.max(-Math.PI / 2 + 0.001, Math.min(Math.PI / 2 - 0.001, this.cameraVertAngle))
+			}
 			
 			this.mouseLast = mouse
+		}
+		
+		else
+		{
+			let ray = this.getScreenRay(mouse.x, mouse.y)
+			let hit = this.collision.raycast(ray.origin, ray.direction)
+			if (hit != null)
+			{
+				this.debugRaycastRenderer.setTranslation(hit.position)
+			}
 		}
 		
 		this.render()
@@ -134,6 +231,17 @@ class Viewer
 		
 		this.mouseDown = false
 		this.mouseLast = mouse
+	}
+	
+	
+	onMouseWheel(ev)
+	{
+		if (ev.deltaY > 0)
+			this.cameraDist = Math.min(250000, this.cameraDist * 1.25)
+		else if (ev.deltaY < 0)
+			this.cameraDist = Math.max(1000, this.cameraDist / 1.25)
+		
+		this.render()
 	}
 }
 

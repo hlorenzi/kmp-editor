@@ -1,6 +1,7 @@
-const { remote } = require("electron")
+const { remote, ipcRenderer } = require("electron")
 const fs = require("fs")
 const { Viewer } = require("./viewer/viewer.js")
+const { Vec3 } = require("./math/vec3.js")
 
 
 let gViewer = null
@@ -23,7 +24,11 @@ function main()
 			]
 		},
 		{
-			label: "Edit"
+			label: "Edit",
+			submenu:
+			[
+				{ role: "reload" }
+			]
 		}
 	]
 	
@@ -47,8 +52,17 @@ function showImportCourseModelDialog()
 	let result = remote.dialog.showOpenDialog({ properties: ["openFile"], filters: [{ name: "OBJ Models (*.obj)", extensions: ["obj"] }] })
 	if (result)
 	{
-		let data = fs.readFileSync(result[0], "utf8")
-		console.log(data)
+		ipcRenderer.send("showProgress")
+		let data = fs.readFileSync(result[0])
+		let modelBuilder = require("./util/objLoader.js").ObjLoader.makeModelBuilder(data)
+		ipcRenderer.send("hideProgress")
+		
+		let bbox = modelBuilder.getBoundingBox()
+		gViewer.cameraFocus = new Vec3(bbox.xCenter, bbox.yCenter, bbox.zCenter)
+		gViewer.cameraHorzAngle = Math.PI / 2
+		gViewer.cameraVertAngle = 1
+		gViewer.cameraDist = Math.max(bbox.xSize, bbox.ySize, bbox.zSize) / 2
+		gViewer.setModel(modelBuilder.makeModel(gViewer.gl), modelBuilder.makeCollision().buildCacheSubdiv())
 	}
 }
 
