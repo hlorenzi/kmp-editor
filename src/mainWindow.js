@@ -15,12 +15,13 @@ function main()
 			label: "File",
 			submenu:
 			[
-				{ label: "Open KMP..." },
+				{ label: "Open KMP...", click: () => openKMP() },
 				{ type: "separator" },
 				{ label: "Save KMP" },
 				{ label: "Save KMP as..." },
 				{ type: "separator" },
-				{ label: "Import course model...", click: () => showImportCourseModelDialog() },
+				{ label: "Import OBJ course model...", click: () => showImportObjCourseModelDialog() },
+				{ label: "Import BRRES course model...", click: () => showImportBrresCourseModelDialog() },
 			]
 		},
 		{
@@ -47,7 +48,18 @@ function onResize()
 }
 
 
-function showImportCourseModelDialog()
+function openKMP()
+{
+	let result = remote.dialog.showOpenDialog({ properties: ["openFile"], filters: [{ name: "KMP Files (*.kmp)", extensions: ["kmp"] }] })
+	if (result)
+	{
+		let data = fs.readFileSync(result[0])
+		let modelBuilder = require("./util/kmpData.js").KmpData.load(data)
+	}
+}
+
+
+function showImportObjCourseModelDialog()
 {
 	let result = remote.dialog.showOpenDialog({ properties: ["openFile"], filters: [{ name: "OBJ Models (*.obj)", extensions: ["obj"] }] })
 	if (result)
@@ -56,6 +68,24 @@ function showImportCourseModelDialog()
 		let data = fs.readFileSync(result[0])
 		let modelBuilder = require("./util/objLoader.js").ObjLoader.makeModelBuilder(data)
 		ipcRenderer.send("hideProgress")
+		
+		let bbox = modelBuilder.getBoundingBox()
+		gViewer.cameraFocus = new Vec3(bbox.xCenter, bbox.yCenter, bbox.zCenter)
+		gViewer.cameraHorzAngle = Math.PI / 2
+		gViewer.cameraVertAngle = 1
+		gViewer.cameraDist = Math.max(bbox.xSize, bbox.ySize, bbox.zSize) / 2
+		gViewer.setModel(modelBuilder.makeModel(gViewer.gl), modelBuilder.makeCollision().buildCacheSubdiv())
+	}
+}
+
+
+function showImportBrresCourseModelDialog()
+{
+	let result = remote.dialog.showOpenDialog({ properties: ["openFile"], filters: [{ name: "BRRES Models (*.brres)", extensions: ["brres"] }] })
+	if (result)
+	{
+		let data = fs.readFileSync(result[0])
+		let modelBuilder = require("./util/brresLoader.js").BrresLoader.load(data)
 		
 		let bbox = modelBuilder.getBoundingBox()
 		gViewer.cameraFocus = new Vec3(bbox.xCenter, bbox.yCenter, bbox.zCenter)

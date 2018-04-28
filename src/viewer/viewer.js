@@ -116,7 +116,7 @@ class Viewer
 	getCurrentCamera()
 	{
 		return new GfxCamera()
-			.setProjection(Mat4.perspective(30 * Math.PI / 180, this.width / this.height, 100, 250000))
+			.setProjection(Mat4.perspective(30 * Math.PI / 180, this.width / this.height, 100, 500000))
 			.setView(Mat4.lookat(this.getCurrentCameraPosition(), this.cameraFocus, new Vec3(0, 0, -1)))
 	}
 	
@@ -237,7 +237,7 @@ class Viewer
 	onMouseWheel(ev)
 	{
 		if (ev.deltaY > 0)
-			this.cameraDist = Math.min(250000, this.cameraDist * 1.25)
+			this.cameraDist = Math.min(500000, this.cameraDist * 1.25)
 		else if (ev.deltaY < 0)
 			this.cameraDist = Math.max(1000, this.cameraDist / 1.25)
 		

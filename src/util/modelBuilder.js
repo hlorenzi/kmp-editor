@@ -193,6 +193,22 @@ class ModelBuilder
 	}
 	
 	
+	makeDoubleSided()
+	{
+		let len = this.positions.length
+		for (let i = 0; i < len; i += 3)
+		{
+			let v1 = this.positions[i + 0]
+			let v2 = this.positions[i + 1]
+			let v3 = this.positions[i + 2]
+		
+			this.addTri(v1, v3, v2)
+		}
+		
+		return this
+	}
+	
+	
 	calculateNormals(maxSmoothAngle = 1.5)
 	{
 		for (let i = 0; i < this.positions.length; i += 3)
