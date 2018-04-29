@@ -114,8 +114,8 @@ class ModelBuilder
 		let cx = (x1 + x2) / 2
 		let cy = (y1 + y2) / 2
 		
-		let sx = x2 - x1
-		let sy = y2 - y1
+		let sx = (x2 - x1) / 2
+		let sy = (y2 - y1) / 2
 		
 		for (let i = 0; i < subdivs; i++)
 		{

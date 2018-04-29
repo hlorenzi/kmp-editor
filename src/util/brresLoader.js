@@ -461,6 +461,7 @@ class BrresLoader
 					break
 					
 				case 0x20:
+					console.error("brres: unimplemented SetMatrix instruction")
 					parser.readUInt16()
 					parser.readInt16()
 					break

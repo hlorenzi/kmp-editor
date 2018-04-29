@@ -16,6 +16,8 @@ class Viewer
 		this.canvas.onmouseup = (ev) => this.onMouseUp(ev)
 		this.canvas.onwheel = (ev) => this.onMouseWheel(ev)
 		
+		this.subviewer = null
+		
 		this.mouseDown = false
 		this.mouseLastClickDate = new Date()
 		this.mouseAction = null
@@ -85,17 +87,33 @@ class Viewer
 	}
 	
 	
-	setModel(model, collision)
+	setModel(modelBuilder)
 	{
-		this.model = model
-		this.renderer.setModel(model)
+		let bbox = modelBuilder.getBoundingBox()
 		
-		this.collision = collision
+		this.model = modelBuilder.makeModel(this.gl)
+		this.renderer.setModel(this.model)
+		
+		this.collision = modelBuilder.makeCollision().buildCacheSubdiv()
+		
+		this.cameraFocus = new Vec3(bbox.xCenter, bbox.yCenter, bbox.zCenter)
+		this.cameraHorzAngle = Math.PI / 2
+		this.cameraVertAngle = 1
+		this.cameraDist = Math.max(bbox.xSize, bbox.ySize, bbox.zSize) / 2
+	}
+	
+	
+	setSubViewer(subviewer)
+	{
+		this.subviewer = subviewer
 	}
 	
 	
 	render()
 	{
+		if (this.subviewer != null)
+			this.subviewer.refresh()
+		
 		this.scene.render(this.gl, this.getCurrentCamera())
 	}
 	
@@ -161,7 +179,7 @@ class Viewer
 		this.mouseLast = mouse
 		this.mouseAction = null
 		
-		if (ev.button == 2)
+		if (ev.button == 2 || ev.button == 1)
 		{
 			if (doubleClick)
 			{
@@ -173,11 +191,11 @@ class Viewer
 					this.cameraDist = 4000
 				}
 			}
-			else
+			else if (ev.shiftKey)
 				this.mouseAction = "pan"
+			else
+				this.mouseAction = "orbit"
 		}
-		else if (ev.button == 1)
-			this.mouseAction = "orbit"
 		
 		this.mouseLastClickDate = new Date()
 		this.render()

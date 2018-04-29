@@ -306,7 +306,7 @@ class GfxNodeRendererTransform extends GfxNode
 	}
 	
 	
-	setCustom(matrix)
+	setCustomMatrix(matrix)
 	{
 		this.customMatrix = matrix
 		return this
