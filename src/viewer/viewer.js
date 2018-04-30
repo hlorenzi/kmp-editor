@@ -19,9 +19,16 @@ class Viewer
 		this.subviewer = null
 		
 		this.mouseDown = false
+		this.mouseDownOrigin = null
+		this.mouseDownRaycast = null
 		this.mouseLastClickDate = new Date()
 		this.mouseAction = null
 		this.mouseLast = null
+		
+		this.mouseMoveOffsetPixels = { x: 0, y: 0 }
+		this.mouseMoveOffsetPan = new Vec3(0, 0, 0)
+		this.mouseMoveOffsetPanDelta = new Vec3(0, 0, 0)
+		this.mouseMoveOffsetRaycast = new Vec3(0, 0, 0)
 		
 		this.cameraFocus = new Vec3(0, 0, 0)
 		this.cameraHorzAngle = Math.PI / 2
@@ -38,6 +45,8 @@ class Viewer
 		this.gl.enable(this.gl.DEPTH_TEST)
 		this.gl.enable(this.gl.CULL_FACE)
 		this.gl.depthFunc(this.gl.LEQUAL)
+		this.gl.enable(this.gl.BLEND)
+		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA)
 
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT)
 		
@@ -46,6 +55,11 @@ class Viewer
 		this.material = new GfxMaterial()
 			.setProgram(
 				GLProgram.makeFromSrc(this.gl, vertexSrc, fragmentSrc)
+				.registerLocations(this.gl, ["aPosition", "aNormal"], ["uMatProj", "uMatView", "uMatModel", "uDiffuseColor"]))
+				
+		this.materialUnshaded = new GfxMaterial()
+			.setProgram(
+				GLProgram.makeFromSrc(this.gl, vertexSrc, fragmentSrcUnshaded)
 				.registerLocations(this.gl, ["aPosition", "aNormal"], ["uMatProj", "uMatView", "uMatModel", "uDiffuseColor"]))
 				
 		let builder = new ModelBuilder()
@@ -71,6 +85,7 @@ class Viewer
 			.setModel(debugRaycastBuilder.makeModel(this.gl))
 			.setMaterial(this.material)
 			.setDiffuseColor([1, 0, 0, 1])
+			.setEnabled(false)
 		
 		this.render()
 	}
@@ -111,10 +126,15 @@ class Viewer
 	
 	render()
 	{
-		if (this.subviewer != null)
-			this.subviewer.refresh()
+		this.scene.clear(this.gl)
+		
+		if (this.subviewer != null && this.subviewer.draw)
+			this.subviewer.draw()
 		
 		this.scene.render(this.gl, this.getCurrentCamera())
+		
+		if (this.subviewer != null && this.subviewer.drawAfter)
+			this.subviewer.drawAfter()
 	}
 	
 	
@@ -134,6 +154,7 @@ class Viewer
 	getCurrentCamera()
 	{
 		return new GfxCamera()
+			//.setProjection(Mat4.ortho(-this.width * 10, this.width * 10, -this.height * 10, this.height * 10, 100, 500000))
 			.setProjection(Mat4.perspective(30 * Math.PI / 180, this.width / this.height, 100, 500000))
 			.setView(Mat4.lookat(this.getCurrentCameraPosition(), this.cameraFocus, new Vec3(0, 0, -1)))
 	}
@@ -154,7 +175,26 @@ class Viewer
 		near = new Vec3(near[0], near[1], near[2]).scale(1 / near[3])
 		far = new Vec3(far[0], far[1], far[2]).scale(1 / far[3])
 		
-		return { origin: near, direction: far.sub(near) }
+		return { origin: near, direction: far.sub(near).normalize() }
+	}
+	
+	
+	pointToScreen(pos)
+	{
+		let camera = this.getCurrentCamera()
+		
+		let p = camera.projection.transpose().mul(camera.view.transpose()).mulVec4([pos.x, pos.y, pos.z, 1])
+		
+		p[0] /= p[3]
+		p[1] /= p[3]
+		p[2] /= p[3]
+		
+		return {
+			x: (p[0] + 1) / 2 * this.width,
+			y: (1 - (p[1] + 1) / 2) * this.height,
+			z: p[2],
+			w: p[3]
+		}
 	}
 	
 	
@@ -169,15 +209,33 @@ class Viewer
 	}
 	
 	
+	setCursor(cursor)
+	{
+		this.canvas.style.cursor = cursor
+	}
+	
+	
 	onMouseDown(ev)
 	{
 		let mouse = this.getMousePosFromEvent(ev)
+		let ray = this.getScreenRay(mouse.x, mouse.y)
+		let cameraPos = this.getCurrentCameraPosition()
 		
 		let doubleClick = (new Date().getTime() - this.mouseLastClickDate.getTime()) < 300
 		
+		let hit = this.collision.raycast(ray.origin, ray.direction)
+		let distToHit = (hit == null ? 1000000 : hit.distScaled)
+		
 		this.mouseDown = true
+		this.mouseDownOrigin = mouse
+		this.mouseDownRaycast = hit
 		this.mouseLast = mouse
 		this.mouseAction = null
+		
+		this.mouseMoveOffsetPixels = { x: 0, y: 0 }
+		this.mouseMoveOffsetPan = new Vec3(0, 0, 0)
+		this.mouseMoveOffsetPanDelta = new Vec3(0, 0, 0)
+		this.mouseMoveOffsetRaycast = new Vec3(0, 0, 0)
 		
 		if (ev.button == 2 || ev.button == 1)
 		{
@@ -188,13 +246,20 @@ class Viewer
 				if (hit != null)
 				{
 					this.cameraFocus = hit.position
-					this.cameraDist = 4000
+					this.cameraDist = 8000
 				}
 			}
 			else if (ev.shiftKey)
 				this.mouseAction = "pan"
 			else
 				this.mouseAction = "orbit"
+		}
+		else
+		{
+			this.mouseAction = "move"
+			
+			if (this.subviewer != null)
+				this.subviewer.onMouseDown(ev, mouse.x, mouse.y, cameraPos, ray, hit, distToHit)
 		}
 		
 		this.mouseLastClickDate = new Date()
@@ -205,18 +270,29 @@ class Viewer
 	onMouseMove(ev)
 	{
 		let mouse = this.getMousePosFromEvent(ev)
+		let ray = this.getScreenRay(mouse.x, mouse.y)
+		let cameraPos = this.getCurrentCameraPosition()
+		
+		this.setCursor("default")
+		
+		let hit = this.collision.raycast(ray.origin, ray.direction)
+		let distToHit = (hit == null ? 1000000 : hit.distScaled)
+		
 		
 		if (this.mouseDown)
 		{
 			let dx = mouse.x - this.mouseLast.x
 			let dy = mouse.y - this.mouseLast.y
 			
+			let ox = mouse.x - this.mouseDownOrigin.x
+			let oy = mouse.y - this.mouseDownOrigin.y
+			
 			if (this.mouseAction == "pan")
 			{
 				let matrix = this.getCurrentCamera().view
-				let offset = matrix.mulDirection(new Vec3(-dx * this.cameraDist / 500, -dy * this.cameraDist / 500, 0))
+				let delta = matrix.mulDirection(new Vec3(-dx * this.cameraDist / 500, -dy * this.cameraDist / 500, 0))
 				
-				this.cameraFocus = this.cameraFocus.add(offset)
+				this.cameraFocus = this.cameraFocus.add(delta)
 			}
 			else if (this.mouseAction == "orbit")
 			{
@@ -225,18 +301,33 @@ class Viewer
 				
 				this.cameraVertAngle = Math.max(-Math.PI / 2 + 0.001, Math.min(Math.PI / 2 - 0.001, this.cameraVertAngle))
 			}
+			else if (this.mouseAction == "move")
+			{
+				let matrix = this.getCurrentCamera().view
+				let offset = matrix.mulDirection(new Vec3(ox * this.cameraDist / 500, oy * this.cameraDist / 500, 0))
+				let delta = matrix.mulDirection(new Vec3(dx * this.cameraDist / 500, dy * this.cameraDist / 500, 0))
+				
+				this.mouseMoveOffsetPixels = { x: ox, y: oy }
+				this.mouseMoveOffsetPan = offset
+				this.mouseMoveOffsetPanDelta = delta
+				this.mouseMoveOffsetRaycast = hit
+			}
+			
+			if (this.subviewer != null)
+				this.subviewer.onMouseMove(ev, mouse.x, mouse.y, cameraPos, ray, hit, distToHit)
 			
 			this.mouseLast = mouse
 		}
 		
 		else
 		{
-			let ray = this.getScreenRay(mouse.x, mouse.y)
-			let hit = this.collision.raycast(ray.origin, ray.direction)
-			if (hit != null)
-			{
-				this.debugRaycastRenderer.setTranslation(hit.position)
-			}
+			//if (hit != null)
+			//	  this.debugRaycastRenderer.setTranslation(hit.position)
+			
+			if (this.subviewer != null)
+				this.subviewer.onMouseMove(ev, mouse.x, mouse.y, cameraPos, ray, hit, distToHit)
+			
+			//console.log(this.pointToScreen(ray.origin.add(ray.direction.scale(10000))))
 		}
 		
 		this.render()
@@ -305,6 +396,20 @@ const fragmentSrc = `
 		float lightIncidence = max(0.0, dot(normalize(lightDir), normalize(vScreenNormal)));
 		
 		gl_FragColor = diffuseColor * mix(ambientColor, lightColor, lightIncidence);
+	}`
+
+
+const fragmentSrcUnshaded = `
+	precision highp float;
+	
+	varying vec4 vNormal;
+	varying vec4 vScreenNormal;
+	
+	uniform vec4 uDiffuseColor;
+
+	void main()
+	{
+		gl_FragColor = uDiffuseColor;
 	}`
 	
 

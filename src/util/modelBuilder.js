@@ -107,7 +107,52 @@ class ModelBuilder
 	}
 	
 	
-	addCylinder(x1, y1, z1, x2, y2, z2, subdivs = 16, upVec = null)
+	addCone(x1, y1, z1, x2, y2, z2, subdivs = 8, upVec = null)
+	{
+		let index = this.positions.length
+		
+		let cx = (x1 + x2) / 2
+		let cy = (y1 + y2) / 2
+		
+		let sx = (x2 - x1) / 2
+		let sy = (y2 - y1) / 2
+		
+		for (let i = 0; i < subdivs; i++)
+		{
+			let angle0 = (i + 0) / subdivs * Math.PI * 2
+			let angle1 = (i + 1) / subdivs * Math.PI * 2
+			
+			let cos0 = Math.cos(angle0)
+			let cos1 = Math.cos(angle1)
+			let sin0 = Math.sin(angle0)
+			let sin1 = Math.sin(angle1)
+			
+			// Lid
+			this.addTri(
+				new Vec3(cx + cos0 * sx, cy + sin0 * sy, z1),
+				new Vec3(cx + cos1 * sx, cy + sin1 * sy, z1),
+				new Vec3(cx, cy, z1))
+				
+			// Edge
+			this.addTri(
+				new Vec3(cx + cos1 * sx, cy + sin1 * sy, z1),
+				new Vec3(cx + cos0 * sx, cy + sin0 * sy, z1),
+				new Vec3(cx, cy, z2))
+		}
+		
+		if (upVec != null)
+		{
+			let matrix = Mat4.rotationFromTo(new Vec3(0, 0, -1), upVec)
+			
+			for (let i = index; i < this.positions.length; i++)
+				this.positions[i] = matrix.mulPoint(this.positions[i])
+		}
+		
+		return this
+	}
+	
+	
+	addCylinder(x1, y1, z1, x2, y2, z2, subdivs = 8, upVec = null)
 	{
 		let index = this.positions.length
 		
@@ -209,7 +254,7 @@ class ModelBuilder
 	}
 	
 	
-	calculateNormals(maxSmoothAngle = 1.5)
+	calculateNormals(maxSmoothAngle = 1.0)
 	{
 		for (let i = 0; i < this.positions.length; i += 3)
 		{

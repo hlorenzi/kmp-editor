@@ -89,23 +89,28 @@ class BrresLoader
 						let v2 = instr.vertices[i + 2]
 						
 						if (v0 && v1 && v2)
-							model.addTri(v0, v1, v2)
+							model.addTri(v0, v2, v1)
 					}
 				}
 				else if (instr.kind == "DrawTriangleStrip")
 				{
 					let v0 = instr.vertices[0]
 					let v1 = instr.vertices[1]
+					let winding = false
 					
 					for (let i = 2; i < instr.count; i += 1)
 					{
 						let v2 = instr.vertices[i]
 						
 						if (v0 && v1 && v2)
-							model.addTri(v0, v1, v2)
+							if (winding)
+								model.addTri(v0, v1, v2)
+							else
+								model.addTri(v0, v2, v1)
 						
 						v0 = v1
 						v1 = v2
+						winding = !winding
 					}
 				}
 				else if (instr.kind == "DrawTriangleFan")
@@ -118,7 +123,7 @@ class BrresLoader
 						let v2 = instr.vertices[i]
 						
 						if (v0 && v1 && v2)
-							model.addTri(v0, v1, v2)
+							model.addTri(v0, v2, v1)
 						
 						v1 = v2
 					}
@@ -126,7 +131,7 @@ class BrresLoader
 			}
 		}
 		
-		return model.makeDoubleSided().calculateNormals()
+		return model.calculateNormals()
 	}
 	
 	

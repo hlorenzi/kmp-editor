@@ -10,13 +10,25 @@ class GfxScene
 	}
 	
 	
-	render(gl, camera)
+	clear(gl, r = 0, g = 0, b = 0, a = 1, depth = 1)
 	{
-		gl.clearColor(0, 0, 0, 1)
-		gl.clearDepth(1.0)
+		gl.clearColor(r, g, b, a)
+		gl.clearDepth(depth)
 		
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	}
+	
+	
+	clearDepth(gl, depth = 1)
+	{
+		gl.clearDepth(depth)
 		
+		gl.clear(gl.DEPTH_BUFFER_BIT)
+	}
+	
+	
+	render(gl, camera)
+	{
 		let transform = Mat4.identity()
 		
 		this.renderNode(gl, camera, transform, this.root)
@@ -25,6 +37,9 @@ class GfxScene
 	
 	renderNode(gl, camera, transform, node)
 	{
+		if (!node.enabled)
+			return
+		
 		if ((node instanceof GfxNodeTransform) || (node instanceof GfxNodeRendererTransform))
 		{
 			transform = transform.mul(node.computeMatrix())
@@ -124,6 +139,7 @@ class GfxNode
 	{
 		this.parent = null
 		this.children = []
+		this.enabled = true
 	}
 	
 	
@@ -145,6 +161,13 @@ class GfxNode
 			this.parent = null
 		}
 		
+		return this
+	}
+	
+	
+	setEnabled(enabled)
+	{
+		this.enabled = enabled
 		return this
 	}
 }
