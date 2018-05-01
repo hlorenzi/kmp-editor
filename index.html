@@ -12,10 +12,28 @@
 		html, body
 		{
 			margin: 0;
+			border: 0;
 			padding: 0;
 			width: 100%;
 			height: 100%;
 			overflow: hidden;
+		}
+		
+		table
+		{
+			margin: 0;
+			border: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+		}
+		
+		tr, td
+		{
+			margin: 0;
+			border: 0;
+			padding: 0;
+			height: 10%;
 		}
 		
 		#canvasMain
@@ -26,6 +44,17 @@
 	</style>
 	
 	<body onload="main()">
+		<!--<table>
+			<tr>
+				<td id="tdSidePanel" style="width:15em;">
+				
+				</td>
+				<td>
+					<canvas id="canvasMain"></canvas>
+				</td>
+			</tr>
+		</table>-->
+		
 		<canvas id="canvasMain"></canvas>
 		
 		<script>

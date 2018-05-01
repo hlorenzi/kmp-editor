@@ -6,102 +6,106 @@ const { KmpData } = require("./util/kmpData.js")
 const { Vec3 } = require("./math/vec3.js")
 
 
-let gViewer = null
-let gSubViewer = null
-let gData = null
+let gMainWindow = null
 
 
 function main()
 {
-	let menuTemplate =
-	[
+	gMainWindow = new MainWindow()	
+}
+
+
+class MainWindow
+{
+	constructor()
+	{
+		let menuTemplate =
+		[
+			{
+				label: "File",
+				submenu:
+				[
+					{ label: "Open KMP...", click: () => this.openKMP() },
+					{ type: "separator" },
+					{ label: "Save KMP" },
+					{ label: "Save KMP as..." },
+					{ type: "separator" },
+					{ label: "Import OBJ course model...", click: () => this.showImportObjCourseModelDialog() },
+					{ label: "Import BRRES course model...", click: () => this.showImportBrresCourseModelDialog() },
+				]
+			},
+			{
+				label: "Edit",
+				submenu:
+				[
+					{ role: "reload" }
+				]
+			}
+		]
+		
+		remote.getCurrentWindow().setMenu(remote.Menu.buildFromTemplate(menuTemplate))
+		
+		document.body.onresize = () => this.onResize()
+		
+		this.panel = document.getElementById("tdSidePanel")
+		this.viewer = new Viewer(document.getElementById("canvasMain"))
+	}
+
+	
+	onResize()
+	{
+		this.viewer.resize()
+		this.viewer.render()
+	}
+
+
+	openKMP()
+	{
+		let result = remote.dialog.showOpenDialog({ properties: ["openFile"], filters: [{ name: "KMP Files (*.kmp)", extensions: ["kmp"] }] })
+		if (result)
 		{
-			label: "File",
-			submenu:
-			[
-				{ label: "Open KMP...", click: () => openKMP() },
-				{ type: "separator" },
-				{ label: "Save KMP" },
-				{ label: "Save KMP as..." },
-				{ type: "separator" },
-				{ label: "Import OBJ course model...", click: () => showImportObjCourseModelDialog() },
-				{ label: "Import BRRES course model...", click: () => showImportBrresCourseModelDialog() },
-			]
-		},
-		{
-			label: "Edit",
-			submenu:
-			[
-				{ role: "reload" }
-			]
+			let kmpFilename = result[0].replace(new RegExp("\\\\", "g"), "/")
+			let brresFilename = kmpFilename.substr(0, kmpFilename.lastIndexOf("/")) + "/course_model.brres"
+			
+			let kmpData = fs.readFileSync(kmpFilename)
+			this.data = KmpData.convertToWorkingFormat(KmpData.load(kmpData, this.viewer))
+			
+			let brresData = fs.readFileSync(brresFilename)
+			let modelBuilder = require("./util/brresLoader.js").BrresLoader.load(brresData)
+			
+			this.viewer.setModel(modelBuilder)
+			this.viewer.setSubViewer(new ViewerEnemyPaths(this, this.viewer, this.data))
 		}
-	]
-	
-	remote.getCurrentWindow().setMenu(remote.Menu.buildFromTemplate(menuTemplate))
-	
-	document.body.onresize = onResize
-	
-	gViewer = new Viewer(document.getElementById("canvasMain"))
-}
+	}
 
 
-function onResize()
-{
-	gViewer.resize()
-	gViewer.render()
-}
-
-
-function openKMP()
-{
-	let result = remote.dialog.showOpenDialog({ properties: ["openFile"], filters: [{ name: "KMP Files (*.kmp)", extensions: ["kmp"] }] })
-	if (result)
+	showImportObjCourseModelDialog()
 	{
-		let kmpFilename = result[0].replace(new RegExp("\\\\", "g"), "/")
-		let brresFilename = kmpFilename.substr(0, kmpFilename.lastIndexOf("/")) + "/course_model.brres"
-		
-		let kmpData = fs.readFileSync(kmpFilename)
-		gData = KmpData.convertToWorkingFormat(KmpData.load(kmpData, gViewer))
-		
-		let brresData = fs.readFileSync(brresFilename)
-		let modelBuilder = require("./util/brresLoader.js").BrresLoader.load(brresData)
-		
-		if (gSubViewer != null)
-			gSubViewer.destroy()
-		
-		gSubViewer = new ViewerEnemyPaths(gViewer, gData)
-		gViewer.setModel(modelBuilder)
-		gViewer.setSubViewer(gSubViewer)
+		let result = remote.dialog.showOpenDialog({ properties: ["openFile"], filters: [{ name: "OBJ Models (*.obj)", extensions: ["obj"] }] })
+		if (result)
+		{
+			//ipcRenderer.send("showProgress")
+			let data = fs.readFileSync(result[0])
+			let modelBuilder = require("./util/objLoader.js").ObjLoader.makeModelBuilder(data)
+			//ipcRenderer.send("hideProgress")
+			
+			this.viewer.setModel(modelBuilder)
+		}
+	}
+
+
+	showImportBrresCourseModelDialog()
+	{
+		let result = remote.dialog.showOpenDialog({ properties: ["openFile"], filters: [{ name: "BRRES Models (*.brres)", extensions: ["brres"] }] })
+		if (result)
+		{
+			let data = fs.readFileSync(result[0])
+			let modelBuilder = require("./util/brresLoader.js").BrresLoader.load(data)
+			
+			this.viewer.setModel(modelBuilder)
+		}
 	}
 }
 
 
-function showImportObjCourseModelDialog()
-{
-	let result = remote.dialog.showOpenDialog({ properties: ["openFile"], filters: [{ name: "OBJ Models (*.obj)", extensions: ["obj"] }] })
-	if (result)
-	{
-		//ipcRenderer.send("showProgress")
-		let data = fs.readFileSync(result[0])
-		let modelBuilder = require("./util/objLoader.js").ObjLoader.makeModelBuilder(data)
-		//ipcRenderer.send("hideProgress")
-		
-		gViewer.setModel(modelBuilder)
-	}
-}
-
-
-function showImportBrresCourseModelDialog()
-{
-	let result = remote.dialog.showOpenDialog({ properties: ["openFile"], filters: [{ name: "BRRES Models (*.brres)", extensions: ["brres"] }] })
-	if (result)
-	{
-		let data = fs.readFileSync(result[0])
-		let modelBuilder = require("./util/brresLoader.js").BrresLoader.load(data)
-		
-		gViewer.setModel(modelBuilder)
-	}
-}
-
-
-module.exports = { main, gViewer }
+module.exports = { main, MainWindow, gMainWindow }

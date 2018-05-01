@@ -7,8 +7,9 @@ const { Geometry } = require("../math/geometry.js")
 
 class ViewerEnemyPaths
 {
-	constructor(viewer, data)
+	constructor(window, viewer, data)
 	{
+		this.window = window
 		this.viewer = viewer
 		this.data = data
 		
@@ -16,7 +17,7 @@ class ViewerEnemyPaths
 		this.sceneAfter = new GfxScene()
 		
 		this.hoveringOverPoint = null
-		this.hoveringOverPath = null
+		this.linkingPoints = false
 		
 		this.modelPoint = new ModelBuilder()
 			.addSphere(-150, -150, -150, 150, 150, 150)
@@ -38,62 +39,88 @@ class ViewerEnemyPaths
 			.calculateNormals()
 			.makeModel(viewer.gl)
 			
-		for (let point of data.enemyPoints)
-		{
-			point.selected = false
-			point.moveOrigin = point.pos
+		this.renderers = []
 			
-			point.renderer = new GfxNodeRendererTransform()
-				.attach(this.scene.root)
-				.setModel(this.modelPoint)
-				.setMaterial(viewer.material)
-			
-			point.rendererSelected = new GfxNodeRendererTransform()
-				.attach(this.sceneAfter.root)
-				.setModel(this.modelPointSelection)
-				.setMaterial(viewer.materialUnshaded)
-				.setEnabled(false)
-				
-			point.rendererSelectedCore = new GfxNodeRenderer()
-				.attach(point.rendererSelected)
-				.setModel(this.modelPoint)
-				.setMaterial(viewer.material)
-				
-			point.rendererOutgoingPaths = []
-			point.rendererOutgoingPathArrows = []
-			for (let next of point.next)
-			{
-				point.rendererOutgoingPaths.push(new GfxNodeRendererTransform()
-					.attach(this.scene.root)
-					.setModel(this.modelPath)
-					.setMaterial(viewer.material))
-					
-				point.rendererOutgoingPathArrows.push(new GfxNodeRendererTransform()
-					.attach(this.scene.root)
-					.setModel(this.modelArrow)
-					.setMaterial(viewer.material))
-			}
-		}
+		this.refresh()
+		
+		/*this.panel = document.createElement("div")
+		window.panel.appendChild(this.panel)
+		
+		this.helpPanel = document.createElement("span")
+		this.panel.appendChild(this.helpPanel)
+		this.helpPanel.innerHTML = "Hold Alt & Drag a point = Create new point"*/
 	}
 	
 	
 	destroy()
 	{
+		for (let r of this.renderers)
+			r.detach()
+		
+		this.renderers = []
+	}
+	
+	
+	refresh()
+	{
+		for (let r of this.renderers)
+			r.detach()
+		
+		this.renderers = []
+		
 		for (let point of this.data.enemyPoints)
 		{
-			point.renderer.detach()
-			point.rendererSelectedCore.detach()
-			point.rendererSelected.detach()
-			for (let n = 0; n < point.next.length; n++)
+			if (point.selected === undefined)
 			{
-				point.rendererOutgoingPaths[n].detach()
-				point.rendererOutgoingPathArrows[n].detach()
+				point.selected = false
+				point.moveOrigin = point.pos
+			}
+			
+			point.renderer = new GfxNodeRendererTransform()
+				.attach(this.scene.root)
+				.setModel(this.modelPoint)
+				.setMaterial(this.viewer.material)
+			
+			point.rendererSelected = new GfxNodeRendererTransform()
+				.attach(this.sceneAfter.root)
+				.setModel(this.modelPointSelection)
+				.setMaterial(this.viewer.materialUnshaded)
+				.setEnabled(false)
+				
+			point.rendererSelectedCore = new GfxNodeRenderer()
+				.attach(point.rendererSelected)
+				.setModel(this.modelPoint)
+				.setMaterial(this.viewer.material)
+				
+			this.renderers.push(point.renderer)
+			this.renderers.push(point.rendererSelected)
+				
+			point.rendererOutgoingPaths = []
+			point.rendererOutgoingPathArrows = []
+			
+			for (let next of point.next)
+			{
+				let rPath = new GfxNodeRendererTransform()
+					.attach(this.scene.root)
+					.setModel(this.modelPath)
+					.setMaterial(this.viewer.material)
+					
+				let rArrow = new GfxNodeRendererTransform()
+					.attach(this.scene.root)
+					.setModel(this.modelArrow)
+					.setMaterial(this.viewer.material)
+					
+				point.rendererOutgoingPaths.push(rPath)
+				point.rendererOutgoingPathArrows.push(rArrow)
+					
+				this.renderers.push(rPath)
+				this.renderers.push(rArrow)
 			}
 		}
 	}
 	
 	
-	getHoveringOverElement(cameraPos, ray, distToHit)
+	getHoveringOverElement(cameraPos, ray, distToHit, includeSelected = true)
 	{
 		let elem = null
 		
@@ -101,6 +128,9 @@ class ViewerEnemyPaths
 		let minDistToPoint = 1000000
 		for (let point of this.data.enemyPoints)
 		{
+			if (!includeSelected && point.selected)
+				continue
+			
 			let distToCamera = point.pos.sub(cameraPos).magn()
 			if (distToCamera >= minDistToCamera)
 				continue
@@ -128,8 +158,75 @@ class ViewerEnemyPaths
 	}
 	
 	
+	deleteSelectedPoints()
+	{
+		let pointsToDelete = []
+		
+		for (let point of this.data.enemyPoints)
+		{
+			if (!point.selected)
+				continue
+			
+			pointsToDelete.push(point)
+		}
+		
+		for (let point of pointsToDelete)
+			this.data.removeEnemyPoint(point)
+		
+		this.refresh()
+	}
+	
+	
+	unlinkSelectedPoints()
+	{
+		for (let point of this.data.enemyPoints)
+		{
+			if (!point.selected)
+				continue
+			
+			let nextPointsToUnlink = []
+			
+			for (let next of point.next)
+			{
+				if (!next.selected)
+					continue
+				
+				nextPointsToUnlink.push(next)
+			}
+			
+			for (let next of nextPointsToUnlink)
+				this.data.unlinkEnemyPoints(point, next)
+		}
+		
+		this.refresh()
+	}
+	
+	
+	onKeyDown(ev)
+	{
+		switch (ev.key)
+		{
+			case "Backspace":
+			case "Delete":
+			case "X":
+			case "x":
+				this.deleteSelectedPoints()
+				return true
+				
+			case "U":
+			case "u":
+				this.unlinkSelectedPoints()
+				return true
+		}
+		
+		return false
+	}
+	
+	
 	onMouseDown(ev, x, y, cameraPos, ray, hit, distToHit)
 	{
+		this.linkingPoints = false
+		
 		for (let point of this.data.enemyPoints)
 			point.moveOrigin = point.pos
 		
@@ -140,8 +237,26 @@ class ViewerEnemyPaths
 		
 		if (hoveringOverElem != null)
 		{
-			hoveringOverElem.selected = true
-			this.viewer.setCursor("-webkit-grabbing")
+			if (ev.altKey)
+			{
+				this.unselectAll()
+				
+				let newPoint = this.data.makeEnemyPoint()
+				newPoint.pos = hoveringOverElem.pos
+				newPoint.size = hoveringOverElem.size
+				
+				this.data.linkEnemyPoints(hoveringOverElem, newPoint)
+				
+				this.refresh()
+				
+				newPoint.selected = true
+				this.linkingPoints = true
+			}
+			else
+			{
+				hoveringOverElem.selected = true
+				this.viewer.setCursor("-webkit-grabbing")
+			}
 		}
 	}
 	
@@ -159,6 +274,8 @@ class ViewerEnemyPaths
 		{
 			if (this.viewer.mouseAction == "move")
 			{
+				let linkToPoint = this.getHoveringOverElement(cameraPos, ray, distToHit, false)
+				
 				for (let point of this.data.enemyPoints)
 				{
 					if (!point.selected)
@@ -166,22 +283,49 @@ class ViewerEnemyPaths
 					
 					this.viewer.setCursor("-webkit-grabbing")
 					
-					let screenPosMoved = this.viewer.pointToScreen(point.moveOrigin)
-					screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
-					screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y
-					let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
-					
-					let hit = this.viewer.collision.raycast(pointRayMoved.origin, pointRayMoved.direction)
-					if (hit != null)
-						point.pos = hit.position
-					else
+					if (this.linkingPoints && linkToPoint != null)
 					{
-						let screenPos = this.viewer.pointToScreen(point.moveOrigin)
-						let pointRay = this.viewer.getScreenRay(screenPos.x, screenPos.y)
-						let origDistToScreen = point.moveOrigin.sub(pointRay.origin).magn()
-						
-						point.pos = pointRayMoved.origin.add(pointRayMoved.direction.scale(origDistToScreen))
+						point.pos = linkToPoint.pos
 					}
+					else
+					{					
+						let screenPosMoved = this.viewer.pointToScreen(point.moveOrigin)
+						screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
+						screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y
+						let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
+						
+						let hit = this.viewer.collision.raycast(pointRayMoved.origin, pointRayMoved.direction)
+						if (hit != null)
+							point.pos = hit.position
+						else
+						{
+							let screenPos = this.viewer.pointToScreen(point.moveOrigin)
+							let pointRay = this.viewer.getScreenRay(screenPos.x, screenPos.y)
+							let origDistToScreen = point.moveOrigin.sub(pointRay.origin).magn()
+							
+							point.pos = pointRayMoved.origin.add(pointRayMoved.direction.scale(origDistToScreen))
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	
+	onMouseUp(ev, x, y)
+	{
+		if (this.viewer.mouseAction == "move")
+		{
+			if (this.linkingPoints)
+			{
+				let pointBeingLinked = this.data.enemyPoints.find(p => p.selected)
+				let pointBeingLinkedTo = this.data.enemyPoints.find(p => p != pointBeingLinked && p.pos == pointBeingLinked.pos)
+				
+				if (pointBeingLinkedTo != null)
+				{
+					this.data.removeEnemyPoint(pointBeingLinked)
+					this.data.linkEnemyPoints(pointBeingLinked.prev[0], pointBeingLinkedTo)
+					this.refresh()
 				}
 			}
 		}

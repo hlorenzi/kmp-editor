@@ -117,7 +117,71 @@ class KmpData
 			}
 		}
 		
-		return { enemyPoints }
+		let kmp = new KmpData()
+		kmp.enemyPoints = enemyPoints
+		
+		return kmp
+	}
+	
+	
+	constructor()
+	{
+		
+	}
+	
+	
+	makeEnemyPoint()
+	{
+		let p =
+		{
+			pos: new Vec3(0, 0, 0),
+			size: 1,
+			next: [],
+			prev: []
+		}
+		
+		this.enemyPoints.push(p)
+		return p
+	}
+	
+	
+	linkEnemyPoints(pPrev, pNext)
+	{
+		pPrev.next.push(pNext)
+		pNext.prev.push(pPrev)
+	}
+	
+	
+	removeEnemyPoint(p)
+	{
+		for (let pPrev of p.prev)
+		{
+			let next = pPrev.next.findIndex(q => q == p)
+			if (next >= 0)
+				pPrev.next.splice(next, 1)
+		}
+		
+		for (let pNext of p.next)
+		{
+			let prev = pNext.prev.findIndex(q => q == p)
+			if (prev >= 0)
+				pNext.prev.splice(prev, 1)
+		}
+		
+		let index = this.enemyPoints.findIndex(q => q == p)
+		this.enemyPoints.splice(index, 1)
+	}
+	
+	
+	unlinkEnemyPoints(pPrev, pNext)
+	{
+		let prev = pNext.prev.findIndex(q => q == pPrev)
+		if (prev >= 0)
+			pNext.prev.splice(prev, 1)
+		
+		let next = pPrev.next.findIndex(q => q == pNext)
+		if (next >= 0)
+			pPrev.next.splice(next, 1)
 	}
 }
 

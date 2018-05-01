@@ -15,6 +15,7 @@ class Viewer
 		this.canvas.onmousemove = (ev) => this.onMouseMove(ev)
 		this.canvas.onmouseup = (ev) => this.onMouseUp(ev)
 		this.canvas.onwheel = (ev) => this.onMouseWheel(ev)
+		document.onkeydown = (ev) => this.onKeyDown(ev)
 		
 		this.subviewer = null
 		
@@ -120,6 +121,9 @@ class Viewer
 	
 	setSubViewer(subviewer)
 	{
+		if (this.subviewer != null)
+			this.subviewer.destroy()
+		
 		this.subviewer = subviewer
 	}
 	
@@ -212,6 +216,20 @@ class Viewer
 	setCursor(cursor)
 	{
 		this.canvas.style.cursor = cursor
+	}
+	
+	
+	onKeyDown(ev)
+	{
+		if (this.subviewer != null)
+		{
+			if (this.subviewer.onKeyDown(ev))
+			{
+				ev.preventDefault()
+				this.render()
+				return
+			}
+		}
 	}
 	
 	
@@ -337,6 +355,9 @@ class Viewer
 	onMouseUp(ev)
 	{
 		let mouse = this.getMousePosFromEvent(ev)
+		
+		if (this.subviewer != null && this.subviewer.onMouseUp)
+			this.subviewer.onMouseUp(ev, mouse.x, mouse.y)
 		
 		this.mouseDown = false
 		this.mouseLast = mouse
