@@ -58,6 +58,11 @@ class Viewer
 				GLProgram.makeFromSrc(this.gl, vertexSrc, fragmentSrc)
 				.registerLocations(this.gl, ["aPosition", "aNormal"], ["uMatProj", "uMatView", "uMatModel", "uDiffuseColor"]))
 				
+		this.materialColor = new GfxMaterial()
+			.setProgram(
+				GLProgram.makeFromSrc(this.gl, vertexSrcColor, fragmentSrcColor)
+				.registerLocations(this.gl, ["aPosition", "aNormal", "aColor"], ["uMatProj", "uMatView", "uMatModel", "uDiffuseColor"]))
+				
 		this.materialUnshaded = new GfxMaterial()
 			.setProgram(
 				GLProgram.makeFromSrc(this.gl, vertexSrc, fragmentSrcUnshaded)
@@ -73,7 +78,7 @@ class Viewer
 		this.renderer = new GfxNodeRenderer()
 			.attach(this.scene.root)
 			.setModel(this.model)
-			.setMaterial(this.material)
+			.setMaterial(this.materialColor)
 			.setDiffuseColor([1, 1, 1, 1])
 			
 			
@@ -412,6 +417,55 @@ const fragmentSrc = `
 		
 		vec4 ambientColor = vec4(0.2, 0.2, 0.2, 1);
 		vec4 diffuseColor = uDiffuseColor;
+		vec4 lightColor = vec4(1, 1, 1, 1);
+		
+		float lightIncidence = max(0.0, dot(normalize(lightDir), normalize(vScreenNormal)));
+		
+		gl_FragColor = diffuseColor * mix(ambientColor, lightColor, lightIncidence);
+	}`
+
+
+const vertexSrcColor = `
+	precision highp float;
+	
+	attribute vec4 aPosition;
+	attribute vec4 aNormal;
+	attribute vec4 aColor;
+
+	uniform mat4 uMatModel;
+	uniform mat4 uMatView;
+	uniform mat4 uMatProj;
+	
+	varying vec4 vNormal;
+	varying vec4 vScreenNormal;
+	varying vec4 vColor;
+
+	void main()
+	{
+		vNormal = uMatModel * vec4(aNormal.xyz, 0);
+		vScreenNormal = uMatView * uMatModel * vec4(aNormal.xyz, 0);
+		
+		vColor = aColor;
+		
+		gl_Position = uMatProj * uMatView * uMatModel * aPosition;
+	}`
+
+
+const fragmentSrcColor = `
+	precision highp float;
+	
+	varying vec4 vNormal;
+	varying vec4 vScreenNormal;
+	varying vec4 vColor;
+	
+	uniform vec4 uDiffuseColor;
+
+	void main()
+	{
+		vec4 lightDir = vec4(0, 0, -1, 0);// vec4(2.2, 0.2, 1, 0);
+		
+		vec4 ambientColor = vec4(0.2, 0.2, 0.2, 1);
+		vec4 diffuseColor = uDiffuseColor * vColor;
 		vec4 lightColor = vec4(1, 1, 1, 1);
 		
 		float lightIncidence = max(0.0, dot(normalize(lightDir), normalize(vScreenNormal)));

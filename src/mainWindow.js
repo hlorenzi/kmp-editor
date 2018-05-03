@@ -66,12 +66,16 @@ class MainWindow
 		{
 			let kmpFilename = result[0].replace(new RegExp("\\\\", "g"), "/")
 			let brresFilename = kmpFilename.substr(0, kmpFilename.lastIndexOf("/")) + "/course_model.brres"
+			let kclFilename = kmpFilename.substr(0, kmpFilename.lastIndexOf("/")) + "/course.kcl"
 			
 			let kmpData = fs.readFileSync(kmpFilename)
 			this.data = KmpData.convertToWorkingFormat(KmpData.load(kmpData, this.viewer))
 			
 			let brresData = fs.readFileSync(brresFilename)
-			let modelBuilder = require("./util/brresLoader.js").BrresLoader.load(brresData)
+			//let modelBuilder = require("./util/brresLoader.js").BrresLoader.load(brresData)
+			
+			let kclData = fs.readFileSync(kclFilename)
+			let modelBuilder = require("./util/kclLoader.js").KclLoader.load(kclData)
 			
 			this.viewer.setModel(modelBuilder)
 			this.viewer.setSubViewer(new ViewerEnemyPaths(this, this.viewer, this.data))

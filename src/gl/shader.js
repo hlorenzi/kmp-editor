@@ -75,6 +75,8 @@ class GLProgram
 		this.id = id
 		this.attributes = { }
 		this.uniforms = { }
+		
+		this.hasColor = false
 	}
 	
 	
@@ -85,6 +87,8 @@ class GLProgram
 		
 		for (let unif of unifs)
 			this.uniforms[unif] = gl.getUniformLocation(this.id, unif)
+		
+		this.hasColor = (attrbs.find(a => a == "aColor") != null)
 		
 		return this
 	}
@@ -110,6 +114,15 @@ class GLProgram
 	{
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffer.id)
 		gl.vertexAttribPointer(this.attributes[attrb], 3, gl.FLOAT, false, 0, 0)
+		gl.enableVertexAttribArray(this.attributes[attrb])
+		return this
+	}
+	
+	
+	bindColors(gl, attrb, buffer)
+	{
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffer.id)
+		gl.vertexAttribPointer(this.attributes[attrb], 4, gl.FLOAT, false, 0, 0)
 		gl.enableVertexAttribArray(this.attributes[attrb])
 		return this
 	}

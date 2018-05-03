@@ -50,6 +50,10 @@ class GfxScene
 			node.material.program.use(gl)
 			node.material.program.bindPosition(gl, "aPosition", node.model.positions)
 			node.material.program.bindNormals(gl, "aNormal", node.model.normals)
+			
+			if (node.material.program.hasColor)
+				node.material.program.bindColors(gl, "aColor", node.model.colors)
+			
 			node.material.program.setMat4(gl, "uMatProj", camera.projection)
 			node.material.program.setMat4(gl, "uMatView", camera.view)
 			node.material.program.setMat4(gl, "uMatModel", transform)
@@ -115,6 +119,7 @@ class GfxModel
 	{
 		this.positions = null
 		this.normals = null
+		this.colors = null
 	}
 	
 	
@@ -128,6 +133,13 @@ class GfxModel
 	setNormals(normals)
 	{
 		this.normals = normals
+		return this
+	}
+	
+	
+	setColors(colors)
+	{
+		this.colors = colors
 		return this
 	}
 }

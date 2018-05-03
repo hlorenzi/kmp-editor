@@ -12,6 +12,12 @@ class GLBuffer
 	}
 	
 	
+	static makeColor(gl, colors)
+	{
+		return GLBuffer.make(gl, colors)
+	}
+	
+	
 	static make(gl, data)
 	{
 		let buffer = gl.createBuffer()

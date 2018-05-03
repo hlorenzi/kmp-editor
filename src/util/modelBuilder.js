@@ -11,10 +11,11 @@ class ModelBuilder
 	{
 		this.positions = []
 		this.normals = []
+		this.colors = []
 	}
 	
 	
-	addTri(v1, v2, v3)
+	addTri(v1, v2, v3, c1 = null, c2 = null, c3 = null)
 	{
 		this.positions.push(v1)
 		this.positions.push(v2)
@@ -23,6 +24,10 @@ class ModelBuilder
 		this.normals.push(new Vec3(0, 0, 0))
 		this.normals.push(new Vec3(0, 0, 0))
 		this.normals.push(new Vec3(0, 0, 0))
+		
+		this.colors.push(c1 ? c1 : [1, 1, 1, 1])
+		this.colors.push(c2 ? c2 : [1, 1, 1, 1])
+		this.colors.push(c3 ? c3 : [1, 1, 1, 1])
 		
 		return this
 	}
@@ -319,6 +324,7 @@ class ModelBuilder
 	{
 		let positions = []
 		let normals = []
+		let colors = []
 		
 		for (let i = 0; i < this.positions.length; i++)
 		{
@@ -329,11 +335,17 @@ class ModelBuilder
 			normals.push(this.normals[i].x)
 			normals.push(this.normals[i].y)
 			normals.push(this.normals[i].z)
+			
+			colors.push(this.colors[i][0])
+			colors.push(this.colors[i][1])
+			colors.push(this.colors[i][2])
+			colors.push(this.colors[i][3])
 		}
 		
 		let model = new GfxModel()
 			.setPositions(GLBuffer.makePosition(gl, positions))
 			.setNormals(GLBuffer.makeNormal(gl, normals))
+			.setColors(GLBuffer.makeColor(gl, colors))
 		
 		return model
 	}
