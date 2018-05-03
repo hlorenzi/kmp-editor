@@ -7,8 +7,10 @@ const { Mat4 } = require("../math/mat4.js")
 
 class Viewer
 {
-	constructor(canvas)
+	constructor(canvas, cfg)
 	{
+		this.cfg = cfg
+		
 		this.canvas = canvas
 		this.canvas.onresize = () => this.resize()
 		this.canvas.onmousedown = (ev) => this.onMouseDown(ev)
@@ -56,12 +58,12 @@ class Viewer
 		this.material = new GfxMaterial()
 			.setProgram(
 				GLProgram.makeFromSrc(this.gl, vertexSrc, fragmentSrc)
-				.registerLocations(this.gl, ["aPosition", "aNormal"], ["uMatProj", "uMatView", "uMatModel", "uDiffuseColor"]))
+				.registerLocations(this.gl, ["aPosition", "aNormal"], ["uMatProj", "uMatView", "uMatModel", "uAmbientColor", "uDiffuseColor"]))
 				
 		this.materialColor = new GfxMaterial()
 			.setProgram(
 				GLProgram.makeFromSrc(this.gl, vertexSrcColor, fragmentSrcColor)
-				.registerLocations(this.gl, ["aPosition", "aNormal", "aColor"], ["uMatProj", "uMatView", "uMatModel", "uDiffuseColor"]))
+				.registerLocations(this.gl, ["aPosition", "aNormal", "aColor"], ["uMatProj", "uMatView", "uMatModel", "uAmbientColor", "uDiffuseColor"]))
 				
 		this.materialUnshaded = new GfxMaterial()
 			.setProgram(
@@ -110,12 +112,20 @@ class Viewer
 	
 	setModel(modelBuilder)
 	{
-		let bbox = modelBuilder.getBoundingBox()
-		
+		this.modelBuilder = modelBuilder
 		this.model = modelBuilder.makeModel(this.gl)
 		this.renderer.setModel(this.model)
 		
 		this.collision = modelBuilder.makeCollision().buildCacheSubdiv()
+	}
+	
+	
+	centerView()
+	{
+		if (this.modelBuilder == null)
+			return
+		
+		let bbox = this.modelBuilder.getBoundingBox()
 		
 		this.cameraFocus = new Vec3(bbox.xCenter, bbox.yCenter, bbox.zCenter)
 		this.cameraHorzAngle = Math.PI / 2
@@ -124,7 +134,7 @@ class Viewer
 	}
 	
 	
-	setSubViewer(subviewer)
+	setSubviewer(subviewer)
 	{
 		if (this.subviewer != null)
 			this.subviewer.destroy()
@@ -136,6 +146,10 @@ class Viewer
 	render()
 	{
 		this.scene.clear(this.gl)
+		
+		let ambient = 1 - this.cfg.shadingFactor
+		this.material.program.use(this.gl).setVec4(this.gl, "uAmbientColor", [ambient, ambient, ambient, 1])
+		this.materialColor.program.use(this.gl).setVec4(this.gl, "uAmbientColor", [ambient, ambient, ambient, 1])
 		
 		if (this.subviewer != null && this.subviewer.draw)
 			this.subviewer.draw()
@@ -410,12 +424,13 @@ const fragmentSrc = `
 	varying vec4 vScreenNormal;
 	
 	uniform vec4 uDiffuseColor;
+	uniform vec4 uAmbientColor;
 
 	void main()
 	{
-		vec4 lightDir = vec4(0, 0, -1, 0);// vec4(2.2, 0.2, 1, 0);
+		vec4 lightDir = vec4(0, 0, -1, 0);
 		
-		vec4 ambientColor = vec4(0.2, 0.2, 0.2, 1);
+		vec4 ambientColor = uAmbientColor;
 		vec4 diffuseColor = uDiffuseColor;
 		vec4 lightColor = vec4(1, 1, 1, 1);
 		
@@ -459,12 +474,13 @@ const fragmentSrcColor = `
 	varying vec4 vColor;
 	
 	uniform vec4 uDiffuseColor;
+	uniform vec4 uAmbientColor;
 
 	void main()
 	{
-		vec4 lightDir = vec4(0, 0, -1, 0);// vec4(2.2, 0.2, 1, 0);
+		vec4 lightDir = vec4(0, 0, -1, 0);
 		
-		vec4 ambientColor = vec4(0.2, 0.2, 0.2, 1);
+		vec4 ambientColor = uAmbientColor;
 		vec4 diffuseColor = uDiffuseColor * vColor;
 		vec4 lightColor = vec4(1, 1, 1, 1);
 		

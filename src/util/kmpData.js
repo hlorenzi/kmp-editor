@@ -126,7 +126,7 @@ class KmpData
 	
 	constructor()
 	{
-		
+		this.enemyPoints = []
 	}
 	
 	

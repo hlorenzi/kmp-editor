@@ -259,7 +259,7 @@ class ModelBuilder
 	}
 	
 	
-	calculateNormals(maxSmoothAngle = 1.0)
+	calculateNormals(maxSmoothAngle = 1.5)
 	{
 		for (let i = 0; i < this.positions.length; i += 3)
 		{
@@ -277,10 +277,12 @@ class ModelBuilder
 			this.normals[i + 2] = normal
 		}
 		
+		let rounding = 0.001
+		
 		let verticesSet = new Map()
 		for (let j = 0; j < this.positions.length; j++)
 		{
-			let key = this.positions[j].asArray().map(x => Math.round(x * 100) / 100).toString()
+			let key = this.positions[j].asArray().map(x => Math.round(x * rounding) / rounding).toString()
 			
 			let value = verticesSet.get(key)
 			if (value === undefined)
@@ -296,7 +298,7 @@ class ModelBuilder
 			normalAccum[j] = this.normals[j]
 			normalCount[j] = 1
 			
-			let vertices = verticesSet.get(this.positions[j].asArray().map(x => Math.round(x * 100) / 100).toString())
+			let vertices = verticesSet.get(this.positions[j].asArray().map(x => Math.round(x * rounding) / rounding).toString())
 			if (vertices === undefined)
 				continue
 			

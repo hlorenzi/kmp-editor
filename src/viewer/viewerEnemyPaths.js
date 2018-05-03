@@ -42,13 +42,7 @@ class ViewerEnemyPaths
 		this.renderers = []
 			
 		this.refresh()
-		
-		/*this.panel = document.createElement("div")
-		window.panel.appendChild(this.panel)
-		
-		this.helpPanel = document.createElement("span")
-		this.panel.appendChild(this.helpPanel)
-		this.helpPanel.innerHTML = "Hold Alt & Drag a point = Create new point"*/
+		this.refreshPanels()
 	}
 	
 	
@@ -58,6 +52,18 @@ class ViewerEnemyPaths
 			r.detach()
 		
 		this.renderers = []
+	}
+	
+	
+	refreshPanels()
+	{
+		let panel = this.window.addPanel("Enemy Paths")
+		panel.toggleOpen()
+		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Add/Link Points")
+		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselection")
+		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
+		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
+		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
 	}
 	
 	
@@ -151,10 +157,28 @@ class ViewerEnemyPaths
 	}
 	
 	
+	selectAll()
+	{
+		for (let point of this.data.enemyPoints)
+			point.selected = true
+	}
+	
+	
 	unselectAll()
 	{
 		for (let point of this.data.enemyPoints)
 			point.selected = false
+	}
+	
+	
+	toggleAllSelection()
+	{
+		let hasSelection = (this.data.enemyPoints.find(p => p.selected) != null)
+		
+		if (hasSelection)
+			this.unselectAll()
+		else
+			this.selectAll()
 	}
 	
 	
@@ -206,6 +230,11 @@ class ViewerEnemyPaths
 	{
 		switch (ev.key)
 		{
+			case "A":
+			case "a":
+				this.toggleAllSelection()
+				return true
+			
 			case "Backspace":
 			case "Delete":
 			case "X":

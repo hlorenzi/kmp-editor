@@ -57,7 +57,7 @@ class BrresLoader
 		console.log(debugStructure)
 		
 		if (courseModelMDL0 == null)
-			throw new "brres: no course model found"
+			throw "brres: no course model found"
 		
 		parser.seek(courseModelMDL0.offsetBase + courseModelMDL0.dataOffset)
 		let mdl0 = BrresLoader.readMdl0Section(parser)

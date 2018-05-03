@@ -4,7 +4,7 @@
 <html>
 
 	<head>
-		<title>KMP Editor</title>
+		<title>hlorenzi's KMP Editor</title>
 		<meta charset="UTF-8">
 	</head>
 	
@@ -16,46 +16,95 @@
 			padding: 0;
 			width: 100%;
 			height: 100%;
+			font-family: Segoe UI, Verdana, sans-serif;
 			overflow: hidden;
 		}
 		
-		table
+		#divGrid
 		{
-			margin: 0;
-			border: 0;
-			padding: 0;
 			width: 100%;
 			height: 100%;
+			display: grid;
+			grid-template-columns: 15em auto;
+			grid-template-rows: auto;
 		}
 		
-		tr, td
+		#divSidePanel
 		{
-			margin: 0;
-			border: 0;
-			padding: 0;
-			height: 10%;
+			width: 100%;
+			grid-column: 1;
+			grid-row: 1;
+			background-color: #eee;
+			font-size: 0.75em;
+			overflow-x: hidden;
+			overflow-y: visible;
 		}
 		
 		#canvasMain
 		{
 			width: 100%;
 			height: 100%;
+			grid-column: 2;
+			grid-row: 1;
+		}
+		
+		.panel
+		{
+			width: 100%;
+		}
+		
+		.panelTitle
+		{
+			width: 100%;
+			height: 1.75em;
+			user-select: none;
+		}
+		
+		.panelContent
+		{
+			width: 100%;
+		}
+		
+		.panelRowElement
+		{
+			width: 100%;
+			padding: 0.25em;
+		}
+		
+		.panelGroupTitle
+		{
+			font-weight: bold;
+			user-select: none;
+		}
+		
+		.panelGroup
+		{
+			width: 100%;
+			margin: 0.25em;
+			padding: 0;
+		}
+		
+		.panelLabel
+		{
+		}
+		
+		.panelButton
+		{
+			
+		}
+		
+		.panelCheckbox
+		{
+			margin-top: 0.2em;
+			margin-bottom: 0.05em;
 		}
 	</style>
 	
 	<body onload="main()">
-		<!--<table>
-			<tr>
-				<td id="tdSidePanel" style="width:15em;">
-				
-				</td>
-				<td>
-					<canvas id="canvasMain"></canvas>
-				</td>
-			</tr>
-		</table>-->
-		
-		<canvas id="canvasMain"></canvas>
+		<div id="divGrid">
+			<div id="divSidePanel"></div>
+			<canvas id="canvasMain"></canvas>
+		</div>
 		
 		<script>
 			const { main } = require("./src/mainWindow.js")
