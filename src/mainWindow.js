@@ -1,4 +1,4 @@
-const { remote, ipcRenderer } = require("electron")
+const { remote, ipcRenderer, screen } = require("electron")
 const fs = require("fs")
 const { Viewer } = require("./viewer/viewer.js")
 const { ViewerEnemyPaths } = require("./viewer/viewerEnemyPaths.js")
@@ -45,6 +45,8 @@ class MainWindow
 		
 		document.body.onresize = () => this.onResize()
 		
+		screen.onmousemove = () => console.log("hey")
+		
 		this.cfg =
 		{
 			shadingFactor: 0.3,
@@ -83,7 +85,6 @@ class MainWindow
 		this.panels = []
 		
 		let panel = this.addPanel("Model")
-		panel.toggleOpen()
 		panel.addButton(null, "Load course_model.brres", () => this.openCourseBrres())
 		panel.addButton(null, "Load course.kcl", () => this.openCourseKcl())
 		panel.addButton(null, "Load custom model", () => this.openCustomModel())
@@ -99,7 +100,7 @@ class MainWindow
 	}
 	
 	
-	addPanel(name, closable = false)
+	addPanel(name, open = true, closable = false)
 	{
 		let panel = this.panels.find(p => p.name == name)
 		if (panel != null)
@@ -108,7 +109,7 @@ class MainWindow
 			return panel
 		}
 		
-		panel = new Panel(this.sidePanelDiv, name, closable, () => this.viewer.render())
+		panel = new Panel(this.sidePanelDiv, name, open, closable, () => this.viewer.render())
 		this.panels.push(panel)
 		return panel
 	}
@@ -205,12 +206,12 @@ class MainWindow
 
 class Panel
 {
-	constructor(parentDiv, name, closable = true, onRefreshView = null)
+	constructor(parentDiv, name, open = true, closable = true, onRefreshView = null)
 	{
 		this.parentDiv = parentDiv
 		this.name = name
 		this.closable = closable
-		this.open = false
+		this.open = open
 		
 		this.panelDiv = document.createElement("div")
 		this.panelDiv.className = "panel"
@@ -227,7 +228,9 @@ class Panel
 		this.panelDiv.appendChild(this.contentDiv)
 		
 		this.titleButton.onclick = () => this.toggleOpen()
-		this.onRefreshView = (onRefreshView ? onRefreshView : () => { })
+		this.onRefreshView = (onRefreshView != null ? onRefreshView : () => { })
+		
+		this.refreshOpen()
 	}
 	
 	
@@ -247,7 +250,12 @@ class Panel
 	toggleOpen()
 	{
 		this.open = !this.open
-		
+		this.refreshOpen()
+	}
+	
+	
+	refreshOpen()
+	{
 		if (this.open)
 		{
 			this.contentDiv.style.display = "block"
@@ -387,6 +395,37 @@ class Panel
 			group.appendChild(div)
 		
 		return slider
+	}
+	
+	
+	addNumericInput(group, str, min = 0, max = 1, value = 0, step = 0.1, dragStep = 0.1, enabled = true, multiedit = false, onchange = null)
+	{
+		let div = document.createElement("div")
+		div.className = "panelRowElement"
+		
+		let label = document.createElement("label")
+		div.appendChild(label)
+		
+		let input = document.createElement("input")
+		input.className = "panelNumericInput"
+		input.type = "input"
+		input.value = (!enabled ? "" : value)
+		input.disabled = !enabled
+		//input.oninput = () => { onchange(input.value); this.onRefreshView() }
+		
+		let text = document.createElement("div")
+		text.className = "panelInputLabel"
+		text.innerHTML = str
+		
+		label.appendChild(text)
+		label.appendChild(input)
+		
+		if (group == null)
+			this.contentDiv.appendChild(div)
+		else
+			group.appendChild(div)
+		
+		return input
 	}
 }
 

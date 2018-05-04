@@ -63,14 +63,32 @@ class ViewerEnemyPaths
 	
 	refreshPanels()
 	{
-		let panel = this.window.addPanel("Enemy Paths")
-		panel.toggleOpen()
+		let panel = this.window.addPanel("Enemy Paths", true)
 		panel.addCheckbox(null, "Show point sizes", this.viewer.cfg.enemyPathsEnableSizeRender, (x) => this.viewer.cfg.enemyPathsEnableSizeRender = x)
-		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Add/Link Points")
-		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselection")
+		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
+		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Extend Path")
+		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
+		
+		let selectedPoints = this.data.enemyPoints.filter(p => p.selected)
+		
+		let selectionGroup = panel.addGroup(null, "Selection:")
+		if (selectedPoints.length == 1)
+		{
+			panel.addNumericInput(selectionGroup, "X", -1000000, 1000000, selectedPoints[0].pos.x, null, 10, true, false)
+			panel.addNumericInput(selectionGroup, "Y", -1000000, 1000000, selectedPoints[0].pos.y, null, 10, true, false)
+			panel.addNumericInput(selectionGroup, "Z", -1000000, 1000000, selectedPoints[0].pos.z, null, 10, true, false)
+			panel.addNumericInput(selectionGroup, "Size", -1000000, 1000000, selectedPoints[0].size, null, 10, true, false)
+		}
+		else
+		{
+			panel.addNumericInput(selectionGroup, "X", -1000000, 1000000, 0, null, 10, false, false)
+			panel.addNumericInput(selectionGroup, "Y", -1000000, 1000000, 0, null, 10, false, false)
+			panel.addNumericInput(selectionGroup, "Z", -1000000, 1000000, 0, null, 10, false, false)
+			panel.addNumericInput(selectionGroup, "Size", -1000000, 1000000, 0, null, 10, false, false)
+		}
 	}
 	
 	
@@ -136,6 +154,8 @@ class ViewerEnemyPaths
 				this.renderers.push(rArrow)
 			}
 		}
+		
+		this.refreshPanels()
 	}
 	
 	
@@ -174,6 +194,8 @@ class ViewerEnemyPaths
 	{
 		for (let point of this.data.enemyPoints)
 			point.selected = true
+		
+		this.refreshPanels()
 	}
 	
 	
@@ -181,6 +203,8 @@ class ViewerEnemyPaths
 	{
 		for (let point of this.data.enemyPoints)
 			point.selected = false
+		
+		this.refreshPanels()
 	}
 	
 	
@@ -265,7 +289,7 @@ class ViewerEnemyPaths
 	}
 	
 	
-	onMouseDown(ev, x, y, cameraPos, ray, hit, distToHit)
+	onMouseDown(ev, x, y, cameraPos, ray, hit, distToHit, mouse3DPos)
 	{
 		this.linkingPoints = false
 		
@@ -274,15 +298,13 @@ class ViewerEnemyPaths
 		
 		let hoveringOverElem = this.getHoveringOverElement(cameraPos, ray, distToHit)
 		
-		if (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.selected))
+		if (ev.altKey || (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.selected)))
 			this.unselectAll()
 		
 		if (hoveringOverElem != null)
 		{
 			if (ev.altKey)
 			{
-				this.unselectAll()
-				
 				let newPoint = this.data.makeEnemyPoint()
 				newPoint.pos = hoveringOverElem.pos
 				newPoint.size = hoveringOverElem.size
@@ -297,8 +319,18 @@ class ViewerEnemyPaths
 			else
 			{
 				hoveringOverElem.selected = true
+				this.refreshPanels()
 				this.viewer.setCursor("-webkit-grabbing")
 			}
+		}
+		else if (ev.altKey)
+		{
+			let newPoint = this.data.makeEnemyPoint()
+			newPoint.pos = mouse3DPos
+			
+			this.refresh()
+			newPoint.selected = true
+			this.viewer.setCursor("-webkit-grabbing")
 		}
 	}
 	
@@ -349,6 +381,8 @@ class ViewerEnemyPaths
 						}
 					}
 				}
+				
+				this.refreshPanels()
 			}
 		}
 	}
@@ -361,6 +395,9 @@ class ViewerEnemyPaths
 			if (this.linkingPoints)
 			{
 				let pointBeingLinked = this.data.enemyPoints.find(p => p.selected)
+				if (pointBeingLinked == null)
+					return
+				
 				let pointBeingLinkedTo = this.data.enemyPoints.find(p => p != pointBeingLinked && p.pos == pointBeingLinked.pos)
 				
 				if (pointBeingLinkedTo != null)

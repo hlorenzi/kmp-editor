@@ -15,7 +15,8 @@ class Viewer
 		this.canvas.onresize = () => this.resize()
 		this.canvas.onmousedown = (ev) => this.onMouseDown(ev)
 		this.canvas.onmousemove = (ev) => this.onMouseMove(ev)
-		this.canvas.onmouseup = (ev) => this.onMouseUp(ev)
+		document.onmouseup = (ev) => this.onMouseUp(ev)
+		document.onmouseleave = (ev) => this.onMouseUp(ev)
 		this.canvas.onwheel = (ev) => this.onMouseWheel(ev)
 		document.onkeydown = (ev) => this.onKeyDown(ev)
 		
@@ -254,6 +255,8 @@ class Viewer
 	
 	onMouseDown(ev)
 	{
+		ev.preventDefault()
+		
 		let mouse = this.getMousePosFromEvent(ev)
 		let ray = this.getScreenRay(mouse.x, mouse.y)
 		let cameraPos = this.getCurrentCameraPosition()
@@ -295,8 +298,10 @@ class Viewer
 		{
 			this.mouseAction = "move"
 			
+			let mouse3DPos = hit ? hit.position : ray.origin.add(ray.direction.scale(1000))
+			
 			if (this.subviewer != null)
-				this.subviewer.onMouseDown(ev, mouse.x, mouse.y, cameraPos, ray, hit, distToHit)
+				this.subviewer.onMouseDown(ev, mouse.x, mouse.y, cameraPos, ray, hit, distToHit, mouse3DPos)
 		}
 		
 		this.mouseLastClickDate = new Date()
@@ -306,6 +311,8 @@ class Viewer
 	
 	onMouseMove(ev)
 	{
+		ev.preventDefault()
+		
 		let mouse = this.getMousePosFromEvent(ev)
 		let ray = this.getScreenRay(mouse.x, mouse.y)
 		let cameraPos = this.getCurrentCameraPosition()
@@ -373,6 +380,8 @@ class Viewer
 	
 	onMouseUp(ev)
 	{
+		ev.preventDefault()
+		
 		let mouse = this.getMousePosFromEvent(ev)
 		
 		if (this.subviewer != null && this.subviewer.onMouseUp)
@@ -385,6 +394,8 @@ class Viewer
 	
 	onMouseWheel(ev)
 	{
+		ev.preventDefault()
+		
 		if (ev.deltaY > 0)
 			this.cameraDist = Math.min(500000, this.cameraDist * 1.25)
 		else if (ev.deltaY < 0)
