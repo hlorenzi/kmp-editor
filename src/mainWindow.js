@@ -51,7 +51,8 @@ class MainWindow
 			kclEnableColors: true,
 			kclEnableDeathBarriers: true,
 			kclEnableInvisible: true,
-			kclEnableEffects: true
+			kclEnableEffects: true,
+			enemyPathsEnableSizeRender: true
 		}
 		
 		this.currentKmpFilename = null
@@ -62,7 +63,6 @@ class MainWindow
 		
 		this.sidePanelDiv = document.getElementById("divSidePanel")
 		this.viewer = new Viewer(document.getElementById("canvasMain"), this.cfg)
-		this.viewer.setSubviewer(new ViewerEnemyPaths(this, this.viewer, this.currentKmpData))
 		
 		this.refreshPanels()
 	}

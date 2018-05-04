@@ -15,6 +15,7 @@ class ViewerEnemyPaths
 		
 		this.scene = new GfxScene()
 		this.sceneAfter = new GfxScene()
+		this.sceneSizeCircles = new GfxScene()
 		
 		this.hoveringOverPoint = null
 		this.linkingPoints = false
@@ -39,6 +40,11 @@ class ViewerEnemyPaths
 			.calculateNormals()
 			.makeModel(viewer.gl)
 			
+		this.modelSizeCircle = new ModelBuilder()
+			.addSphere(-1, -1, -1, 1, 1, 1, 8)
+			.calculateNormals()
+			.makeModel(viewer.gl)
+			
 		this.renderers = []
 			
 		this.refresh()
@@ -59,6 +65,7 @@ class ViewerEnemyPaths
 	{
 		let panel = this.window.addPanel("Enemy Paths")
 		panel.toggleOpen()
+		panel.addCheckbox(null, "Show point sizes", this.viewer.cfg.enemyPathsEnableSizeRender, (x) => this.viewer.cfg.enemyPathsEnableSizeRender = x)
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Add/Link Points")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselection")
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
@@ -98,8 +105,14 @@ class ViewerEnemyPaths
 				.setModel(this.modelPoint)
 				.setMaterial(this.viewer.material)
 				
+			point.rendererSizeCircle = new GfxNodeRendererTransform()
+				.attach(this.sceneSizeCircles.root)
+				.setModel(this.modelSizeCircle)
+				.setMaterial(this.viewer.materialUnshaded)
+				
 			this.renderers.push(point.renderer)
 			this.renderers.push(point.rendererSelected)
+			this.renderers.push(point.rendererSizeCircle)
 				
 			point.rendererOutgoingPaths = []
 			point.rendererOutgoingPathArrows = []
@@ -363,6 +376,14 @@ class ViewerEnemyPaths
 	
 	draw()
 	{
+	}
+	
+	
+	drawAfter()
+	{
+		if (this.viewer.cfg.enemyPathsEnableSizeRender)
+			this.drawSizeCircles()
+		
 		let cameraPos = this.viewer.getCurrentCameraPosition()
 		
 		for (let point of this.data.enemyPoints)
@@ -374,6 +395,12 @@ class ViewerEnemyPaths
 				.setTranslation(point.pos)
 				.setScaling(new Vec3(scale, scale, scale))
 				.setDiffuseColor([1, 0, 0, 1])
+				
+			let sizeCircleScale = point.size * 50
+			point.rendererSizeCircle
+				.setTranslation(point.pos)
+				.setScaling(new Vec3(sizeCircleScale, sizeCircleScale, sizeCircleScale))
+				.setDiffuseColor([1, 0.5, 0, 0.5])
 				
 			for (let n = 0; n < point.next.length; n++)
 			{
@@ -400,12 +427,7 @@ class ViewerEnemyPaths
 		}
 		
 		this.scene.render(this.viewer.gl, this.viewer.getCurrentCamera())
-	}
-	
-	
-	drawAfter()
-	{
-		let cameraPos = this.viewer.getCurrentCameraPosition()
+		
 		
 		for (let point of this.data.enemyPoints)
 		{
@@ -424,6 +446,39 @@ class ViewerEnemyPaths
 		
 		this.sceneAfter.clearDepth(this.viewer.gl)
 		this.sceneAfter.render(this.viewer.gl, this.viewer.getCurrentCamera())
+	}
+	
+	
+	drawSizeCircles()
+	{
+		let gl = this.viewer.gl
+		let camera = this.viewer.getCurrentCamera()
+		
+		gl.enable(gl.STENCIL_TEST)
+		gl.stencilFunc(gl.ALWAYS, 0, 0xff)
+		gl.stencilMask(0xff)
+		gl.clearStencil(0)
+		gl.clear(gl.STENCIL_BUFFER_BIT)
+
+		gl.colorMask(false, false, false, false)
+		gl.depthMask(false)
+		gl.cullFace(gl.FRONT)
+		gl.stencilOp(gl.KEEP, gl.INCR, gl.KEEP)
+		this.sceneSizeCircles.render(gl, camera)
+		
+		gl.cullFace(gl.BACK)
+		gl.stencilOp(gl.KEEP, gl.DECR, gl.KEEP)
+		this.sceneSizeCircles.render(gl, camera)
+		
+		gl.cullFace(gl.BACK)
+		gl.colorMask(true, true, true, true)
+		gl.stencilMask(0x00)
+		gl.stencilFunc(gl.NOTEQUAL, 0, 0xff)
+
+		this.sceneSizeCircles.render(gl, camera)
+		
+		gl.depthMask(true)
+		gl.disable(gl.STENCIL_TEST)
 	}
 }
 

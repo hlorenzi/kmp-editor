@@ -38,7 +38,7 @@ class Viewer
 		this.cameraVertAngle = 1
 		this.cameraDist = 10000
 		
-		this.gl = canvas.getContext("webgl")
+		this.gl = canvas.getContext("webgl", { stencil: true })
 		
 		this.resize()
 		
