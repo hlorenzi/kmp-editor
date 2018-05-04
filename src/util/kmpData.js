@@ -78,47 +78,38 @@ class KmpData
 	
 	static convertToWorkingFormat(kmpData)
 	{
-		let enemyPoints = []
+		let kmp = new KmpData()
+		
 		for (let i = 0; i < kmpData.enemyPoints.length; i++)
 		{
 			let kmpPoint = kmpData.enemyPoints[i]
 			
-			enemyPoints.push({
-				pos: new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y),
-				size: kmpPoint.size,
-				next: [],
-				prev: []
-			})
+			let node = kmp.enemyPoints.addNode()
+			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
+			node.size = kmpPoint.size
+			node.setting1 = kmpPoint.setting1
+			node.setting2 = kmpPoint.setting2
+			node.setting3 = kmpPoint.setting3
 		}
 		
 		for (let i = 0; i < kmpData.enemyPaths.length; i++)
 		{
 			let kmpPath = kmpData.enemyPaths[i]
 		
-			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum; p++)
-			{
-				if (p > kmpPath.startIndex)
-					enemyPoints[p].prev.push(enemyPoints[p - 1])
-				
-				if (p < kmpPath.startIndex + kmpPath.pointNum - 1)
-					enemyPoints[p].next.push(enemyPoints[p + 1])
-			}
+			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
+				kmp.enemyPoints.linkNodes(kmp.enemyPoints.nodes[p], kmp.enemyPoints.nodes[p + 1])
 			
 			for (let j = 0; j < 6; j++)
 			{
 				if (kmpPath.nextGroups[j] != 0xff)
 				{
-					let lastPoint = enemyPoints[kmpPath.startIndex + kmpPath.pointNum - 1]
-					let nextPoint = enemyPoints[kmpData.enemyPaths[kmpPath.nextGroups[j]].startIndex]
+					let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
+					let nextPoint = kmpData.enemyPaths[kmpPath.nextGroups[j]].startIndex
 					
-					lastPoint.next.push(nextPoint)
-					nextPoint.prev.push(lastPoint)
+					kmp.enemyPoints.linkNodes(kmp.enemyPoints.nodes[lastPoint], kmp.enemyPoints.nodes[nextPoint])
 				}
 			}
 		}
-		
-		let kmp = new KmpData()
-		kmp.enemyPoints = enemyPoints
 		
 		return kmp
 	}
@@ -126,62 +117,100 @@ class KmpData
 	
 	constructor()
 	{
-		this.enemyPoints = []
+		this.enemyPoints = new NodeGraph()
+		this.enemyPoints.maxNextNodes = 6
+		this.enemyPoints.maxPrevNodes = 6
+		this.enemyPoints.onAddNode = (node) =>
+		{
+			node.size = 10
+			node.setting1 = 0
+			node.setting2 = 0
+			node.setting3 = 0
+		}
+	}
+}
+
+
+class NodeGraph
+{
+	constructor()
+	{
+		this.nodes = []
+		this.maxNextNodes = 1
+		this.maxPrevNodes = 1
+		this.onAddNode = () => { }
 	}
 	
 	
-	makeEnemyPoint()
+	addNode()
 	{
-		let p =
+		let node =
 		{
 			pos: new Vec3(0, 0, 0),
-			size: 10,
 			next: [],
 			prev: []
 		}
 		
-		this.enemyPoints.push(p)
-		return p
+		this.onAddNode(node)
+		
+		this.nodes.push(node)
+		return node
 	}
 	
 	
-	linkEnemyPoints(pPrev, pNext)
+	removeNode(node)
 	{
-		pPrev.next.push(pNext)
-		pNext.prev.push(pPrev)
-	}
-	
-	
-	removeEnemyPoint(p)
-	{
-		for (let pPrev of p.prev)
+		for (let prev of node.prev)
 		{
-			let next = pPrev.next.findIndex(q => q == p)
-			if (next >= 0)
-				pPrev.next.splice(next, 1)
+			let nextIndex = prev.node.next.findIndex(n => n.node == node)
+			if (nextIndex >= 0)
+				prev.node.next.splice(nextIndex, 1)
 		}
 		
-		for (let pNext of p.next)
+		for (let next of node.next)
 		{
-			let prev = pNext.prev.findIndex(q => q == p)
-			if (prev >= 0)
-				pNext.prev.splice(prev, 1)
+			let prevIndex = next.node.prev.findIndex(n => n.node == node)
+			if (prevIndex >= 0)
+				next.node.prev.splice(prevIndex, 1)
 		}
 		
-		let index = this.enemyPoints.findIndex(q => q == p)
-		this.enemyPoints.splice(index, 1)
+		this.nodes.splice(this.nodes.findIndex(n => n == node), 1)
 	}
 	
 	
-	unlinkEnemyPoints(pPrev, pNext)
+	linkNodes(node1, node2)
 	{
-		let prev = pNext.prev.findIndex(q => q == pPrev)
-		if (prev >= 0)
-			pNext.prev.splice(prev, 1)
+		let node1NextIndex = node1.next.findIndex(n => n.node == node2)
+		if (node1NextIndex >= 0)
+			node1.next[node1NextIndex].count += 1
+		else
+			node1.next.push({ node: node2, count: 1 })
 		
-		let next = pPrev.next.findIndex(q => q == pNext)
-		if (next >= 0)
-			pPrev.next.splice(next, 1)
+		let node2PrevIndex = node2.prev.findIndex(n => n.node == node1)
+		if (node2PrevIndex >= 0)
+			node2.prev[node2PrevIndex].count += 1
+		else
+			node2.prev.push({ node: node1, count: 1 })
+	}
+	
+	
+	unlinkNodes(node1, node2)
+	{
+		let node1NextIndex = node1.next.findIndex(n => n.node == node2)
+		if (node1NextIndex >= 0)
+		{
+			node1.next[node1NextIndex].count -= 1
+			if (node1.next[node1NextIndex].count <= 0)
+				node1.next.splice(node1NextIndex, 1)
+		}
+		
+		let node2PrevIndex = node2.prev.findIndex(n => n.node == node1)
+		if (node2PrevIndex >= 0)
+		{
+			node2.prev[node2PrevIndex].count -= 1
+			if (node2.prev[node2PrevIndex].count <= 0)
+				node2.prev.splice(node2PrevIndex, 1)
+		}
 	}
 }
 

@@ -95,7 +95,9 @@ class MainWindow
 		panel.addCheckbox(kclGroup, "Show death barriers", this.cfg.kclEnableDeathBarriers, (x) => { this.cfg.kclEnableDeathBarriers = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show invisible walls", this.cfg.kclEnableInvisible, (x) => { this.cfg.kclEnableInvisible = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show effects/triggers", this.cfg.kclEnableEffects, (x) => { this.cfg.kclEnableEffects = x; this.openKcl(this.currentKclFilename) })
-	
+		
+		document.title = (this.currentKmpFilename == null ? "[New File]" : "[" + this.currentKmpFilename + "]") + " -- hlorenzi's KMP Editor"
+		
 		this.viewer.setSubviewer(new ViewerEnemyPaths(this, this.viewer, this.currentKmpData))
 	}
 	
@@ -533,6 +535,63 @@ class Panel
 			group.appendChild(div)
 		
 		return input
+	}
+	
+	
+	addSelectionDropdown(group, str, values = 0, options = [], enabled = true, multiedit = false, onchange = null)
+	{
+		let div = document.createElement("div")
+		div.className = "panelRowElement"
+		
+		let label = document.createElement("label")
+		div.appendChild(label)
+		
+		if (!(values instanceof Array))
+			values = [values]
+		
+		if (onchange == null)
+			onchange = (x, i) => { }
+		
+		let select = document.createElement("select")
+		select.className = "panelSelect"
+		
+		for (let option of options)
+		{
+			let selectOption = document.createElement("option")
+			selectOption.innerHTML = option.str
+			selectOption.value = option.value
+			select.appendChild(selectOption)
+		}
+		
+		if (!enabled || multiedit)
+			select.selectedIndex = -1
+		else
+			select.selectedIndex = options.findIndex(op => op.value == values[0])
+		
+		select.onchange = () =>
+		{
+			if (select.selectedIndex < 0)
+				return
+			
+			for (let i = 0; i < values.length; i++)
+				onchange(options[select.selectedIndex].value, i)
+			
+			this.onRefreshView()
+		}
+		
+		let text = document.createElement("div")
+		text.className = "panelInputLabel"
+		text.innerHTML = str
+		
+		label.appendChild(text)
+		label.appendChild(select)
+		
+		if (group == null)
+			this.contentDiv.appendChild(div)
+		else
+			group.appendChild(div)
+		
+		return select
 	}
 }
 
