@@ -2,6 +2,7 @@ const { remote, ipcRenderer, screen } = require("electron")
 const fs = require("fs")
 const { Viewer } = require("./viewer/viewer.js")
 const { ViewerEnemyPaths } = require("./viewer/viewerEnemyPaths.js")
+const { ModelBuilder } = require("./util/modelBuilder.js")
 const { KmpData } = require("./util/kmpData.js")
 const { Vec3 } = require("./math/vec3.js")
 
@@ -25,11 +26,11 @@ class MainWindow
 				label: "File",
 				submenu:
 				[
-					{ label: "New" },
-					{ label: "Open...", click: () => this.openKmp() },
+					{ label: "New", accelerator: "CmdOrCtrl+N", click: () => this.newKmp() },
+					{ label: "Open...", accelerator: "CmdOrCtrl+O", click: () => this.openKmp() },
 					{ type: "separator" },
-					{ label: "Save" },
-					{ label: "Save as..." },
+					{ label: "Save", accelerator: "CmdOrCtrl+S", click: () => this.saveKmp(this.currentKmpFilename) },
+					{ label: "Save as...", click: () => this.saveKmpAs() },
 				]
 			},
 			{
@@ -66,7 +67,7 @@ class MainWindow
 		this.sidePanelDiv = document.getElementById("divSidePanel")
 		this.viewer = new Viewer(document.getElementById("canvasMain"), this.cfg)
 		
-		this.refreshPanels()
+		this.newKmp()
 	}
 
 	
@@ -115,6 +116,23 @@ class MainWindow
 		this.panels.push(panel)
 		return panel
 	}
+	
+	
+	newKmp()
+	{
+		this.currentKmpFilename = null
+		this.currentKmpData = new KmpData()
+		
+		let model = new ModelBuilder()
+			.addCube(-1000, -1000, -1000, 1000, 1000, 1000)
+			.addCube(-5000, -5000, 1000, 5000, 5000, 1005)
+			.calculateNormals()
+			
+		this.viewer.setModel(model)
+		this.viewer.centerView()
+		this.viewer.render()
+		this.refreshPanels()
+	}
 
 
 	openKmp()
@@ -127,10 +145,35 @@ class MainWindow
 			this.currentKmpData = KmpData.convertToWorkingFormat(KmpData.load(fs.readFileSync(kmpFilename)))
 			
 			let kclFilename = this.currentKmpFilename.substr(0, this.currentKmpFilename.lastIndexOf("/")) + "/course.kcl"
-			this.openKcl(kclFilename)
+			if (fs.existsSync(kclFilename))
+				this.openKcl(kclFilename)
 			
 			this.viewer.centerView()
+			this.viewer.render()
 			this.refreshPanels()
+		}
+	}
+	
+	
+	saveKmp(filename)
+	{
+		if (filename == null)
+			return this.saveKmpAs()
+		
+		let bytes = this.currentKmpData.convertToStorageFormat()
+		fs.writeFileSync(filename, new Uint8Array(bytes))
+		
+		this.currentKmpFilename = filename
+		this.refreshPanels()
+	}
+	
+	
+	saveKmpAs()
+	{
+		let result = remote.dialog.showSaveDialog({ filters: [{ name: "KMP Files (*.kmp)", extensions: ["kmp"] }] })
+		if (result)
+		{
+			this.saveKmp(result)
 		}
 	}
 	
@@ -554,6 +597,7 @@ class Panel
 		
 		let select = document.createElement("select")
 		select.className = "panelSelect"
+		select.disabled = !enabled
 		
 		for (let option of options)
 		{

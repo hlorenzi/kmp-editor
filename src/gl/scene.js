@@ -47,18 +47,21 @@ class GfxScene
 		
 		if ((node instanceof GfxNodeRenderer) || (node instanceof GfxNodeRendererTransform))
 		{
-			node.material.program.use(gl)
-			node.material.program.bindPosition(gl, "aPosition", node.model.positions)
-			node.material.program.bindNormals(gl, "aNormal", node.model.normals)
-			
-			if (node.material.program.hasColor)
-				node.material.program.bindColors(gl, "aColor", node.model.colors)
-			
-			node.material.program.setMat4(gl, "uMatProj", camera.projection)
-			node.material.program.setMat4(gl, "uMatView", camera.view)
-			node.material.program.setMat4(gl, "uMatModel", transform)
-			node.material.program.setVec4(gl, "uDiffuseColor", node.diffuseColor)
-			node.material.program.drawTriangles(gl, node.model.positions.count / 3)
+			if (node.material != null && node.model != null)
+			{			
+				node.material.program.use(gl)
+				node.material.program.bindPosition(gl, "aPosition", node.model.positions)
+				node.material.program.bindNormals(gl, "aNormal", node.model.normals)
+				
+				if (node.material.program.hasColor)
+					node.material.program.bindColors(gl, "aColor", node.model.colors)
+				
+				node.material.program.setMat4(gl, "uMatProj", camera.projection)
+				node.material.program.setMat4(gl, "uMatView", camera.view)
+				node.material.program.setMat4(gl, "uMatModel", transform)
+				node.material.program.setVec4(gl, "uDiffuseColor", node.diffuseColor)
+				node.material.program.drawTriangles(gl, node.model.positions.count / 3)
+			}
 		}
 		
 		for (let child of node.children)

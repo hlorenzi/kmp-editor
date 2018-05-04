@@ -71,16 +71,11 @@ class Viewer
 				GLProgram.makeFromSrc(this.gl, vertexSrc, fragmentSrcUnshaded)
 				.registerLocations(this.gl, ["aPosition", "aNormal"], ["uMatProj", "uMatView", "uMatModel", "uDiffuseColor"]))
 				
-		let builder = new ModelBuilder()
-			.addCube(-1000, -1000, -1000, 1000, 1000, 1000)
-			.calculateNormals()
-			
-		this.model = builder.makeModel(this.gl)
-		this.collision = builder.makeCollision().buildCacheSubdiv()
+		this.model = null
+		this.collision = null
 			
 		this.renderer = new GfxNodeRenderer()
 			.attach(this.scene.root)
-			.setModel(this.model)
 			.setMaterial(this.materialColor)
 			.setDiffuseColor([1, 1, 1, 1])
 			
