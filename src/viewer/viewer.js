@@ -14,9 +14,9 @@ class Viewer
 		this.canvas = canvas
 		this.canvas.onresize = () => this.resize()
 		this.canvas.onmousedown = (ev) => this.onMouseDown(ev)
-		this.canvas.onmousemove = (ev) => this.onMouseMove(ev)
-		document.onmouseup = (ev) => this.onMouseUp(ev)
-		document.onmouseleave = (ev) => this.onMouseUp(ev)
+		document.addEventListener("mousemove", (ev) => this.onMouseMove(ev))
+		document.addEventListener("mouseup", (ev) => this.onMouseUp(ev))
+		document.addEventListener("mouseleave", (ev) => this.onMouseUp(ev))
 		this.canvas.onwheel = (ev) => this.onMouseWheel(ev)
 		document.onkeydown = (ev) => this.onKeyDown(ev)
 		
@@ -152,13 +152,13 @@ class Viewer
 		this.material.program.use(this.gl).setVec4(this.gl, "uAmbientColor", [ambient, ambient, ambient, 1])
 		this.materialColor.program.use(this.gl).setVec4(this.gl, "uAmbientColor", [ambient, ambient, ambient, 1])
 		
-		if (this.subviewer != null && this.subviewer.draw)
-			this.subviewer.draw()
+		if (this.subviewer != null && this.subviewer.drawBeforeModel)
+			this.subviewer.drawBeforeModel()
 		
 		this.scene.render(this.gl, this.getCurrentCamera())
 		
-		if (this.subviewer != null && this.subviewer.drawAfter)
-			this.subviewer.drawAfter()
+		if (this.subviewer != null && this.subviewer.drawAfterModel)
+			this.subviewer.drawAfterModel()
 	}
 	
 	
@@ -311,8 +311,6 @@ class Viewer
 	
 	onMouseMove(ev)
 	{
-		ev.preventDefault()
-		
 		let mouse = this.getMousePosFromEvent(ev)
 		let ray = this.getScreenRay(mouse.x, mouse.y)
 		let cameraPos = this.getCurrentCameraPosition()
@@ -325,6 +323,8 @@ class Viewer
 		
 		if (this.mouseDown)
 		{
+			ev.preventDefault()
+			
 			let dx = mouse.x - this.mouseLast.x
 			let dy = mouse.y - this.mouseLast.y
 			
@@ -380,6 +380,9 @@ class Viewer
 	
 	onMouseUp(ev)
 	{
+		if (!this.mouseDown)
+			return
+		
 		ev.preventDefault()
 		
 		let mouse = this.getMousePosFromEvent(ev)
@@ -394,8 +397,6 @@ class Viewer
 	
 	onMouseWheel(ev)
 	{
-		ev.preventDefault()
-		
 		if (ev.deltaY > 0)
 			this.cameraDist = Math.min(500000, this.cameraDist * 1.25)
 		else if (ev.deltaY < 0)

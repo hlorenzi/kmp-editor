@@ -47,7 +47,7 @@ class KclLoader
 			{ c: [1.0, 0.5, 0.0, 1.0], isDeath: false, isInvis: false, isEffect: false }, // Boost Pad
 			{ c: [1.0, 0.6, 0.0, 1.0], isDeath: false, isInvis: false, isEffect: false }, // Boost Ramp
 			{ c: [1.0, 0.7, 0.0, 1.0], isDeath: false, isInvis: false, isEffect: false }, // Jump Pad
-			{ c: [1.0, 1.0, 1.0, 0.5], isDeath: false, isInvis: false, isEffect: false }, // Item Road
+			{ c: [1.0, 1.0, 1.0, 0.5], isDeath: false, isInvis: true,  isEffect: false }, // Item Road
 			{ c: [0.8, 0.0, 0.0, 0.8], isDeath: true,  isInvis: false, isEffect: false }, // Solid Fall
 			{ c: [0.0, 0.5, 1.0, 1.0], isDeath: false, isInvis: false, isEffect: false }, // Moving Water
 			{ c: [0.6, 0.6, 0.6, 1.0], isDeath: false, isInvis: false, isEffect: false }, // Wall

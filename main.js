@@ -10,7 +10,7 @@ let mainWindow = null
 
 function createWindow()
 {
-	mainWindow = new BrowserWindow({width: 1800, height: 600})
+	mainWindow = new BrowserWindow({width: 1800, height: 900})
 
 	mainWindow.loadURL(url.format({
 		pathname: path.join(__dirname, 'index.html'),

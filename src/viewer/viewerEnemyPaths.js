@@ -75,20 +75,12 @@ class ViewerEnemyPaths
 		let selectedPoints = this.data.enemyPoints.filter(p => p.selected)
 		
 		let selectionGroup = panel.addGroup(null, "Selection:")
-		if (selectedPoints.length == 1)
-		{
-			panel.addNumericInput(selectionGroup, "X", -1000000, 1000000, selectedPoints[0].pos.x, null, 10, true, false)
-			panel.addNumericInput(selectionGroup, "Y", -1000000, 1000000, selectedPoints[0].pos.y, null, 10, true, false)
-			panel.addNumericInput(selectionGroup, "Z", -1000000, 1000000, selectedPoints[0].pos.z, null, 10, true, false)
-			panel.addNumericInput(selectionGroup, "Size", -1000000, 1000000, selectedPoints[0].size, null, 10, true, false)
-		}
-		else
-		{
-			panel.addNumericInput(selectionGroup, "X", -1000000, 1000000, 0, null, 10, false, false)
-			panel.addNumericInput(selectionGroup, "Y", -1000000, 1000000, 0, null, 10, false, false)
-			panel.addNumericInput(selectionGroup, "Z", -1000000, 1000000, 0, null, 10, false, false)
-			panel.addNumericInput(selectionGroup, "Size", -1000000, 1000000, 0, null, 10, false, false)
-		}
+		let enabled = (selectedPoints.length > 0)
+		let multiedit = (selectedPoints.length > 1)
+		panel.addSelectionNumericInput(selectionGroup,    "X", -1000000, 1000000, selectedPoints.map(p =>  p.pos.x), null, 1.0, enabled, multiedit, (x, i) => selectedPoints[i].pos.x = x)
+		panel.addSelectionNumericInput(selectionGroup,    "Y", -1000000, 1000000, selectedPoints.map(p => -p.pos.z), null, 1.0, enabled, multiedit, (x, i) => selectedPoints[i].pos.z = -x)
+		panel.addSelectionNumericInput(selectionGroup,    "Z", -1000000, 1000000, selectedPoints.map(p => -p.pos.y), null, 1.0, enabled, multiedit, (x, i) => selectedPoints[i].pos.y = -x)
+		panel.addSelectionNumericInput(selectionGroup, "Size",        1,    1000, selectedPoints.map(p =>  p.size),  null, 0.1, enabled, multiedit, (x, i) => selectedPoints[i].size = x)
 	}
 	
 	
@@ -411,16 +403,8 @@ class ViewerEnemyPaths
 	}
 	
 	
-	draw()
+	drawAfterModel()
 	{
-	}
-	
-	
-	drawAfter()
-	{
-		if (this.viewer.cfg.enemyPathsEnableSizeRender)
-			this.drawSizeCircles()
-		
 		let cameraPos = this.viewer.getCurrentCameraPosition()
 		
 		for (let point of this.data.enemyPoints)
@@ -462,6 +446,9 @@ class ViewerEnemyPaths
 					.setDiffuseColor([1, 0.75, 0, 1])
 			}
 		}
+		
+		if (this.viewer.cfg.enemyPathsEnableSizeRender)
+			this.drawSizeCircles()
 		
 		this.scene.render(this.viewer.gl, this.viewer.getCurrentCamera())
 		

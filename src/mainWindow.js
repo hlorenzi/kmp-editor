@@ -90,7 +90,7 @@ class MainWindow
 		panel.addButton(null, "Load custom model", () => this.openCustomModel())
 		panel.addButton(null, "Center view", () => this.viewer.centerView())
 		panel.addSlider(null, "Shading", 0, 1, this.cfg.shadingFactor, 0.05, (x) => this.cfg.shadingFactor = x)
-		let kclGroup = panel.addGroup(null, "Collision data")
+		let kclGroup = panel.addGroup(null, "Collision data:")
 		panel.addCheckbox(kclGroup, "Use colors", this.cfg.kclEnableColors, (x) => { this.cfg.kclEnableColors = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show death barriers", this.cfg.kclEnableDeathBarriers, (x) => { this.cfg.kclEnableDeathBarriers = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show invisible walls", this.cfg.kclEnableInvisible, (x) => { this.cfg.kclEnableInvisible = x; this.openKcl(this.currentKclFilename) })
@@ -230,18 +230,30 @@ class Panel
 		this.titleButton.onclick = () => this.toggleOpen()
 		this.onRefreshView = (onRefreshView != null ? onRefreshView : () => { })
 		
+		this.onDestroy = []
+		
 		this.refreshOpen()
 	}
 	
 	
 	destroy()
 	{
+		for (let f of this.onDestroy)
+			f()
+		
+		this.onDestroy = []
+		
 		this.parentDiv.removeChild(this.panelDiv)
 	}
 	
 	
 	clearContent()
 	{
+		for (let f of this.onDestroy)
+			f()
+		
+		this.onDestroy = []
+		
 		while (this.contentDiv.firstChild)
 			this.contentDiv.removeChild(this.contentDiv.firstChild)
 	}
@@ -398,7 +410,7 @@ class Panel
 	}
 	
 	
-	addNumericInput(group, str, min = 0, max = 1, value = 0, step = 0.1, dragStep = 0.1, enabled = true, multiedit = false, onchange = null)
+	addSelectionNumericInput(group, str, min = 0, max = 1, values = 0, step = 0.1, dragStep = 0.1, enabled = true, multiedit = false, onchange = null)
 	{
 		let div = document.createElement("div")
 		div.className = "panelRowElement"
@@ -406,16 +418,111 @@ class Panel
 		let label = document.createElement("label")
 		div.appendChild(label)
 		
+		if (!(values instanceof Array))
+			values = [values]
+		
+		if (onchange == null)
+			onchange = (x, i) => { }
+		
 		let input = document.createElement("input")
 		input.className = "panelNumericInput"
 		input.type = "input"
-		input.value = (!enabled ? "" : value)
+		input.value = (!enabled || multiedit ? "" : values[0])
 		input.disabled = !enabled
-		//input.oninput = () => { onchange(input.value); this.onRefreshView() }
+		input.onkeydown = (ev) => ev.stopPropagation()
+		
+		let safeParseFloat = (s) =>
+		{
+			let x = parseFloat(s)
+			if (isNaN(x) || !isFinite(x))
+				return 0
+			
+			return x
+		}
+		
+		let clampValue = (x) =>
+		{
+			if (step != null)
+				x = Math.round(x / step) * step
+			
+			x = Math.max(x, min)
+			x = Math.min(x, max)
+			return x
+		}
+		
+		let valueDelta = 0
+		
+		input.oninput = () =>
+		{
+			if (!enabled)
+				return
+			
+			valueDelta = 0
+			
+			for (let i = 0; i < values.length; i++)
+				onchange(input.value != "" ? safeParseFloat(input.value) : values[i], i)
+			
+			this.onRefreshView()
+		}
 		
 		let text = document.createElement("div")
-		text.className = "panelInputLabel"
+		text.className = "panelNumericInputLabel"
 		text.innerHTML = str
+		
+		let mouseDown = false
+		let lastEv = null
+		text.onmousedown = (ev) =>
+		{
+			if (!enabled)
+				return
+			
+			lastEv = ev
+			mouseDown = true
+		}
+		
+		let onMouseDown = (ev) => mouseDown = false
+		
+		let onMouseMove = (ev) =>
+		{
+			if (mouseDown)
+			{
+				let dy = lastEv.screenY - ev.screenY
+				let value = safeParseFloat(input.value)
+				
+				valueDelta += (dy * dragStep)
+				value += (dy * dragStep)
+				value = clampValue(value)
+				
+				if (!multiedit)
+				{
+					input.value = value.toFixed(5)
+					for (let i = 0; i < values.length; i++)
+						onchange(value, i)
+				}
+				else
+				{
+					for (let i = 0; i < values.length; i++)
+						onchange(clampValue(values[i] + valueDelta), i)
+				}
+				
+				lastEv = ev
+				
+				this.onRefreshView()
+				
+				ev.preventDefault()
+			}
+		}
+		
+		document.addEventListener("mousemove", onMouseMove)
+		document.addEventListener("mouseup", onMouseDown)
+		document.addEventListener("mouseleave", onMouseDown)
+		
+		this.onDestroy.push(() =>
+		{
+			document.removeEventListener("mousemove", onMouseMove)
+			document.removeEventListener("mouseup", onMouseDown)
+			document.removeEventListener("mouseleave", onMouseDown)
+		})
 		
 		label.appendChild(text)
 		label.appendChild(input)

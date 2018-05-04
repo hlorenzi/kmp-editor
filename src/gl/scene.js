@@ -232,7 +232,7 @@ class GfxNodeTransform extends GfxNode
 		let matrix = Mat4.identity()
 		
 		if (this.customMatrix != null)
-			matrix = matrix.mul(this.customMatrix)
+			matrix = this.customMatrix
 			
 		if (this.scaling != null)
 			matrix = matrix.mul(Mat4.scale(this.scaling.x, this.scaling.y, this.scaling.z))

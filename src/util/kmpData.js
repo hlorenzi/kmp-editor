@@ -135,7 +135,7 @@ class KmpData
 		let p =
 		{
 			pos: new Vec3(0, 0, 0),
-			size: 1,
+			size: 10,
 			next: [],
 			prev: []
 		}
