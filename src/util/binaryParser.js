@@ -10,6 +10,12 @@ class BinaryParser
 	}
 	
 	
+	getLength()
+	{
+		return this.bytes.length
+	}
+	
+	
 	seek(index)
 	{
 		this.head = index

@@ -1,10 +1,13 @@
-const { remote, ipcRenderer, screen } = require("electron")
+const { remote, ipcRenderer, screen, shell } = require("electron")
 const fs = require("fs")
 const { Viewer } = require("./viewer/viewer.js")
 const { ViewerEnemyPaths } = require("./viewer/viewerEnemyPaths.js")
 const { ModelBuilder } = require("./util/modelBuilder.js")
 const { KmpData } = require("./util/kmpData.js")
 const { Vec3 } = require("./math/vec3.js")
+
+
+let versionStr = "v0.1"
 
 
 let gMainWindow = null
@@ -39,12 +42,20 @@ class MainWindow
 				[
 					{ role: "reload" }
 				]
+			},
+			{
+				label: "Help",
+				submenu:
+				[
+					{ label: "GitHub Page", click: () => shell.openExternal("https://github.com/hlorenzi/kmp-editor") }
+				]
 			}
 		]
 		
 		remote.getCurrentWindow().setMenu(remote.Menu.buildFromTemplate(menuTemplate))
 		
 		document.body.onresize = () => this.onResize()
+		window.addEventListener("beforeunload", (ev) => this.onClose(ev))
 		
 		screen.onmousemove = () => console.log("hey")
 		
@@ -61,6 +72,7 @@ class MainWindow
 		this.currentKmpFilename = null
 		this.currentKclFilename = null
 		this.currentKmpData = new KmpData()
+		this.currentNotSaved = false
 		
 		this.panels = []
 		
@@ -75,6 +87,13 @@ class MainWindow
 	{
 		this.viewer.resize()
 		this.viewer.render()
+	}
+	
+	
+	onClose(ev)
+	{
+		if (!this.askSaveChanges())
+			ev.returnValue = false
 	}
 	
 	
@@ -97,9 +116,17 @@ class MainWindow
 		panel.addCheckbox(kclGroup, "Show invisible walls", this.cfg.kclEnableInvisible, (x) => { this.cfg.kclEnableInvisible = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show effects/triggers", this.cfg.kclEnableEffects, (x) => { this.cfg.kclEnableEffects = x; this.openKcl(this.currentKclFilename) })
 		
-		document.title = (this.currentKmpFilename == null ? "[New File]" : "[" + this.currentKmpFilename + "]") + " -- hlorenzi's KMP Editor"
-		
+		this.refreshTitle()
 		this.viewer.setSubviewer(new ViewerEnemyPaths(this, this.viewer, this.currentKmpData))
+	}
+	
+	
+	refreshTitle()
+	{
+		document.title =
+			(this.currentKmpFilename == null ? "[New File]" : "[" + this.currentKmpFilename + "]") +
+			(this.currentNotSaved ? "*" : "") +
+			" -- hlorenzi's KMP Editor " + versionStr
 	}
 	
 	
@@ -112,24 +139,55 @@ class MainWindow
 			return panel
 		}
 		
-		panel = new Panel(this.sidePanelDiv, name, open, closable, () => this.viewer.render())
+		panel = new Panel(this.sidePanelDiv, name, open, closable, () => { this.setNotSaved(); this.viewer.render() })
 		this.panels.push(panel)
 		return panel
 	}
 	
 	
+	setNotSaved()
+	{
+		if (!this.currentNotSaved)
+		{
+			this.currentNotSaved = true
+			this.refreshTitle()
+		}
+	}
+	
+	
+	askSaveChanges()
+	{
+		if (!this.currentNotSaved)
+			return true
+		
+		let result = remote.dialog.showMessageBox(remote.getCurrentWindow(),
+		{
+			type: "warning",
+			title: "Unsaved Changes",
+			message: "Save current changes?",
+			buttons: ["Save", "Don't Save", "Cancel"],
+			cancelId: 2
+		})
+		
+		if (result == 0)
+			return this.saveKmp(this.currentKmpFilename)
+		else if (result == 1)
+			return true
+		else
+			return false
+	}
+	
+	
 	newKmp()
 	{
+		if (!this.askSaveChanges())
+			return
+		
 		this.currentKmpFilename = null
 		this.currentKmpData = new KmpData()
+		this.currentNotSaved = false
 		
-		let model = new ModelBuilder()
-			.addCube(-1000, -1000, -1000, 1000, 1000, 1000)
-			.addCube(-5000, -5000, 1000, 5000, 5000, 1005)
-			.calculateNormals()
-			
-		this.viewer.setModel(model)
-		this.viewer.centerView()
+		this.setDefaultModel()		
 		this.viewer.render()
 		this.refreshPanels()
 	}
@@ -137,16 +195,22 @@ class MainWindow
 
 	openKmp()
 	{
-		let result = remote.dialog.showOpenDialog({ properties: ["openFile"], filters: [{ name: "KMP Files (*.kmp)", extensions: ["kmp"] }] })
+		if (!this.askSaveChanges())
+			return
+		
+		let result = remote.dialog.showOpenDialog(remote.getCurrentWindow(), { properties: ["openFile"], filters: [{ name: "KMP Files (*.kmp)", extensions: ["kmp"] }] })
 		if (result)
 		{
 			let kmpFilename = result[0].replace(new RegExp("\\\\", "g"), "/")
 			this.currentKmpFilename = kmpFilename
 			this.currentKmpData = KmpData.convertToWorkingFormat(KmpData.load(fs.readFileSync(kmpFilename)))
+			this.currentNotSaved = false
 			
 			let kclFilename = this.currentKmpFilename.substr(0, this.currentKmpFilename.lastIndexOf("/")) + "/course.kcl"
 			if (fs.existsSync(kclFilename))
 				this.openKcl(kclFilename)
+			else
+				this.setDefaultModel()
 			
 			this.viewer.centerView()
 			this.viewer.render()
@@ -160,21 +224,44 @@ class MainWindow
 		if (filename == null)
 			return this.saveKmpAs()
 		
-		let bytes = this.currentKmpData.convertToStorageFormat()
-		fs.writeFileSync(filename, new Uint8Array(bytes))
-		
-		this.currentKmpFilename = filename
-		this.refreshPanels()
+		try
+		{
+			let bytes = this.currentKmpData.convertToStorageFormat()
+			fs.writeFileSync(filename, new Uint8Array(bytes))
+			
+			this.currentKmpFilename = filename
+			this.currentNotSaved = false
+			this.refreshPanels()
+			return true
+		}
+		catch (e)
+		{
+			console.error(e)
+			return false
+		}
 	}
 	
 	
 	saveKmpAs()
 	{
-		let result = remote.dialog.showSaveDialog({ filters: [{ name: "KMP Files (*.kmp)", extensions: ["kmp"] }] })
+		let result = remote.dialog.showSaveDialog(remote.getCurrentWindow(), { filters: [{ name: "KMP Files (*.kmp)", extensions: ["kmp"] }] })
 		if (result)
-		{
-			this.saveKmp(result)
-		}
+			return this.saveKmp(result)
+		
+		return false
+	}
+	
+	
+	setDefaultModel()
+	{
+		let model = new ModelBuilder()
+			.addCube(-1000, -1000, -1000, 1000, 1000, 1000)
+			.addCube(-5000, -5000, 1000, 5000, 5000, 1005)
+			.calculateNormals()
+			
+		this.viewer.setModel(model)
+		this.viewer.centerView()
+		this.currentKclFilename = null
 	}
 	
 	

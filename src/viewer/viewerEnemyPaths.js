@@ -246,6 +246,7 @@ class ViewerEnemyPaths
 			this.data.enemyPoints.removeNode(point)
 		
 		this.refresh()
+		this.window.setNotSaved()
 	}
 	
 	
@@ -271,6 +272,7 @@ class ViewerEnemyPaths
 		}
 		
 		this.refresh()
+		this.window.setNotSaved()
 	}
 	
 	
@@ -328,6 +330,7 @@ class ViewerEnemyPaths
 				this.linkingPoints = true
 				this.viewer.setCursor("-webkit-grabbing")
 				this.refreshPanels()
+				this.window.setNotSaved()
 			}
 			else
 			{
@@ -345,6 +348,7 @@ class ViewerEnemyPaths
 			newPoint.selected = true
 			this.viewer.setCursor("-webkit-grabbing")
 			this.refreshPanels()
+			this.window.setNotSaved()
 		}
 	}
 	
@@ -369,6 +373,7 @@ class ViewerEnemyPaths
 					if (!point.selected)
 						continue
 					
+					this.window.setNotSaved()
 					this.viewer.setCursor("-webkit-grabbing")
 					
 					if (this.linkingPoints && linkToPoint != null)
@@ -419,6 +424,7 @@ class ViewerEnemyPaths
 					this.data.enemyPoints.removeNode(pointBeingLinked)
 					this.data.enemyPoints.linkNodes(pointBeingLinked.prev[0].node, pointBeingLinkedTo)
 					this.refresh()
+					this.window.setNotSaved()
 				}
 			}
 		}

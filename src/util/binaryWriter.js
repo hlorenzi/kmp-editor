@@ -24,7 +24,7 @@ class BinaryWriter
 	
 	seek(index)
 	{
-		while (index >= this.bytes.length)
+		while (index > this.bytes.length)
 			this.bytes.push(0)
 		
 		this.head = index
@@ -33,7 +33,7 @@ class BinaryWriter
 	
 	writeByte(b)
 	{
-		this.bytes[this.head] = b & 0xff
+		this.bytes[this.head] = (b & 0xff)
 		this.head += 1
 	}
 	
@@ -90,9 +90,12 @@ class BinaryWriter
 	
 	writeFloat32(x)
 	{
-		var view = new DataView(new ArrayBuffer(4))
+		let view = new DataView(new ArrayBuffer(4))
 		view.setFloat32(0, x)
-		this.writeUInt32(view.getUint32(0))
+		this.writeByte(view.getUint8(0))
+		this.writeByte(view.getUint8(1))
+		this.writeByte(view.getUint8(2))
+		this.writeByte(view.getUint8(3))
 	}
 	
 	

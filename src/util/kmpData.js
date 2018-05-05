@@ -20,6 +20,26 @@ let unhandledSections =
 ]
 
 
+let sectionOrder =
+[
+	"KTPT",
+	"ENPT",
+	"ENPH",
+	"ITPT",
+	"ITPH",
+	"CKPT",
+	"CKPH",
+	"GOBJ",
+	"POTI",
+	"AREA",
+	"CAME",
+	"JGPT",
+	"CNPT",
+	"MSPT",
+	"STGI",
+]
+
+
 class KmpData
 {
 	static load(bytes)
@@ -48,6 +68,9 @@ class KmpData
 		
 		for (let sectionOffset of sectionOffsets)
 		{
+			if (sectionOffset + headerLenInBytes >= parser.getLength())
+				continue
+			
 			parser.seek(sectionOffset + headerLenInBytes)
 			
 			let sectionId = parser.readAsciiLength(4)
@@ -96,7 +119,7 @@ class KmpData
 						route.setting1 = parser.readByte()
 						route.setting2 = parser.readByte()
 						
-						for (let i = 0; i < pointNum; i++)
+						for (let j = 0; j < pointNum; j++)
 						{
 							let point = {}
 							let pos = parser.readVec3()
@@ -181,7 +204,7 @@ class KmpData
 	{
 		let w = new BinaryWriter()
 		
-		let sectionNum = 3 + this.unhandledSectionData.length
+		let sectionNum = 15
 		
 		w.writeAscii("RKMD")
 		
@@ -197,7 +220,7 @@ class KmpData
 		
 		let sectionOffsetsAddr = w.head
 		for (let i = 0; i < sectionNum; i++)
-			w.writeUInt32(0)
+			w.writeUInt32(0xffffffff)
 		
 		let headerEndAddr = w.head
 		w.seek(headerLenAddr)
@@ -206,10 +229,11 @@ class KmpData
 		
 		for (let i = 0; i < this.unhandledSectionData.length; i++)
 		{
+			let order = sectionOrder.findIndex(s => s == this.unhandledSectionData[i].id)
+			
 			let head = w.head
-			w.seek(sectionOffsetsAddr)
+			w.seek(sectionOffsetsAddr + order * 4)
 			w.writeUInt32(head - headerEndAddr)
-			sectionOffsetsAddr += 4
 			
 			let unhandledSection = unhandledSections.find(s => s.id == this.unhandledSectionData[i].id)
 			
@@ -232,9 +256,9 @@ class KmpData
 		
 		// Write ENPT
 		let sectionEnptAddr = w.head
-		w.seek(sectionOffsetsAddr)
+		let sectionEnptOrder = sectionOrder.findIndex(s => s == "ENPT")
+		w.seek(sectionOffsetsAddr + sectionEnptOrder * 4)
 		w.writeUInt32(sectionEnptAddr - headerEndAddr)
-		sectionOffsetsAddr += 4
 		
 		w.seek(sectionEnptAddr)
 		w.writeAscii("ENPT")
@@ -253,9 +277,9 @@ class KmpData
 		
 		// Write ENPH
 		let sectionEnphAddr = w.head
-		w.seek(sectionOffsetsAddr)
+		let sectionEnphOrder = sectionOrder.findIndex(s => s == "ENPH")
+		w.seek(sectionOffsetsAddr + sectionEnphOrder * 4)
 		w.writeUInt32(sectionEnphAddr - headerEndAddr)
-		sectionOffsetsAddr += 4
 		
 		w.seek(sectionEnphAddr)
 		w.writeAscii("ENPH")
@@ -290,9 +314,9 @@ class KmpData
 		
 		// Write POTI
 		let sectionPotiAddr = w.head
-		w.seek(sectionOffsetsAddr)
+		let sectionPotiOrder = sectionOrder.findIndex(s => s == "POTI")
+		w.seek(sectionOffsetsAddr + sectionPotiOrder * 4)
 		w.writeUInt32(sectionPotiAddr - headerEndAddr)
-		sectionOffsetsAddr += 4
 		
 		w.seek(sectionPotiAddr)
 		w.writeAscii("POTI")
@@ -325,6 +349,8 @@ class KmpData
 	constructor()
 	{
 		this.unhandledSectionData = []
+		
+		this.routes = []
 		
 		this.enemyPoints = new NodeGraph()
 		this.enemyPoints.maxNextNodes = 6
