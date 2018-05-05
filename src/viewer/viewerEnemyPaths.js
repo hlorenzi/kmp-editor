@@ -357,10 +357,14 @@ class ViewerEnemyPaths
 	{
 		if (!this.viewer.mouseDown)
 		{
+			let lastHover = this.hoveringOverPoint
 			this.hoveringOverPoint = this.getHoveringOverElement(cameraPos, ray, distToHit)
 			
 			if (this.hoveringOverPoint != null)
 				this.viewer.setCursor("-webkit-grab")
+			
+			if (this.hoveringOverPoint != lastHover)
+				this.viewer.render()
 		}
 		else
 		{

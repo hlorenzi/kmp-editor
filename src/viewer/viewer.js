@@ -356,6 +356,7 @@ class Viewer
 				this.subviewer.onMouseMove(ev, mouse.x, mouse.y, cameraPos, ray, hit, distToHit)
 			
 			this.mouseLast = mouse
+			this.render()
 		}
 		
 		else
@@ -368,8 +369,6 @@ class Viewer
 			
 			//console.log(this.pointToScreen(ray.origin.add(ray.direction.scale(10000))))
 		}
-		
-		this.render()
 	}
 	
 	

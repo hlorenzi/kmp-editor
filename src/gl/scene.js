@@ -6,7 +6,7 @@ class GfxScene
 {
 	constructor()
 	{
-		this.root = new GfxNodeTransform()
+		this.root = new GfxNode()
 	}
 	
 	
@@ -29,9 +29,7 @@ class GfxScene
 	
 	render(gl, camera)
 	{
-		let transform = Mat4.identity()
-		
-		this.renderNode(gl, camera, transform, this.root)
+		this.renderNode(gl, camera, null, this.root)
 	}
 	
 	
@@ -42,7 +40,8 @@ class GfxScene
 		
 		if ((node instanceof GfxNodeTransform) || (node instanceof GfxNodeRendererTransform))
 		{
-			transform = transform.mul(node.computeMatrix())
+			let nodeMatrix = node.computeMatrix()
+			transform = (transform == null ? nodeMatrix : transform.mul(nodeMatrix))
 		}
 		
 		if ((node instanceof GfxNodeRenderer) || (node instanceof GfxNodeRendererTransform))
@@ -56,9 +55,19 @@ class GfxScene
 				if (node.material.program.hasColor)
 					node.material.program.bindColors(gl, "aColor", node.model.colors)
 				
-				node.material.program.setMat4(gl, "uMatProj", camera.projection)
-				node.material.program.setMat4(gl, "uMatView", camera.view)
-				node.material.program.setMat4(gl, "uMatModel", transform)
+				if (node.material.lastProjectionMatrix !== camera.projection)
+				{
+					node.material.lastProjectionMatrix = camera.projection
+					node.material.program.setMat4(gl, "uMatProj", camera.projection)
+				}
+				
+				if (node.material.lastViewMatrix !== camera.view)
+				{
+					node.material.lastViewMatrix = camera.view
+					node.material.program.setMat4(gl, "uMatView", camera.view)
+				}
+				
+				node.material.program.setMat4(gl, "uMatModel", transform != null ? transform : Mat4.identity())
 				node.material.program.setVec4(gl, "uDiffuseColor", node.diffuseColor)
 				node.material.program.drawTriangles(gl, node.model.positions.count / 3)
 			}

@@ -65,8 +65,8 @@ class MainWindow
 			kclEnableColors: true,
 			kclEnableDeathBarriers: true,
 			kclEnableInvisible: true,
-			kclEnableEffects: true,
-			enemyPathsEnableSizeRender: true
+			kclEnableEffects: false,
+			enemyPathsEnableSizeRender: false
 		}
 		
 		this.currentKmpFilename = null
@@ -187,9 +187,9 @@ class MainWindow
 		this.currentKmpData = new KmpData()
 		this.currentNotSaved = false
 		
-		this.setDefaultModel()		
-		this.viewer.render()
+		this.setDefaultModel()
 		this.refreshPanels()
+		this.viewer.render()
 	}
 
 
@@ -213,8 +213,8 @@ class MainWindow
 				this.setDefaultModel()
 			
 			this.viewer.centerView()
-			this.viewer.render()
 			this.refreshPanels()
+			this.viewer.render()
 		}
 	}
 	
