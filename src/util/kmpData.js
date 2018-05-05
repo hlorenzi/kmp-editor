@@ -293,6 +293,15 @@ class KmpData
 			w.writeByte(enemyPoints.findIndex(n => n == path.nodes[0]))
 			w.writeByte(path.nodes.length)
 			
+			let incomingPaths = path.prev.reduce((accum, p) => accum + 1, 0)
+			let outgoingPaths = path.next.reduce((accum, p) => accum + 1, 0)
+			
+			if (incomingPaths > 6)
+				throw "kmp encode: max incoming connections to an enemy point surpassed (have " + incomingPaths + ", max 6)"
+			
+			if (outgoingPaths > 6)
+				throw "kmp encode: max outgoing connections to an enemy point surpassed (have " + outgoingPaths + ", max 6)"
+			
 			for (let i = 0; i < 6; i++)
 			{
 				if (i < path.prev.length)

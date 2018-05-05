@@ -47,7 +47,9 @@ class MainWindow
 				label: "Help",
 				submenu:
 				[
-					{ label: "GitHub Page", click: () => shell.openExternal("https://github.com/hlorenzi/kmp-editor") }
+					{ label: "GitHub Repository", click: () => shell.openExternal("https://github.com/hlorenzi/kmp-editor") },
+					{ type: "separator" },
+					{ label: "Open Dev Tools", click: () => remote.getCurrentWindow().webContents.openDevTools() }
 				]
 			}
 		]
@@ -56,8 +58,6 @@ class MainWindow
 		
 		document.body.onresize = () => this.onResize()
 		window.addEventListener("beforeunload", (ev) => this.onClose(ev))
-		
-		screen.onmousemove = () => console.log("hey")
 		
 		this.cfg =
 		{
@@ -105,6 +105,10 @@ class MainWindow
 		this.panels = []
 		
 		let panel = this.addPanel("Model")
+		panel.addText(null, "<strong>Right Mouse:</strong> Rotate Camera")
+		panel.addText(null, "<strong>Hold Shift + Right Mouse:</strong> Pan Camera")
+		panel.addText(null, "<strong>Mouse Wheel:</strong> Zoom")
+		panel.addText(null, "<strong>Double Right Click:</strong> Focus Camera")
 		panel.addButton(null, "Load course_model.brres", () => this.openCourseBrres())
 		panel.addButton(null, "Load course.kcl", () => this.openCourseKcl())
 		panel.addButton(null, "Load custom model", () => this.openCustomModel())
@@ -237,6 +241,7 @@ class MainWindow
 		catch (e)
 		{
 			console.error(e)
+			alert("KMP save error!\n\n" + e)
 			return false
 		}
 	}
