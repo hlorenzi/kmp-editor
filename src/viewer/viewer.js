@@ -7,8 +7,9 @@ const { Mat4 } = require("../math/mat4.js")
 
 class Viewer
 {
-	constructor(canvas, cfg)
+	constructor(window, canvas, cfg)
 	{
+		this.window = window
 		this.cfg = cfg
 		
 		this.canvas = canvas
@@ -236,6 +237,9 @@ class Viewer
 	
 	onKeyDown(ev)
 	{
+		if (ev.repeat == undefined)
+			this.window.setUndoPoint()
+		
 		if (this.subviewer != null)
 		{
 			if (this.subviewer.onKeyDown(ev))
@@ -251,6 +255,7 @@ class Viewer
 	onMouseDown(ev)
 	{
 		ev.preventDefault()
+		this.window.setUndoPoint()
 		
 		let mouse = this.getMousePosFromEvent(ev)
 		let ray = this.getScreenRay(mouse.x, mouse.y)
@@ -384,6 +389,7 @@ class Viewer
 		if (this.subviewer != null && this.subviewer.onMouseUp)
 			this.subviewer.onMouseUp(ev, mouse.x, mouse.y)
 		
+		this.window.setUndoPoint()
 		this.mouseDown = false
 		this.mouseLast = mouse
 	}

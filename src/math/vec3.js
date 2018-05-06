@@ -6,6 +6,12 @@ class Vec3
 		this.y = y
 		this.z = z
 	}
+	
+	
+	clone()
+	{
+		return new Vec3(this.x, this.y, this.z)
+	}
 
 
 	magn()

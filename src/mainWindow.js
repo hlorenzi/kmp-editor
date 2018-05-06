@@ -11,6 +11,8 @@ let versionStr = "v0.1"
 
 
 let gMainWindow = null
+let askBeforeClosing = true
+let isReloading = false
 
 
 function main()
@@ -40,7 +42,8 @@ class MainWindow
 				label: "Edit",
 				submenu:
 				[
-					{ role: "reload" }
+					{ label: "Undo", accelerator: "CmdOrCtrl+Z", click: () => this.undo() },
+					{ label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", click: () => this.redo() }
 				]
 			},
 			{
@@ -49,7 +52,8 @@ class MainWindow
 				[
 					{ label: "GitHub Repository", click: () => shell.openExternal("https://github.com/hlorenzi/kmp-editor") },
 					{ type: "separator" },
-					{ label: "Open Dev Tools", click: () => remote.getCurrentWindow().webContents.openDevTools() }
+					{ label: "Open Dev Tools", click: () => remote.getCurrentWindow().webContents.openDevTools() },
+					{ label: "Reload app", accelerator: "CmdOrCtrl+R", click: () => this.onReload() }
 				]
 			}
 		]
@@ -58,6 +62,20 @@ class MainWindow
 		
 		document.body.onresize = () => this.onResize()
 		window.addEventListener("beforeunload", (ev) => this.onClose(ev))
+		
+		// To prevent strange bug with the browser undoing/redoing changes in destroyed input elements
+		document.body.onkeydown = (ev) =>
+		{
+			if (ev.ctrlKey && (ev.key == "Z" || ev.key == "z"))
+			{
+				ev.preventDefault()
+				ev.stopPropagation()
+				if (ev.shiftKey)
+					this.redo()
+				else
+					this.undo()
+			}
+		}
 		
 		this.cfg =
 		{
@@ -74,10 +92,14 @@ class MainWindow
 		this.currentKmpData = new KmpData()
 		this.currentNotSaved = false
 		
+		this.undoNeedsNewSlot = false
+		this.undoStack = []
+		this.undoPointer = -1
+		
 		this.panels = []
 		
 		this.sidePanelDiv = document.getElementById("divSidePanel")
-		this.viewer = new Viewer(document.getElementById("canvasMain"), this.cfg)
+		this.viewer = new Viewer(this, document.getElementById("canvasMain"), this.cfg)
 		
 		this.newKmp()
 	}
@@ -90,10 +112,36 @@ class MainWindow
 	}
 	
 	
+	onReload()
+	{
+		askBeforeClosing = true
+		isReloading = true
+		remote.getCurrentWindow().webContents.reload()
+	}
+	
+	
 	onClose(ev)
 	{
-		if (!this.askSaveChanges())
-			ev.returnValue = false
+		if (!askBeforeClosing)
+			return
+		
+		ev.returnValue = false
+		
+		// Working around an Electron bug
+		window.setTimeout(() =>
+		{
+			if (this.askSaveChanges())
+			{
+				askBeforeClosing = false
+				
+				if (!isReloading)
+					window.close()
+				else
+					remote.getCurrentWindow().webContents.reload()
+			}
+			
+			isReloading = false
+		}, 1)
 	}
 	
 	
@@ -143,7 +191,7 @@ class MainWindow
 			return panel
 		}
 		
-		panel = new Panel(this.sidePanelDiv, name, open, closable, () => { this.setNotSaved(); this.viewer.render() })
+		panel = new Panel(this, this.sidePanelDiv, name, open, closable, () => { this.viewer.render() })
 		this.panels.push(panel)
 		return panel
 	}
@@ -151,11 +199,67 @@ class MainWindow
 	
 	setNotSaved()
 	{
+		this.undoNeedsNewSlot = true
+		
 		if (!this.currentNotSaved)
 		{
 			this.currentNotSaved = true
 			this.refreshTitle()
 		}
+	}
+	
+	
+	setUndoPoint()
+	{
+		if (!this.undoNeedsNewSlot)
+			return
+		
+		this.undoStack.splice(this.undoPointer + 1, this.undoStack.length - this.undoPointer - 1)		
+		
+		this.undoStack.push(this.currentKmpData.clone())
+		this.undoPointer += 1
+		this.setNotSaved()
+		this.undoNeedsNewSlot = false
+	}
+	
+	
+	resetUndoStack()
+	{
+		this.undoNeedsNewSlot = true
+		this.undoStack = []
+		this.undoPointer = -1
+	}
+	
+	
+	undo()
+	{
+		if (this.undoPointer <= 0)
+			return
+		
+		this.setUndoPoint()
+		
+		this.undoPointer -= 1
+		this.currentKmpData = this.undoStack[this.undoPointer].clone()
+		
+		this.setNotSaved()
+		this.undoNeedsNewSlot = false
+		this.refreshPanels()
+		this.viewer.render()
+	}
+	
+	
+	redo()
+	{
+		if (this.undoPointer >= this.undoStack.length - 1)
+			return
+		
+		this.undoPointer += 1
+		this.currentKmpData = this.undoStack[this.undoPointer].clone()
+		
+		this.setNotSaved()
+		this.undoNeedsNewSlot = false
+		this.refreshPanels()
+		this.viewer.render()
 	}
 	
 	
@@ -170,6 +274,7 @@ class MainWindow
 			title: "Unsaved Changes",
 			message: "Save current changes?",
 			buttons: ["Save", "Don't Save", "Cancel"],
+			defaultId: 2,
 			cancelId: 2
 		})
 		
@@ -191,6 +296,8 @@ class MainWindow
 		this.currentKmpData = new KmpData()
 		this.currentNotSaved = false
 		
+		this.resetUndoStack()
+		
 		this.setDefaultModel()
 		this.refreshPanels()
 		this.viewer.render()
@@ -209,6 +316,8 @@ class MainWindow
 			this.currentKmpFilename = kmpFilename
 			this.currentKmpData = KmpData.convertToWorkingFormat(KmpData.load(fs.readFileSync(kmpFilename)))
 			this.currentNotSaved = false
+			
+			this.resetUndoStack()
 			
 			let kclFilename = this.currentKmpFilename.substr(0, this.currentKmpFilename.lastIndexOf("/")) + "/course.kcl"
 			if (fs.existsSync(kclFilename))
@@ -343,8 +452,9 @@ class MainWindow
 
 class Panel
 {
-	constructor(parentDiv, name, open = true, closable = true, onRefreshView = null)
+	constructor(window, parentDiv, name, open = true, closable = true, onRefreshView = null)
 	{
+		this.window = window
 		this.parentDiv = parentDiv
 		this.name = name
 		this.closable = closable
@@ -566,7 +676,11 @@ class Panel
 		input.type = "input"
 		input.value = (!enabled || multiedit ? "" : values[0])
 		input.disabled = !enabled
-		input.onkeydown = (ev) => ev.stopPropagation()
+		
+		let inFocus = false
+		input.onfocus = () => { inFocus = true; this.window.setUndoPoint() }
+		input.onblur = () => { inFocus = false; this.window.setUndoPoint(); this.window.viewer.canvas.focus() }
+		input.onkeydown = (ev) => { if (inFocus) ev.stopPropagation() }
 		
 		let safeParseFloat = (s) =>
 		{
@@ -615,9 +729,16 @@ class Panel
 			
 			lastEv = ev
 			mouseDown = true
+			this.window.setUndoPoint()
 		}
 		
-		let onMouseDown = (ev) => mouseDown = false
+		let onMouseUp = (ev) =>
+		{
+			if (!mouseDown)
+				return
+			
+			mouseDown = false
+		}
 		
 		let onMouseMove = (ev) =>
 		{
@@ -651,14 +772,14 @@ class Panel
 		}
 		
 		document.addEventListener("mousemove", onMouseMove)
-		document.addEventListener("mouseup", onMouseDown)
-		document.addEventListener("mouseleave", onMouseDown)
+		document.addEventListener("mouseup", onMouseUp)
+		document.addEventListener("mouseleave", onMouseUp)
 		
 		this.onDestroy.push(() =>
 		{
 			document.removeEventListener("mousemove", onMouseMove)
-			document.removeEventListener("mouseup", onMouseDown)
-			document.removeEventListener("mouseleave", onMouseDown)
+			document.removeEventListener("mouseup", onMouseUp)
+			document.removeEventListener("mouseleave", onMouseUp)
 		})
 		
 		label.appendChild(text)
@@ -708,6 +829,8 @@ class Panel
 		{
 			if (select.selectedIndex < 0)
 				return
+			
+			this.window.setUndoPoint()
 			
 			for (let i = 0; i < values.length; i++)
 				onchange(options[select.selectedIndex].value, i)

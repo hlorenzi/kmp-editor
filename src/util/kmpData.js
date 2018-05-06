@@ -371,6 +371,23 @@ class KmpData
 			node.setting2 = 0
 			node.setting3 = 0
 		}
+		this.enemyPoints.onCloneNode = (newNode, oldNode) =>
+		{
+			newNode.size = oldNode.size
+			newNode.setting1 = oldNode.setting1
+			newNode.setting2 = oldNode.setting2
+			newNode.setting3 = oldNode.setting3
+		}
+	}
+	
+	
+	clone()
+	{
+		let cloned = new KmpData()
+		cloned.unhandledSectionData = this.unhandledSectionData
+		cloned.routes = this.routes
+		cloned.enemyPoints = this.enemyPoints.clone()
+		return cloned
 	}
 }
 
@@ -383,6 +400,7 @@ class NodeGraph
 		this.maxNextNodes = 1
 		this.maxPrevNodes = 1
 		this.onAddNode = () => { }
+		this.onCloneNode = () => { }
 	}
 	
 	
@@ -455,6 +473,56 @@ class NodeGraph
 			if (node2.prev[node2PrevIndex].count <= 0)
 				node2.prev.splice(node2PrevIndex, 1)
 		}
+	}
+	
+	
+	clone()
+	{
+		let clonedNodes = []
+		let clonedNodesMap = new Map()
+		for (let node of this.nodes)
+		{
+			let clonedNode =
+			{
+				pos: node.pos.clone(),
+				next: [],
+				prev: []
+			}
+			
+			this.onCloneNode(clonedNode, node)
+			
+			clonedNodesMap.set(node, clonedNode)
+			clonedNodes.push(clonedNode)
+		}
+		
+		for (let node of this.nodes)
+		{
+			let clonedNode = clonedNodesMap.get(node)
+			
+			for (let next of node.next)
+			{
+				clonedNode.next.push({
+					node: clonedNodesMap.get(next.node),
+					count: next.count
+				})
+			}
+			
+			for (let prev of node.prev)
+			{
+				clonedNode.prev.push({
+					node: clonedNodesMap.get(prev.node),
+					count: prev.count
+				})
+			}
+		}
+		
+		let graph = new NodeGraph()
+		graph.nodes = clonedNodes
+		graph.maxNextNodes = this.maxNextNodes
+		graph.maxPrevNodes = this.maxPrevNodes
+		graph.onAddNode = this.onAddNode
+		graph.onCloneNode = this.onCloneNode
+		return graph
 	}
 	
 	
