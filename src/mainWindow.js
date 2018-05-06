@@ -1,13 +1,12 @@
 const { remote, ipcRenderer, screen, shell } = require("electron")
 const fs = require("fs")
 const { Viewer } = require("./viewer/viewer.js")
-const { ViewerEnemyPaths } = require("./viewer/viewerEnemyPaths.js")
 const { ModelBuilder } = require("./util/modelBuilder.js")
 const { KmpData } = require("./util/kmpData.js")
 const { Vec3 } = require("./math/vec3.js")
 
 
-let versionStr = "v0.1"
+let versionStr = "v0.2"
 
 
 let gMainWindow = null
@@ -84,7 +83,7 @@ class MainWindow
 			kclEnableDeathBarriers: true,
 			kclEnableInvisible: true,
 			kclEnableEffects: false,
-			enemyPathsEnableSizeRender: false
+			enemyPathsEnableSizeRender: true
 		}
 		
 		this.currentKmpFilename = null
@@ -99,7 +98,8 @@ class MainWindow
 		this.panels = []
 		
 		this.sidePanelDiv = document.getElementById("divSidePanel")
-		this.viewer = new Viewer(this, document.getElementById("canvasMain"), this.cfg)
+		this.viewer = new Viewer(this, document.getElementById("canvasMain"), this.cfg, this.currentKmpData)
+		this.refreshPanels()
 		
 		this.newKmp()
 	}
@@ -147,11 +147,6 @@ class MainWindow
 	
 	refreshPanels()
 	{
-		for (let panel of this.panels)
-			panel.destroy()
-		
-		this.panels = []
-		
 		let panel = this.addPanel("Model")
 		panel.addText(null, "<strong>Right Mouse:</strong> Rotate Camera")
 		panel.addText(null, "<strong>Hold Shift + Right Mouse:</strong> Pan Camera")
@@ -169,7 +164,7 @@ class MainWindow
 		panel.addCheckbox(kclGroup, "Show effects/triggers", this.cfg.kclEnableEffects, (x) => { this.cfg.kclEnableEffects = x; this.openKcl(this.currentKclFilename) })
 		
 		this.refreshTitle()
-		this.viewer.setSubviewer(new ViewerEnemyPaths(this, this.viewer, this.currentKmpData))
+		this.viewer.refreshPanels()
 	}
 	
 	
@@ -182,7 +177,7 @@ class MainWindow
 	}
 	
 	
-	addPanel(name, open = true, closable = false)
+	addPanel(name, open = true, onToggle = null, closable = false)
 	{
 		let panel = this.panels.find(p => p.name == name)
 		if (panel != null)
@@ -191,7 +186,7 @@ class MainWindow
 			return panel
 		}
 		
-		panel = new Panel(this, this.sidePanelDiv, name, open, closable, () => { this.viewer.render() })
+		panel = new Panel(this, this.sidePanelDiv, name, open, onToggle, closable, () => { this.viewer.render() })
 		this.panels.push(panel)
 		return panel
 	}
@@ -216,9 +211,8 @@ class MainWindow
 		
 		this.undoStack.splice(this.undoPointer + 1, this.undoStack.length - this.undoPointer - 1)		
 		
-		this.undoStack.push(this.currentKmpData.clone())
+		this.undoStack.push({ data: this.currentKmpData.clone(), subviewer: this.viewer.currentSubviewer })
 		this.undoPointer += 1
-		this.setNotSaved()
 		this.undoNeedsNewSlot = false
 	}
 	
@@ -239,12 +233,14 @@ class MainWindow
 		this.setUndoPoint()
 		
 		this.undoPointer -= 1
-		this.currentKmpData = this.undoStack[this.undoPointer].clone()
+		this.currentKmpData = this.undoStack[this.undoPointer].data.clone()
+		this.viewer.setSubviewer(this.undoStack[this.undoPointer].subviewer)
 		
 		this.setNotSaved()
 		this.undoNeedsNewSlot = false
-		this.refreshPanels()
+		this.viewer.setData(this.currentKmpData)
 		this.viewer.render()
+		this.refreshPanels()
 	}
 	
 	
@@ -254,12 +250,14 @@ class MainWindow
 			return
 		
 		this.undoPointer += 1
-		this.currentKmpData = this.undoStack[this.undoPointer].clone()
+		this.currentKmpData = this.undoStack[this.undoPointer].data.clone()
+		this.viewer.setSubviewer(this.undoStack[this.undoPointer].subviewer)
 		
 		this.setNotSaved()
 		this.undoNeedsNewSlot = false
-		this.refreshPanels()
+		this.viewer.setData(this.currentKmpData)
 		this.viewer.render()
+		this.refreshPanels()
 	}
 	
 	
@@ -298,6 +296,7 @@ class MainWindow
 		
 		this.resetUndoStack()
 		
+		this.viewer.setData(this.currentKmpData)
 		this.setDefaultModel()
 		this.refreshPanels()
 		this.viewer.render()
@@ -325,6 +324,7 @@ class MainWindow
 			else
 				this.setDefaultModel()
 			
+			this.viewer.setData(this.currentKmpData)
 			this.viewer.centerView()
 			this.refreshPanels()
 			this.viewer.render()
@@ -452,13 +452,14 @@ class MainWindow
 
 class Panel
 {
-	constructor(window, parentDiv, name, open = true, closable = true, onRefreshView = null)
+	constructor(window, parentDiv, name, open = true, onToggle = null, closable = true, onRefreshView = null)
 	{
 		this.window = window
 		this.parentDiv = parentDiv
 		this.name = name
 		this.closable = closable
 		this.open = open
+		this.onToggle = onToggle
 		
 		this.panelDiv = document.createElement("div")
 		this.panelDiv.className = "panel"
@@ -501,8 +502,20 @@ class Panel
 		
 		this.onDestroy = []
 		
-		while (this.contentDiv.firstChild)
-			this.contentDiv.removeChild(this.contentDiv.firstChild)
+		while (this.contentDiv.lastChild)
+			this.contentDiv.removeChild(this.contentDiv.lastChild)
+	}
+	
+	
+	setOpen(open)
+	{
+		let changed = (this.open != open)
+		
+		this.open = open
+		this.refreshOpen()
+		
+		if (changed && this.onToggle != null)
+			this.onToggle(this.open)
 	}
 	
 	
@@ -510,6 +523,9 @@ class Panel
 	{
 		this.open = !this.open
 		this.refreshOpen()
+		
+		if (this.onToggle != null)
+			this.onToggle(this.open)
 	}
 	
 	

@@ -5,7 +5,7 @@ const { Mat4 } = require("../math/mat4.js")
 const { Geometry } = require("../math/geometry.js")
 
 
-class ViewerEnemyPaths
+class ViewerItemPoints
 {
 	constructor(window, viewer, data)
 	{
@@ -67,9 +67,9 @@ class ViewerEnemyPaths
 	
 	refreshPanels()
 	{
-		let panel = this.window.addPanel("Enemy Paths", false, (open) => { if (open) this.viewer.setSubviewer(this) })
+		let panel = this.window.addPanel("Item Paths", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
-	
+		
 		panel.addCheckbox(null, "Show point sizes", this.viewer.cfg.enemyPathsEnableSizeRender, (x) => this.viewer.cfg.enemyPathsEnableSizeRender = x)
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Extend Path")
@@ -78,7 +78,7 @@ class ViewerEnemyPaths
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
 		
-		let selectedPoints = this.data.enemyPoints.nodes.filter(p => p.selected)
+		let selectedPoints = this.data.itemPoints.nodes.filter(p => p.selected)
 		
 		let selectionGroup = panel.addGroup(null, "Selection:")
 		let enabled = (selectedPoints.length > 0)
@@ -91,19 +91,17 @@ class ViewerEnemyPaths
 		let setting1Options =
 		[
 			{ str: "None", value: 0 },
-			{ str: "Requires Mushroom", value: 1 },
-			{ str: "Use Mushroom", value: 2 },
-			{ str: "Allow Wheelie", value: 3 },
-			{ str: "End Wheelie", value: 4 },
+			{ str: "B.Bill uses gravity", value: 1 },
+			{ str: "B.Bill disregards gravity", value: 2 }
 		]
 		panel.addSelectionDropdown(selectionGroup, "Setting 1", selectedPoints.map(p => p.setting1), setting1Options, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
 		
 		let setting2Options =
 		[
 			{ str: "None", value: 0 },
-			{ str: "End Drift", value: 1 },
-			{ str: "Forbid Drift(?)", value: 2 },
-			{ str: "Force Drift", value: 3 },
+			{ str: "B.Bill can't stop", value: 1 },
+			{ str: "Low-priority route", value: 0xa },
+			{ str: "B.Bill can't stop & Low-priority route", value: 0xb },
 		]
 		panel.addSelectionDropdown(selectionGroup, "Setting 2", selectedPoints.map(p => p.setting2), setting2Options, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
 	}
@@ -116,7 +114,7 @@ class ViewerEnemyPaths
 		
 		this.renderers = []
 		
-		for (let point of this.data.enemyPoints.nodes)
+		for (let point of this.data.itemPoints.nodes)
 		{
 			if (point.selected === undefined)
 			{
@@ -182,7 +180,7 @@ class ViewerEnemyPaths
 		
 		let minDistToCamera = distToHit + 1000
 		let minDistToPoint = 1000000
-		for (let point of this.data.enemyPoints.nodes)
+		for (let point of this.data.itemPoints.nodes)
 		{
 			if (!includeSelected && point.selected)
 				continue
@@ -209,7 +207,7 @@ class ViewerEnemyPaths
 	
 	selectAll()
 	{
-		for (let point of this.data.enemyPoints.nodes)
+		for (let point of this.data.itemPoints.nodes)
 			point.selected = true
 		
 		this.refreshPanels()
@@ -218,7 +216,7 @@ class ViewerEnemyPaths
 	
 	unselectAll()
 	{
-		for (let point of this.data.enemyPoints.nodes)
+		for (let point of this.data.itemPoints.nodes)
 			point.selected = false
 		
 		this.refreshPanels()
@@ -227,7 +225,7 @@ class ViewerEnemyPaths
 	
 	toggleAllSelection()
 	{
-		let hasSelection = (this.data.enemyPoints.nodes.find(p => p.selected) != null)
+		let hasSelection = (this.data.itemPoints.nodes.find(p => p.selected) != null)
 		
 		if (hasSelection)
 			this.unselectAll()
@@ -240,7 +238,7 @@ class ViewerEnemyPaths
 	{
 		let pointsToDelete = []
 		
-		for (let point of this.data.enemyPoints.nodes)
+		for (let point of this.data.itemPoints.nodes)
 		{
 			if (!point.selected)
 				continue
@@ -249,7 +247,7 @@ class ViewerEnemyPaths
 		}
 		
 		for (let point of pointsToDelete)
-			this.data.enemyPoints.removeNode(point)
+			this.data.itemPoints.removeNode(point)
 		
 		this.refresh()
 		this.window.setNotSaved()
@@ -259,7 +257,7 @@ class ViewerEnemyPaths
 	
 	unlinkSelectedPoints()
 	{
-		for (let point of this.data.enemyPoints.nodes)
+		for (let point of this.data.itemPoints.nodes)
 		{
 			if (!point.selected)
 				continue
@@ -275,7 +273,7 @@ class ViewerEnemyPaths
 			}
 			
 			for (let next of nextPointsToUnlink)
-				this.data.enemyPoints.unlinkNodes(point, next)
+				this.data.itemPoints.unlinkNodes(point, next)
 		}
 		
 		this.refresh()
@@ -314,7 +312,7 @@ class ViewerEnemyPaths
 	{
 		this.linkingPoints = false
 		
-		for (let point of this.data.enemyPoints.nodes)
+		for (let point of this.data.itemPoints.nodes)
 			point.moveOrigin = point.pos
 		
 		let hoveringOverElem = this.getHoveringOverElement(cameraPos, ray, distToHit)
@@ -326,11 +324,11 @@ class ViewerEnemyPaths
 		{
 			if (ev.altKey)
 			{
-				let newPoint = this.data.enemyPoints.addNode()
+				let newPoint = this.data.itemPoints.addNode()
 				newPoint.pos = hoveringOverElem.pos
 				newPoint.size = hoveringOverElem.size
 				
-				this.data.enemyPoints.linkNodes(hoveringOverElem, newPoint)
+				this.data.itemPoints.linkNodes(hoveringOverElem, newPoint)
 				
 				this.refresh()
 				
@@ -349,7 +347,7 @@ class ViewerEnemyPaths
 		}
 		else if (ev.altKey)
 		{
-			let newPoint = this.data.enemyPoints.addNode()
+			let newPoint = this.data.itemPoints.addNode()
 			newPoint.pos = mouse3DPos
 			
 			this.refresh()
@@ -380,7 +378,7 @@ class ViewerEnemyPaths
 			{
 				let linkToPoint = this.getHoveringOverElement(cameraPos, ray, distToHit, false)
 				
-				for (let point of this.data.enemyPoints.nodes)
+				for (let point of this.data.itemPoints.nodes)
 				{
 					if (!point.selected)
 						continue
@@ -425,16 +423,16 @@ class ViewerEnemyPaths
 		{
 			if (this.linkingPoints)
 			{
-				let pointBeingLinked = this.data.enemyPoints.nodes.find(p => p.selected)
+				let pointBeingLinked = this.data.itemPoints.nodes.find(p => p.selected)
 				if (pointBeingLinked == null)
 					return
 				
-				let pointBeingLinkedTo = this.data.enemyPoints.nodes.find(p => p != pointBeingLinked && p.pos == pointBeingLinked.pos)
+				let pointBeingLinkedTo = this.data.itemPoints.nodes.find(p => p != pointBeingLinked && p.pos == pointBeingLinked.pos)
 				
 				if (pointBeingLinkedTo != null)
 				{
-					this.data.enemyPoints.removeNode(pointBeingLinked)
-					this.data.enemyPoints.linkNodes(pointBeingLinked.prev[0].node, pointBeingLinkedTo)
+					this.data.itemPoints.removeNode(pointBeingLinked)
+					this.data.itemPoints.linkNodes(pointBeingLinked.prev[0].node, pointBeingLinkedTo)
 					this.refresh()
 					this.window.setNotSaved()
 				}
@@ -447,23 +445,23 @@ class ViewerEnemyPaths
 	{
 		let cameraPos = this.viewer.getCurrentCameraPosition()
 		
-		for (let point of this.data.enemyPoints.nodes)
+		for (let point of this.data.itemPoints.nodes)
 		{
 			let distToCamera = point.pos.sub(cameraPos).magn()
 			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * distToCamera / 20000
 			
-			let useMushroom = (point.setting1 == 2)
+			let bbillCantStop = (point.setting2 & 0x1) != 0
 			
 			point.renderer
 				.setTranslation(point.pos)
 				.setScaling(new Vec3(scale, scale, scale))
-				.setDiffuseColor(useMushroom ? [1, 0.5, 0.95, 1] : [1, 0, 0, 1])
+				.setDiffuseColor(bbillCantStop ? [0.75, 0.75, 0.75, 1] : [0, 0, 1, 1])
 				
 			let sizeCircleScale = point.size * 50
 			point.rendererSizeCircle
 				.setTranslation(point.pos)
 				.setScaling(new Vec3(sizeCircleScale, sizeCircleScale, sizeCircleScale))
-				.setDiffuseColor([1, 0.5, 0, 0.5])
+				.setDiffuseColor([0, 0.5, 1, 0.5])
 				
 			for (let n = 0; n < point.next.length; n++)
 			{
@@ -472,7 +470,8 @@ class ViewerEnemyPaths
 				let distToCamera2 = nextPos.sub(cameraPos).magn()
 				let scale2 = Math.min(distToCamera, distToCamera2) / 20000
 				
-				let requiresMushroom = (point.next[n].node.setting1 == 1)
+				let nextBbillCantStop = bbillCantStop || (point.next[n].node.setting2 & 0x1) != 0
+				let lowPriority = (point.next[n].node.setting2 & 0xa) != 0
 				
 				let matrixScale = Mat4.scale(scale2, scale2, nextPos.sub(point.pos).magn())
 				let matrixAlign = Mat4.rotationFromTo(new Vec3(0, 0, 1), nextPos.sub(point.pos).normalize())
@@ -483,11 +482,11 @@ class ViewerEnemyPaths
 				
 				point.rendererOutgoingPaths[n]
 					.setCustomMatrix(matrixScale.mul(matrixAlign.mul(matrixTranslate)))
-					.setDiffuseColor(requiresMushroom ? [1, 0.5, 0.75, 1] : [1, 0.5, 0, 1])
+					.setDiffuseColor(nextBbillCantStop ? [0.5, 0.5, 0.5, 1] : lowPriority ? [0.75, 0.8, 1, 1] : [0, 0.5, 1, 1])
 					
 				point.rendererOutgoingPathArrows[n]
 					.setCustomMatrix(matrixScaleArrow.mul(matrixAlign.mul(matrixTranslateArrow)))
-					.setDiffuseColor([1, 0.75, 0, 1])
+					.setDiffuseColor(nextBbillCantStop ? [0.85, 0.85, 0.85, 1] : [0, 0.75, 1, 1])
 			}
 		}
 		
@@ -496,7 +495,7 @@ class ViewerEnemyPaths
 		
 		this.scene.render(this.viewer.gl, this.viewer.getCurrentCamera())
 		
-		for (let point of this.data.enemyPoints.nodes)
+		for (let point of this.data.itemPoints.nodes)
 		{
 			let distToCamera = point.pos.sub(cameraPos).magn()
 			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * distToCamera / 20000
@@ -504,11 +503,11 @@ class ViewerEnemyPaths
 			point.rendererSelected
 				.setTranslation(point.pos)
 				.setScaling(new Vec3(scale, scale, scale))
-				.setDiffuseColor([1, 0.5, 0.5, 1])
+				.setDiffuseColor([0.5, 0.5, 1, 1])
 				.setEnabled(point.selected)
 				
 			point.rendererSelectedCore
-				.setDiffuseColor([1, 0, 0, 1])
+				.setDiffuseColor([0, 0, 1, 1])
 		}
 		
 		this.sceneAfter.clearDepth(this.viewer.gl)
@@ -551,4 +550,4 @@ class ViewerEnemyPaths
 
 
 if (module)
-	module.exports = { ViewerEnemyPaths }
+	module.exports = { ViewerItemPoints }

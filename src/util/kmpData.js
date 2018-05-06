@@ -6,8 +6,6 @@ const { Vec3 } = require("../math/vec3.js")
 let unhandledSections =
 [
 	{ id: "KTPT", entryLen: 0x1c },
-	{ id: "ITPT", entryLen: 0x14 },
-	{ id: "ITPH", entryLen: 0x10 },
 	{ id: "CKPT", entryLen: 0x14 },
 	{ id: "CKPH", entryLen: 0x10 },
 	{ id: "GOBJ", entryLen: 0x3c },
@@ -63,6 +61,8 @@ class KmpData
 	
 		let enemyPoints = []
 		let enemyPaths = []
+		let itemPoints = []
+		let itemPaths = []
 		let routes = []
 		let unhandledSectionData = []
 		
@@ -105,6 +105,35 @@ class KmpData
 						parser.readUInt16()
 						
 						enemyPaths.push({ startIndex, pointNum, prevGroups, nextGroups })
+					}
+					break
+				}
+				
+				case "ITPT":
+				{
+					for (let i = 0; i < entryNum; i++)
+					{
+						let pos = parser.readVec3()
+						let size = parser.readFloat32()
+						let setting1 = parser.readUInt16()
+						let setting2 = parser.readUInt16()
+						
+						itemPoints.push({ pos, size, setting1, setting2 })
+					}
+					break
+				}
+				
+				case "ITPH":
+				{
+					for (let i = 0; i < entryNum; i++)
+					{
+						let startIndex = parser.readByte()
+						let pointNum = parser.readByte()
+						let prevGroups = parser.readBytes(6)
+						let nextGroups = parser.readBytes(6)
+						parser.readUInt16()
+						
+						itemPaths.push({ startIndex, pointNum, prevGroups, nextGroups })
 					}
 					break
 				}
@@ -155,7 +184,12 @@ class KmpData
 			}
 		}
 		
-		return { unhandledSectionData, enemyPoints, enemyPaths, routes }
+		return {
+			unhandledSectionData,
+			enemyPoints, enemyPaths,
+			itemPoints, itemPaths,
+			routes
+		}
 	}
 	
 	
@@ -196,6 +230,35 @@ class KmpData
 			}
 		}
 		
+		for (let i = 0; i < kmpData.itemPoints.length; i++)
+		{
+			let kmpPoint = kmpData.itemPoints[i]
+			
+			let node = kmp.itemPoints.addNode()
+			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
+			node.size = kmpPoint.size
+			node.setting1 = kmpPoint.setting1
+			node.setting2 = kmpPoint.setting2
+		}
+		
+		for (let i = 0; i < kmpData.itemPaths.length; i++)
+		{
+			let kmpPath = kmpData.itemPaths[i]
+		
+			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
+				kmp.itemPoints.linkNodes(kmp.itemPoints.nodes[p], kmp.itemPoints.nodes[p + 1])
+			
+			for (let j = 0; j < 6; j++)
+			{
+				if (kmpPath.nextGroups[j] != 0xff)
+				{
+					let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
+					let nextPoint = kmpData.itemPaths[kmpPath.nextGroups[j]].startIndex
+					
+					kmp.itemPoints.linkNodes(kmp.itemPoints.nodes[lastPoint], kmp.itemPoints.nodes[nextPoint])
+				}
+			}
+		}
 		return kmp
 	}
 	
@@ -244,6 +307,7 @@ class KmpData
 			w.writeBytes(this.unhandledSectionData[i].bytes)
 		}
 		
+		// Prepare enemy points
 		let enemyPaths = this.enemyPoints.convertToStorageFormat()
 		let enemyPoints = []
 		enemyPaths.forEach(path => path.nodes.forEach(node => enemyPoints.push(node)))
@@ -321,6 +385,83 @@ class KmpData
 			w.writeUInt16(0)
 		}
 		
+		// Prepare item points
+		let itemPaths = this.itemPoints.convertToStorageFormat()
+		let itemPoints = []
+		itemPaths.forEach(path => path.nodes.forEach(node => itemPoints.push(node)))
+		
+		if (itemPaths.length >= 0xff)
+			throw "kmp encode: max item path number surpassed (have " + itemPaths.length + ", max 254)"
+		
+		if (itemPoints.length > 0xff)
+			throw "kmp encode: max item point number surpassed (have " + itemPoints.length + ", max 255)"
+		
+		// Write ITPT
+		let sectionItptAddr = w.head
+		let sectionItptOrder = sectionOrder.findIndex(s => s == "ITPT")
+		w.seek(sectionOffsetsAddr + sectionItptOrder * 4)
+		w.writeUInt32(sectionItptAddr - headerEndAddr)
+		
+		w.seek(sectionItptAddr)
+		w.writeAscii("ITPT")
+		w.writeUInt16(itemPoints.length)
+		w.writeUInt16(0)
+		for (let p of itemPoints)
+		{
+			w.writeFloat32(p.pos.x)
+			w.writeFloat32(-p.pos.z)
+			w.writeFloat32(-p.pos.y)
+			w.writeFloat32(p.size)
+			w.writeUInt16(p.setting1)
+			w.writeUInt16(p.setting2)
+		}
+		
+		// Write ITPH
+		let sectionItphAddr = w.head
+		let sectionItphOrder = sectionOrder.findIndex(s => s == "ITPH")
+		w.seek(sectionOffsetsAddr + sectionItphOrder * 4)
+		w.writeUInt32(sectionItphAddr - headerEndAddr)
+		
+		w.seek(sectionItphAddr)
+		w.writeAscii("ITPH")
+		w.writeUInt16(itemPaths.length)
+		w.writeUInt16(0)
+		for (let path of itemPaths)
+		{
+			if (path.nodes.length > 0xff)
+				throw "kmp encode: max item point number in a path surpassed (have " + path.nodes.length + ", max 255)"
+			
+			w.writeByte(itemPoints.findIndex(n => n == path.nodes[0]))
+			w.writeByte(path.nodes.length)
+			
+			let incomingPaths = path.prev.reduce((accum, p) => accum + 1, 0)
+			let outgoingPaths = path.next.reduce((accum, p) => accum + 1, 0)
+			
+			if (incomingPaths > 6)
+				throw "kmp encode: max incoming connections to an item point surpassed (have " + incomingPaths + ", max 6)"
+			
+			if (outgoingPaths > 6)
+				throw "kmp encode: max outgoing connections to an item point surpassed (have " + outgoingPaths + ", max 6)"
+			
+			for (let i = 0; i < 6; i++)
+			{
+				if (i < path.prev.length)
+					w.writeByte(itemPaths.findIndex(p => p == path.prev[i]))
+				else
+					w.writeByte(0xff)
+			}
+			
+			for (let i = 0; i < 6; i++)
+			{
+				if (i < path.next.length)
+					w.writeByte(itemPaths.findIndex(p => p == path.next[i]))
+				else
+					w.writeByte(0xff)
+			}
+			
+			w.writeUInt16(0)
+		}
+		
 		// Write POTI
 		let sectionPotiAddr = w.head
 		let sectionPotiOrder = sectionOrder.findIndex(s => s == "POTI")
@@ -366,6 +507,7 @@ class KmpData
 		this.enemyPoints.maxPrevNodes = 6
 		this.enemyPoints.onAddNode = (node) =>
 		{
+			node.pos = new Vec3(0, 0, 0)
 			node.size = 10
 			node.setting1 = 0
 			node.setting2 = 0
@@ -373,10 +515,29 @@ class KmpData
 		}
 		this.enemyPoints.onCloneNode = (newNode, oldNode) =>
 		{
+			newNode.pos = oldNode.pos.clone()
 			newNode.size = oldNode.size
 			newNode.setting1 = oldNode.setting1
 			newNode.setting2 = oldNode.setting2
 			newNode.setting3 = oldNode.setting3
+		}
+		
+		this.itemPoints = new NodeGraph()
+		this.itemPoints.maxNextNodes = 6
+		this.itemPoints.maxPrevNodes = 6
+		this.itemPoints.onAddNode = (node) =>
+		{
+			node.pos = new Vec3(0, 0, 0)
+			node.size = 10
+			node.setting1 = 0
+			node.setting2 = 0
+		}
+		this.itemPoints.onCloneNode = (newNode, oldNode) =>
+		{
+			newNode.pos = oldNode.pos.clone()
+			newNode.size = oldNode.size
+			newNode.setting1 = oldNode.setting1
+			newNode.setting2 = oldNode.setting2
 		}
 	}
 	
@@ -387,6 +548,7 @@ class KmpData
 		cloned.unhandledSectionData = this.unhandledSectionData
 		cloned.routes = this.routes
 		cloned.enemyPoints = this.enemyPoints.clone()
+		cloned.itemPoints = this.itemPoints.clone()
 		return cloned
 	}
 }
@@ -408,7 +570,6 @@ class NodeGraph
 	{
 		let node =
 		{
-			pos: new Vec3(0, 0, 0),
 			next: [],
 			prev: []
 		}
@@ -484,7 +645,6 @@ class NodeGraph
 		{
 			let clonedNode =
 			{
-				pos: node.pos.clone(),
 				next: [],
 				prev: []
 			}

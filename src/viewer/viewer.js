@@ -1,5 +1,7 @@
 const { GLProgram } = require("../gl/shader.js")
 const { GfxScene, GfxCamera, GfxMaterial, GfxModel, GfxNodeRenderer, GfxNodeRendererTransform } = require("../gl/scene.js")
+const { ViewerEnemyPaths } = require("./viewerEnemyPaths.js")
+const { ViewerItemPoints } = require("./viewerItemPoints.js")
 const { ModelBuilder } = require("../util/modelBuilder.js")
 const { Vec3 } = require("../math/vec3.js")
 const { Mat4 } = require("../math/mat4.js")
@@ -7,10 +9,11 @@ const { Mat4 } = require("../math/mat4.js")
 
 class Viewer
 {
-	constructor(window, canvas, cfg)
+	constructor(window, canvas, cfg, data)
 	{
 		this.window = window
 		this.cfg = cfg
+		this.data = data
 		
 		this.canvas = canvas
 		this.canvas.onresize = () => this.resize()
@@ -91,6 +94,15 @@ class Viewer
 			.setMaterial(this.material)
 			.setDiffuseColor([1, 0, 0, 1])
 			.setEnabled(false)
+			
+			
+		this.subviewers =
+		[
+			new ViewerEnemyPaths(this.window, this, this.data),
+			new ViewerItemPoints(this.window, this, this.data)
+		]
+		
+		this.currentSubviewer = this.subviewers[0]
 		
 		this.render()
 	}
@@ -107,6 +119,21 @@ class Viewer
 	}
 	
 	
+	refreshPanels()
+	{
+		for (let subviewer of this.subviewers)
+			subviewer.refreshPanels()
+	}
+	
+	
+	setData(data)
+	{
+		this.data = data
+		for (let subviewer of this.subviewers)
+			subviewer.setData(data)
+	}
+	
+	
 	setModel(modelBuilder)
 	{
 		this.modelBuilder = modelBuilder
@@ -114,6 +141,26 @@ class Viewer
 		this.renderer.setModel(this.model)
 		
 		this.collision = modelBuilder.makeCollision().buildCacheSubdiv()
+	}
+	
+	
+	setSubviewer(subviewer)
+	{
+		if (this.currentSubviewer != null && this.currentSubviewer != subviewer)
+		{
+			this.currentSubviewer.destroy()
+			this.currentSubviewer.panel.setOpen(false)
+		}
+		
+		this.currentSubviewer = subviewer
+		
+		if (this.currentSubviewer != null)
+		{
+			this.currentSubviewer.refresh()
+			this.currentSubviewer.panel.setOpen(true)
+		}
+		
+		this.render()
 	}
 	
 	
@@ -131,15 +178,6 @@ class Viewer
 	}
 	
 	
-	setSubviewer(subviewer)
-	{
-		if (this.subviewer != null)
-			this.subviewer.destroy()
-		
-		this.subviewer = subviewer
-	}
-	
-	
 	render()
 	{
 		this.scene.clear(this.gl)
@@ -148,13 +186,13 @@ class Viewer
 		this.material.program.use(this.gl).setVec4(this.gl, "uAmbientColor", [ambient, ambient, ambient, 1])
 		this.materialColor.program.use(this.gl).setVec4(this.gl, "uAmbientColor", [ambient, ambient, ambient, 1])
 		
-		if (this.subviewer != null && this.subviewer.drawBeforeModel)
-			this.subviewer.drawBeforeModel()
+		if (this.currentSubviewer != null && this.currentSubviewer.drawBeforeModel)
+			this.currentSubviewer.drawBeforeModel()
 		
 		this.scene.render(this.gl, this.getCurrentCamera())
 		
-		if (this.subviewer != null && this.subviewer.drawAfterModel)
-			this.subviewer.drawAfterModel()
+		if (this.currentSubviewer != null && this.currentSubviewer.drawAfterModel)
+			this.currentSubviewer.drawAfterModel()
 	}
 	
 	
@@ -240,9 +278,9 @@ class Viewer
 		if (ev.repeat == undefined)
 			this.window.setUndoPoint()
 		
-		if (this.subviewer != null)
+		if (this.currentSubviewer != null)
 		{
-			if (this.subviewer.onKeyDown(ev))
+			if (this.currentSubviewer.onKeyDown(ev))
 			{
 				ev.preventDefault()
 				this.render()
@@ -300,8 +338,8 @@ class Viewer
 			
 			let mouse3DPos = hit ? hit.position : ray.origin.add(ray.direction.scale(1000))
 			
-			if (this.subviewer != null)
-				this.subviewer.onMouseDown(ev, mouse.x, mouse.y, cameraPos, ray, hit, distToHit, mouse3DPos)
+			if (this.currentSubviewer != null)
+				this.currentSubviewer.onMouseDown(ev, mouse.x, mouse.y, cameraPos, ray, hit, distToHit, mouse3DPos)
 		}
 		
 		this.mouseLastClickDate = new Date()
@@ -357,8 +395,8 @@ class Viewer
 				this.mouseMoveOffsetRaycast = hit
 			}
 			
-			if (this.subviewer != null)
-				this.subviewer.onMouseMove(ev, mouse.x, mouse.y, cameraPos, ray, hit, distToHit)
+			if (this.currentSubviewer != null)
+				this.currentSubviewer.onMouseMove(ev, mouse.x, mouse.y, cameraPos, ray, hit, distToHit)
 			
 			this.mouseLast = mouse
 			this.render()
@@ -369,8 +407,8 @@ class Viewer
 			//if (hit != null)
 			//	  this.debugRaycastRenderer.setTranslation(hit.position)
 			
-			if (this.subviewer != null)
-				this.subviewer.onMouseMove(ev, mouse.x, mouse.y, cameraPos, ray, hit, distToHit)
+			if (this.currentSubviewer != null)
+				this.currentSubviewer.onMouseMove(ev, mouse.x, mouse.y, cameraPos, ray, hit, distToHit)
 			
 			//console.log(this.pointToScreen(ray.origin.add(ray.direction.scale(10000))))
 		}
@@ -386,8 +424,8 @@ class Viewer
 		
 		let mouse = this.getMousePosFromEvent(ev)
 		
-		if (this.subviewer != null && this.subviewer.onMouseUp)
-			this.subviewer.onMouseUp(ev, mouse.x, mouse.y)
+		if (this.currentSubviewer != null && this.currentSubviewer.onMouseUp)
+			this.currentSubviewer.onMouseUp(ev, mouse.x, mouse.y)
 		
 		this.window.setUndoPoint()
 		this.mouseDown = false
