@@ -103,7 +103,7 @@ class KclLoader
 			let v3 = vertex.add(crossA.scale(len / crossA.dot(normalC)))
 			
 			let flagBasicType = collisionFlags & 0x1f
-			if (flagBasicType > collisionTypeData.length)
+			if (flagBasicType >= collisionTypeData.length)
 				continue
 			
 			let data = collisionTypeData[flagBasicType]

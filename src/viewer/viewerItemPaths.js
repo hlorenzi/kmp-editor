@@ -5,7 +5,7 @@ const { Mat4 } = require("../math/mat4.js")
 const { Geometry } = require("../math/geometry.js")
 
 
-class ViewerItemPoints
+class ViewerItemPaths
 {
 	constructor(window, viewer, data)
 	{
@@ -189,7 +189,7 @@ class ViewerItemPoints
 			if (distToCamera >= minDistToCamera)
 				continue
 			
-			let scale = distToCamera / 20000
+			let scale = this.viewer.getElementScale(point.pos)
 			
 			let pointDistToRay = Geometry.linePointDistance(ray.origin, ray.direction, point.pos)
 			
@@ -447,28 +447,26 @@ class ViewerItemPoints
 		
 		for (let point of this.data.itemPoints.nodes)
 		{
-			let distToCamera = point.pos.sub(cameraPos).magn()
-			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * distToCamera / 20000
+			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * this.viewer.getElementScale(point.pos)
 			
 			let bbillCantStop = (point.setting2 & 0x1) != 0
 			
 			point.renderer
 				.setTranslation(point.pos)
 				.setScaling(new Vec3(scale, scale, scale))
-				.setDiffuseColor(bbillCantStop ? [0.75, 0.75, 0.75, 1] : [0, 0, 1, 1])
+				.setDiffuseColor(bbillCantStop ? [0.75, 0.75, 0.75, 1] : [0, 0.8, 0, 1])
 				
 			let sizeCircleScale = point.size * 50
 			point.rendererSizeCircle
 				.setTranslation(point.pos)
 				.setScaling(new Vec3(sizeCircleScale, sizeCircleScale, sizeCircleScale))
-				.setDiffuseColor([0, 0.5, 1, 0.5])
+				.setDiffuseColor([0.25, 0.8, 0, 0.5])
 				
 			for (let n = 0; n < point.next.length; n++)
 			{
 				let nextPos = point.next[n].node.pos
 				
-				let distToCamera2 = nextPos.sub(cameraPos).magn()
-				let scale2 = Math.min(distToCamera, distToCamera2) / 20000
+				let scale2 = Math.min(scale, this.viewer.getElementScale(nextPos))
 				
 				let nextBbillCantStop = bbillCantStop || (point.next[n].node.setting2 & 0x1) != 0
 				let lowPriority = (point.next[n].node.setting2 & 0xa) != 0
@@ -482,11 +480,11 @@ class ViewerItemPoints
 				
 				point.rendererOutgoingPaths[n]
 					.setCustomMatrix(matrixScale.mul(matrixAlign.mul(matrixTranslate)))
-					.setDiffuseColor(nextBbillCantStop ? [0.5, 0.5, 0.5, 1] : lowPriority ? [0.75, 0.8, 1, 1] : [0, 0.5, 1, 1])
+					.setDiffuseColor(nextBbillCantStop ? [0.5, 0.5, 0.5, 1] : lowPriority ? [0.8, 1, 0.5, 1] : [0.5, 1, 0, 1])
 					
 				point.rendererOutgoingPathArrows[n]
 					.setCustomMatrix(matrixScaleArrow.mul(matrixAlign.mul(matrixTranslateArrow)))
-					.setDiffuseColor(nextBbillCantStop ? [0.85, 0.85, 0.85, 1] : [0, 0.75, 1, 1])
+					.setDiffuseColor(nextBbillCantStop ? [0.85, 0.85, 0.85, 1] : [0.1, 0.8, 0, 1])
 			}
 		}
 		
@@ -497,17 +495,16 @@ class ViewerItemPoints
 		
 		for (let point of this.data.itemPoints.nodes)
 		{
-			let distToCamera = point.pos.sub(cameraPos).magn()
-			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * distToCamera / 20000
+			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * this.viewer.getElementScale(point.pos)
 			
 			point.rendererSelected
 				.setTranslation(point.pos)
 				.setScaling(new Vec3(scale, scale, scale))
-				.setDiffuseColor([0.5, 0.5, 1, 1])
+				.setDiffuseColor([0.4, 1, 0.1, 1])
 				.setEnabled(point.selected)
 				
 			point.rendererSelectedCore
-				.setDiffuseColor([0, 0, 1, 1])
+				.setDiffuseColor([0, 0.8, 0, 1])
 		}
 		
 		this.sceneAfter.clearDepth(this.viewer.gl)
@@ -550,4 +547,4 @@ class ViewerItemPoints
 
 
 if (module)
-	module.exports = { ViewerItemPoints }
+	module.exports = { ViewerItemPaths }

@@ -2,8 +2,9 @@
 
 Edits Mario Kart Wii's KMP files (a course's functional data) in a visual, intuitive way!
 
-Currently only edits enemy path information (`ENPT` and `ENPH`) and
-item path information (`ITPT` and `ITPH`), but will keep
+Currently only edits enemy path information (`ENPT` and `ENPH`),
+item path information (`ITPT` and `ITPH`), and
+checkpoint information (`CKPT` and `CKPH`), but will keep
 other sections intact when saving.
 
 :warning: This is an early release, so use at your own risk! Remember to always backup your files

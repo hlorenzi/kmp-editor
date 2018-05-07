@@ -191,7 +191,7 @@ class ViewerEnemyPaths
 			if (distToCamera >= minDistToCamera)
 				continue
 			
-			let scale = distToCamera / 20000
+			let scale = this.viewer.getElementScale(point.pos)
 			
 			let pointDistToRay = Geometry.linePointDistance(ray.origin, ray.direction, point.pos)
 			
@@ -449,8 +449,7 @@ class ViewerEnemyPaths
 		
 		for (let point of this.data.enemyPoints.nodes)
 		{
-			let distToCamera = point.pos.sub(cameraPos).magn()
-			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * distToCamera / 20000
+			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * this.viewer.getElementScale(point.pos)
 			
 			let useMushroom = (point.setting1 == 2)
 			
@@ -469,8 +468,7 @@ class ViewerEnemyPaths
 			{
 				let nextPos = point.next[n].node.pos
 				
-				let distToCamera2 = nextPos.sub(cameraPos).magn()
-				let scale2 = Math.min(distToCamera, distToCamera2) / 20000
+				let scale2 = Math.min(scale, this.viewer.getElementScale(nextPos))
 				
 				let requiresMushroom = (point.next[n].node.setting1 == 1)
 				
@@ -498,8 +496,7 @@ class ViewerEnemyPaths
 		
 		for (let point of this.data.enemyPoints.nodes)
 		{
-			let distToCamera = point.pos.sub(cameraPos).magn()
-			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * distToCamera / 20000
+			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * this.viewer.getElementScale(point.pos)
 			
 			point.rendererSelected
 				.setTranslation(point.pos)

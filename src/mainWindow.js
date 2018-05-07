@@ -78,12 +78,14 @@ class MainWindow
 		
 		this.cfg =
 		{
+			useOrthoProjection: false,
 			shadingFactor: 0.3,
 			kclEnableColors: true,
 			kclEnableDeathBarriers: true,
 			kclEnableInvisible: true,
 			kclEnableEffects: false,
-			enemyPathsEnableSizeRender: true
+			enemyPathsEnableSizeRender: true,
+			checkpointsEnableVerticalPanels: true
 		}
 		
 		this.currentKmpFilename = null
@@ -155,6 +157,7 @@ class MainWindow
 		panel.addButton(null, "Load course_model.brres", () => this.openCourseBrres())
 		panel.addButton(null, "Load course.kcl", () => this.openCourseKcl())
 		panel.addButton(null, "Load custom model", () => this.openCustomModel())
+		panel.addButton(null, "(5) Toggle Projection", () => this.cfg.useOrthoProjection = !this.cfg.useOrthoProjection)
 		panel.addButton(null, "Center view", () => this.viewer.centerView())
 		panel.addSlider(null, "Shading", 0, 1, this.cfg.shadingFactor, 0.05, (x) => this.cfg.shadingFactor = x)
 		let kclGroup = panel.addGroup(null, "Collision data:")
@@ -311,23 +314,32 @@ class MainWindow
 		let result = remote.dialog.showOpenDialog(remote.getCurrentWindow(), { properties: ["openFile"], filters: [{ name: "KMP Files (*.kmp)", extensions: ["kmp"] }] })
 		if (result)
 		{
-			let kmpFilename = result[0].replace(new RegExp("\\\\", "g"), "/")
-			this.currentKmpFilename = kmpFilename
-			this.currentKmpData = KmpData.convertToWorkingFormat(KmpData.load(fs.readFileSync(kmpFilename)))
-			this.currentNotSaved = false
-			
-			this.resetUndoStack()
-			
-			let kclFilename = this.currentKmpFilename.substr(0, this.currentKmpFilename.lastIndexOf("/")) + "/course.kcl"
-			if (fs.existsSync(kclFilename))
-				this.openKcl(kclFilename)
-			else
-				this.setDefaultModel()
-			
-			this.viewer.setData(this.currentKmpData)
-			this.viewer.centerView()
-			this.refreshPanels()
-			this.viewer.render()
+			try
+			{
+				let kmpFilename = result[0].replace(new RegExp("\\\\", "g"), "/")
+				this.currentKmpFilename = kmpFilename
+				this.currentKmpData = KmpData.convertToWorkingFormat(KmpData.load(fs.readFileSync(kmpFilename)))
+				this.currentNotSaved = false
+				
+				this.resetUndoStack()
+				
+				let kclFilename = this.currentKmpFilename.substr(0, this.currentKmpFilename.lastIndexOf("/")) + "/course.kcl"
+				if (fs.existsSync(kclFilename))
+					this.openKcl(kclFilename)
+				else
+					this.setDefaultModel()
+				
+				this.viewer.setData(this.currentKmpData)
+				this.viewer.centerView()
+				this.refreshPanels()
+				this.viewer.render()
+			}
+			catch (e)
+			{
+				console.error(e)
+				alert("KMP open error!\n\n" + e)
+				this.newKmp()
+			}
 		}
 	}
 	
@@ -369,8 +381,7 @@ class MainWindow
 	setDefaultModel()
 	{
 		let model = new ModelBuilder()
-			.addCube(-1000, -1000, -1000, 1000, 1000, 1000)
-			.addCube(-5000, -5000, 1000, 5000, 5000, 1005)
+			.addCube(-5000, -5000, -3, 5000, 5000, 3)
 			.calculateNormals()
 			
 		this.viewer.setModel(model)

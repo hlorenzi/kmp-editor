@@ -1,7 +1,8 @@
 const { GLProgram } = require("../gl/shader.js")
 const { GfxScene, GfxCamera, GfxMaterial, GfxModel, GfxNodeRenderer, GfxNodeRendererTransform } = require("../gl/scene.js")
 const { ViewerEnemyPaths } = require("./viewerEnemyPaths.js")
-const { ViewerItemPoints } = require("./viewerItemPoints.js")
+const { ViewerItemPaths } = require("./viewerItemPaths.js")
+const { ViewerCheckpoints } = require("./viewerCheckpoints.js")
 const { ModelBuilder } = require("../util/modelBuilder.js")
 const { Vec3 } = require("../math/vec3.js")
 const { Mat4 } = require("../math/mat4.js")
@@ -83,6 +84,9 @@ class Viewer
 			.setMaterial(this.materialColor)
 			.setDiffuseColor([1, 1, 1, 1])
 			
+		this.cachedCamera = new GfxCamera()
+		this.cachedCameraPos = new Vec3(0, 0, 0)
+			
 			
 		let debugRaycastBuilder = new ModelBuilder()
 			.addSphere(-100, -100, -100, 100, 100, 100)
@@ -99,7 +103,8 @@ class Viewer
 		this.subviewers =
 		[
 			new ViewerEnemyPaths(this.window, this, this.data),
-			new ViewerItemPoints(this.window, this, this.data)
+			new ViewerItemPaths(this.window, this, this.data),
+			new ViewerCheckpoints(this.window, this, this.data),
 		]
 		
 		this.currentSubviewer = this.subviewers[0]
@@ -141,6 +146,12 @@ class Viewer
 		this.renderer.setModel(this.model)
 		
 		this.collision = modelBuilder.makeCollision().buildCacheSubdiv()
+		
+		for (let subviewer of this.subviewers)
+		{
+			if (subviewer.setModel)
+				subviewer.setModel(modelBuilder)
+		}
 	}
 	
 	
@@ -180,6 +191,32 @@ class Viewer
 	
 	render()
 	{
+		// Cache camera position
+		let eyeZDist = Math.cos(this.cameraVertAngle)
+		
+		let cameraEyeOffset = new Vec3(
+			Math.cos(this.cameraHorzAngle) * this.cameraDist * eyeZDist,
+			-Math.sin(this.cameraHorzAngle) * this.cameraDist * eyeZDist,
+			-Math.sin(this.cameraVertAngle) * this.cameraDist)
+		
+		this.cachedCameraPos = this.cameraFocus.add(cameraEyeOffset)
+		
+		// Cache camera
+		if (this.cfg.useOrthoProjection)
+		{
+			let scale = this.cameraDist / 1000
+			this.cachedCamera = new GfxCamera()
+				.setProjection(Mat4.ortho(-this.width * scale, this.width * scale, -this.height * scale, this.height * scale, -500000, 500000))
+				.setView(Mat4.lookat(this.getCurrentCameraPosition(), this.cameraFocus, new Vec3(0, 0, -1)))
+		}
+		else
+		{
+			this.cachedCamera = new GfxCamera()
+				.setProjection(Mat4.perspective(30 * Math.PI / 180, this.width / this.height, 100, 500000))
+				.setView(Mat4.lookat(this.getCurrentCameraPosition(), this.cameraFocus, new Vec3(0, 0, -1)))
+		}
+		
+		// Render scene
 		this.scene.clear(this.gl)
 		
 		let ambient = 1 - this.cfg.shadingFactor
@@ -196,25 +233,24 @@ class Viewer
 	}
 	
 	
+	getElementScale(pos)
+	{
+		if (this.cfg.useOrthoProjection)
+			return this.cameraDist / 15000
+		else
+			return pos.sub(this.getCurrentCameraPosition()).magn() / 20000
+	}
+	
+	
 	getCurrentCameraPosition()
 	{
-		let eyeZDist = Math.cos(this.cameraVertAngle)
-		
-		let cameraEyeOffset = new Vec3(
-			Math.cos(this.cameraHorzAngle) * this.cameraDist * eyeZDist,
-			-Math.sin(this.cameraHorzAngle) * this.cameraDist * eyeZDist,
-			-Math.sin(this.cameraVertAngle) * this.cameraDist)
-		
-		return this.cameraFocus.add(cameraEyeOffset)
+		return this.cachedCameraPos
 	}
 	
 	
 	getCurrentCamera()
 	{
-		return new GfxCamera()
-			//.setProjection(Mat4.ortho(-this.width * 10, this.width * 10, -this.height * 10, this.height * 10, 100, 500000))
-			.setProjection(Mat4.perspective(30 * Math.PI / 180, this.width / this.height, 100, 500000))
-			.setView(Mat4.lookat(this.getCurrentCameraPosition(), this.cameraFocus, new Vec3(0, 0, -1)))
+		return this.cachedCamera
 	}
 	
 	
@@ -277,6 +313,14 @@ class Viewer
 	{
 		if (ev.repeat == undefined)
 			this.window.setUndoPoint()
+		
+		if (ev.key == "5")
+		{
+			this.cfg.useOrthoProjection = !this.cfg.useOrthoProjection
+			ev.preventDefault()
+			this.render()
+			return
+		}
 		
 		if (this.currentSubviewer != null)
 		{
@@ -381,7 +425,7 @@ class Viewer
 				this.cameraHorzAngle += dx * 0.0075
 				this.cameraVertAngle += dy * 0.0075
 				
-				this.cameraVertAngle = Math.max(-Math.PI / 2 + 0.001, Math.min(Math.PI / 2 - 0.001, this.cameraVertAngle))
+				this.cameraVertAngle = Math.max(-Math.PI / 2 + 0.0001, Math.min(Math.PI / 2 - 0.0001, this.cameraVertAngle))
 			}
 			else if (this.mouseAction == "move")
 			{

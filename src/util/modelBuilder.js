@@ -33,10 +33,10 @@ class ModelBuilder
 	}
 	
 	
-	addQuad(v1, v2, v3, v4)
+	addQuad(v1, v2, v3, v4, c1 = null, c2 = null, c3 = null, c4 = null)
 	{
-		this.addTri(v1, v2, v3)
-		this.addTri(v1, v3, v4)
+		this.addTri(v1, v2, v3, c1, c2, c3)
+		this.addTri(v1, v3, v4, c1, c3, c4)
 		
 		return this
 	}

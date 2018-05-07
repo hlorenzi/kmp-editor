@@ -6,8 +6,6 @@ const { Vec3 } = require("../math/vec3.js")
 let unhandledSections =
 [
 	{ id: "KTPT", entryLen: 0x1c },
-	{ id: "CKPT", entryLen: 0x14 },
-	{ id: "CKPH", entryLen: 0x10 },
 	{ id: "GOBJ", entryLen: 0x3c },
 	{ id: "AREA", entryLen: 0x30 },
 	{ id: "CAME", entryLen: 0x48 },
@@ -63,6 +61,8 @@ class KmpData
 		let enemyPaths = []
 		let itemPoints = []
 		let itemPaths = []
+		let checkpointPoints = []
+		let checkpointPaths = []
 		let routes = []
 		let unhandledSectionData = []
 		
@@ -138,6 +138,39 @@ class KmpData
 					break
 				}
 				
+				case "CKPT":
+				{
+					for (let i = 0; i < entryNum; i++)
+					{
+						let x1 = parser.readFloat32()
+						let z1 = parser.readFloat32()
+						let x2 = parser.readFloat32()
+						let z2 = parser.readFloat32()
+						let respawnIndex = parser.readByte()
+						let type = parser.readByte()
+						let prev = parser.readByte()
+						let next = parser.readByte()
+						
+						checkpointPoints.push({ x1, z1, x2, z2, respawnIndex, type, prev, next })
+					}
+					break
+				}
+				
+				case "CKPH":
+				{
+					for (let i = 0; i < entryNum; i++)
+					{
+						let startIndex = parser.readByte()
+						let pointNum = parser.readByte()
+						let prevGroups = parser.readBytes(6)
+						let nextGroups = parser.readBytes(6)
+						parser.readUInt16()
+						
+						checkpointPaths.push({ startIndex, pointNum, prevGroups, nextGroups })
+					}
+					break
+				}
+				
 				case "POTI":
 				{
 					for (let i = 0; i < entryNum; i++)
@@ -188,6 +221,7 @@ class KmpData
 			unhandledSectionData,
 			enemyPoints, enemyPaths,
 			itemPoints, itemPaths,
+			checkpointPoints, checkpointPaths,
 			routes
 		}
 	}
@@ -259,6 +293,37 @@ class KmpData
 				}
 			}
 		}
+		
+		for (let i = 0; i < kmpData.checkpointPoints.length; i++)
+		{
+			let kmpPoint = kmpData.checkpointPoints[i]
+			
+			let node = kmp.checkpointPoints.addNode()
+			node.pos = [new Vec3(kmpPoint.x1, -kmpPoint.z1, 0), new Vec3(kmpPoint.x2, -kmpPoint.z2, 0)]
+			node.type = kmpPoint.type
+			node.respawnNode = null
+			node.respawnIndex = kmpPoint.respawnIndex
+		}
+		
+		for (let i = 0; i < kmpData.checkpointPaths.length; i++)
+		{
+			let kmpPath = kmpData.checkpointPaths[i]
+		
+			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
+				kmp.checkpointPoints.linkNodes(kmp.checkpointPoints.nodes[p], kmp.checkpointPoints.nodes[p + 1])
+			
+			for (let j = 0; j < 6; j++)
+			{
+				if (kmpPath.nextGroups[j] != 0xff)
+				{
+					let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
+					let nextPoint = kmpData.checkpointPaths[kmpPath.nextGroups[j]].startIndex
+					
+					kmp.checkpointPoints.linkNodes(kmp.checkpointPoints.nodes[lastPoint], kmp.checkpointPoints.nodes[nextPoint])
+				}
+			}
+		}
+		
 		return kmp
 	}
 	
@@ -461,6 +526,91 @@ class KmpData
 			
 			w.writeUInt16(0)
 		}
+						
+		// Prepare item points
+		let checkpointPaths = this.checkpointPoints.convertToStorageFormat()
+		let checkpointPoints = []
+		checkpointPaths.forEach(path => path.nodes.forEach(node => checkpointPoints.push(node)))
+		
+		if (checkpointPaths.length >= 0xff)
+			throw "kmp encode: max checkpoint path number surpassed (have " + checkpointPaths.length + ", max 254)"
+		
+		if (checkpointPoints.length > 0xff)
+			throw "kmp encode: max checkpoint point number surpassed (have " + checkpointPoints.length + ", max 255)"
+		
+		// Write CKPT
+		let sectionCkptAddr = w.head
+		let sectionCkptOrder = sectionOrder.findIndex(s => s == "CKPT")
+		w.seek(sectionOffsetsAddr + sectionCkptOrder * 4)
+		w.writeUInt32(sectionCkptAddr - headerEndAddr)
+		
+		w.seek(sectionCkptAddr)
+		w.writeAscii("CKPT")
+		w.writeUInt16(checkpointPoints.length)
+		w.writeUInt16(0)
+		for (let i = 0; i < checkpointPoints.length; i++)
+		{
+			let p = checkpointPoints[i]
+			
+			w.writeFloat32(p.pos[0].x)
+			w.writeFloat32(-p.pos[0].y)
+			w.writeFloat32(p.pos[1].x)
+			w.writeFloat32(-p.pos[1].y)
+			w.writeByte(p.respawnIndex)
+			w.writeByte(p.type)
+			
+			let path = checkpointPaths.find(pth => pth.nodes.find(p2 => p === p2) != null)
+			let indexInPath = path.nodes.findIndex(p2 => p === p2)
+			
+			w.writeByte(indexInPath > 0 ? (i - 1) : 0xff)
+			w.writeByte(indexInPath < path.nodes.length - 1 ? (i + 1) : 0xff)
+		}
+		
+		// Write CKPH
+		let sectionCkphAddr = w.head
+		let sectionCkphOrder = sectionOrder.findIndex(s => s == "CKPH")
+		w.seek(sectionOffsetsAddr + sectionCkphOrder * 4)
+		w.writeUInt32(sectionCkphAddr - headerEndAddr)
+		
+		w.seek(sectionCkphAddr)
+		w.writeAscii("CKPH")
+		w.writeUInt16(checkpointPaths.length)
+		w.writeUInt16(0)
+		for (let path of checkpointPaths)
+		{
+			if (path.nodes.length > 0xff)
+				throw "kmp encode: max checkpoint point number in a path surpassed (have " + path.nodes.length + ", max 255)"
+			
+			w.writeByte(checkpointPoints.findIndex(n => n == path.nodes[0]))
+			w.writeByte(path.nodes.length)
+			
+			let incomingPaths = path.prev.reduce((accum, p) => accum + 1, 0)
+			let outgoingPaths = path.next.reduce((accum, p) => accum + 1, 0)
+			
+			if (incomingPaths > 6)
+				throw "kmp encode: max incoming connections to an checkpoint point surpassed (have " + incomingPaths + ", max 6)"
+			
+			if (outgoingPaths > 6)
+				throw "kmp encode: max outgoing connections to an checkpoint point surpassed (have " + outgoingPaths + ", max 6)"
+			
+			for (let i = 0; i < 6; i++)
+			{
+				if (i < path.prev.length)
+					w.writeByte(checkpointPaths.findIndex(p => p == path.prev[i]))
+				else
+					w.writeByte(0xff)
+			}
+			
+			for (let i = 0; i < 6; i++)
+			{
+				if (i < path.next.length)
+					w.writeByte(checkpointPaths.findIndex(p => p == path.next[i]))
+				else
+					w.writeByte(0xff)
+			}
+			
+			w.writeUInt16(0)
+		}
 		
 		// Write POTI
 		let sectionPotiAddr = w.head
@@ -539,6 +689,24 @@ class KmpData
 			newNode.setting1 = oldNode.setting1
 			newNode.setting2 = oldNode.setting2
 		}
+		
+		this.checkpointPoints = new NodeGraph()
+		this.checkpointPoints.maxNextNodes = 6
+		this.checkpointPoints.maxPrevNodes = 6
+		this.checkpointPoints.onAddNode = (node) =>
+		{
+			node.pos = [new Vec3(0, 0, 0), new Vec3(0, 0, 0)]
+			node.respawnNode = null
+			node.respawnIndex = 0
+			node.type = 0xff
+		}
+		this.checkpointPoints.onCloneNode = (newNode, oldNode) =>
+		{
+			newNode.pos = [oldNode.pos[0].clone(), oldNode.pos[1].clone()]
+			newNode.respawnNode = oldNode.respawnNode
+			newNode.respawnIndex = oldNode.respawnIndex
+			newNode.type = oldNode.type
+		}
 	}
 	
 	
@@ -549,6 +717,7 @@ class KmpData
 		cloned.routes = this.routes
 		cloned.enemyPoints = this.enemyPoints.clone()
 		cloned.itemPoints = this.itemPoints.clone()
+		cloned.checkpointPoints = this.checkpointPoints.clone()
 		return cloned
 	}
 }
