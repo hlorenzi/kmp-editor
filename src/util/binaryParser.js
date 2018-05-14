@@ -59,6 +59,16 @@ class BinaryParser
 	}
 	
 	
+	readUInt16s(length)
+	{
+		let arr = []
+		for (let i = 0; i < length; i++)
+			arr.push(this.readUInt16())
+		
+		return arr
+	}
+	
+	
 	readUInt32()
 	{
 		let b0 = this.readByte()

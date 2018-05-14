@@ -246,11 +246,11 @@ class GfxNodeTransform extends GfxNode
 		if (this.customMatrix != null)
 			matrix = this.customMatrix
 			
-		if (this.scaling != null)
-			matrix = matrix.mul(Mat4.scale(this.scaling.x, this.scaling.y, this.scaling.z))
-		
 		if (this.translation != null)
 			matrix = matrix.mul(Mat4.translation(this.translation.x, this.translation.y, this.translation.z))
+		
+		if (this.scaling != null)
+			matrix = matrix.mul(Mat4.scale(this.scaling.x, this.scaling.y, this.scaling.z))
 		
 		if (this.rotationAxis != null)
 			matrix = matrix.mul(Mat4.rotation(this.rotationAxis, this.rotationAngle))

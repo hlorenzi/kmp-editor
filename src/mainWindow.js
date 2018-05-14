@@ -85,7 +85,8 @@ class MainWindow
 			kclEnableInvisible: true,
 			kclEnableEffects: false,
 			enemyPathsEnableSizeRender: true,
-			checkpointsEnableVerticalPanels: true
+			checkpointsEnableVerticalPanels: true,
+			enableRotationRender: true,
 		}
 		
 		this.currentKmpFilename = null

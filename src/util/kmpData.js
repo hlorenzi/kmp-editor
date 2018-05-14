@@ -5,14 +5,13 @@ const { Vec3 } = require("../math/vec3.js")
 
 let unhandledSections =
 [
-	{ id: "KTPT", entryLen: 0x1c },
-	{ id: "GOBJ", entryLen: 0x3c },
 	{ id: "AREA", entryLen: 0x30 },
 	{ id: "CAME", entryLen: 0x48 },
-	{ id: "JGPT", entryLen: 0x1c },
 	{ id: "CNPT", entryLen: 0x1c },
 	{ id: "MSPT", entryLen: 0x1c },
 	{ id: "STGI", entryLen: 0x0c },
+	{ id: "GOBJ", entryLen: 0x3c },
+	{ id: "JGPT", entryLen: 0x1c },
 ]
 
 
@@ -57,13 +56,16 @@ class KmpData
 		if (parser.head != headerLenInBytes)
 			throw "kmp: invalid header length"
 	
+		let startPoints = []
 		let enemyPoints = []
 		let enemyPaths = []
 		let itemPoints = []
 		let itemPaths = []
 		let checkpointPoints = []
 		let checkpointPaths = []
+		let objects = []
 		let routes = []
+		let respawnPoints = []
 		let unhandledSectionData = []
 		
 		for (let sectionOffset of sectionOffsets)
@@ -79,6 +81,20 @@ class KmpData
 			
 			switch (sectionId)
 			{
+				case "KTPT":
+				{
+					for (let i = 0; i < entryNum; i++)
+					{
+						let pos = parser.readVec3()
+						let rotation = parser.readVec3()
+						let playerIndex = parser.readUInt16()
+						parser.readUInt16()
+						
+						startPoints.push({ pos, rotation, playerIndex })
+					}
+					break
+				}
+				
 				case "ENPT":
 				{
 					for (let i = 0; i < entryNum; i++)
@@ -171,6 +187,24 @@ class KmpData
 					break
 				}
 				
+				/*case "GOBJ":
+				{
+					for (let i = 0; i < entryNum; i++)
+					{
+						let id = parser.readUInt16()
+						parser.readUInt16()
+						let pos = parser.readVec3()
+						let rotation = parser.readVec3()
+						let scale = parser.readVec3()
+						let routeIndex = parser.readUInt16()
+						let settings = parser.readUInt16s(8)
+						let presence = parser.readUInt16()
+						
+						objects.push({ id, pos, rotation, scale, routeIndex, settings, presence })
+					}
+					break
+				}*/
+				
 				case "POTI":
 				{
 					for (let i = 0; i < entryNum; i++)
@@ -197,14 +231,25 @@ class KmpData
 					break
 				}
 				
+				/*case "JGPT":
+				{
+					for (let i = 0; i < entryNum; i++)
+					{
+						let pos = parser.readVec3()
+						let rotation = parser.readVec3()
+						parser.readUInt16()
+						let size = parser.readUInt16()
+						
+						respawnPoints.push({ pos, rotation, size })
+					}
+					break
+				}*/
+				
 				default:
 				{
 					let unhandledSection = unhandledSections.find(s => s.id == sectionId)
 					if (unhandledSection == null)
-					{
-						console.error("kmp: section not handled: " + sectionId)
-						break
-					}
+						throw ("kmp: section not handled: " + sectionId)
 					
 					let bytes = []
 					for (let i = 0; i < entryNum; i++)
@@ -219,10 +264,12 @@ class KmpData
 		
 		return {
 			unhandledSectionData,
+			startPoints,
 			enemyPoints, enemyPaths,
 			itemPoints, itemPaths,
 			checkpointPoints, checkpointPaths,
-			routes
+			objects, routes,
+			respawnPoints
 		}
 	}
 	
@@ -231,7 +278,19 @@ class KmpData
 	{
 		let kmp = new KmpData()
 		kmp.unhandledSectionData = kmpData.unhandledSectionData
+		kmp.objects = kmpData.objects
 		kmp.routes = kmpData.routes
+		kmp.respawnPoints = kmpData.respawnPoints
+		
+		for (let i = 0; i < kmpData.startPoints.length; i++)
+		{
+			let kmpPoint = kmpData.startPoints[i]
+			
+			let node = kmp.startPoints.addNode()
+			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
+			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
+			node.playerIndex = kmpPoint.playerIndex
+		}
 		
 		for (let i = 0; i < kmpData.enemyPoints.length; i++)
 		{
@@ -370,6 +429,28 @@ class KmpData
 			w.writeUInt16(this.unhandledSectionData[i].bytes.length / unhandledSection.entryLen)
 			w.writeUInt16(this.unhandledSectionData[i].extraData)
 			w.writeBytes(this.unhandledSectionData[i].bytes)
+		}
+		
+		// Write KTPT
+		let sectionKtptAddr = w.head
+		let sectionKtptOrder = sectionOrder.findIndex(s => s == "KTPT")
+		w.seek(sectionOffsetsAddr + sectionKtptOrder * 4)
+		w.writeUInt32(sectionKtptAddr - headerEndAddr)
+		
+		w.seek(sectionKtptAddr)
+		w.writeAscii("KTPT")
+		w.writeUInt16(this.startPoints.nodes.length)
+		w.writeUInt16(0)
+		for (let p of this.startPoints.nodes)
+		{
+			w.writeFloat32(p.pos.x)
+			w.writeFloat32(-p.pos.z)
+			w.writeFloat32(-p.pos.y)
+			w.writeFloat32(p.rotation.x)
+			w.writeFloat32(p.rotation.y)
+			w.writeFloat32(p.rotation.z)
+			w.writeUInt16(p.playerIndex)
+			w.writeUInt16(0)
 		}
 		
 		// Prepare enemy points
@@ -650,7 +731,23 @@ class KmpData
 	{
 		this.unhandledSectionData = []
 		
+		this.startPoints = new NodeGraph()
+		this.startPoints.onAddNode = (node) =>
+		{
+			node.pos = new Vec3(0, 0, 0)
+			node.rotation = new Vec3(0, 0, 0)
+			node.playerIndex = 0xffff
+		}
+		this.startPoints.onCloneNode = (newNode, oldNode) =>
+		{
+			newNode.pos = oldNode.pos.clone()
+			newNode.rotation = oldNode.rotation.clone()
+			newNode.playerIndex = oldNode.playerIndex
+		}
+		
+		this.objects = []
 		this.routes = []
+		this.respawnPoints = []
 		
 		this.enemyPoints = new NodeGraph()
 		this.enemyPoints.maxNextNodes = 6

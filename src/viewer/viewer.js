@@ -1,5 +1,6 @@
 const { GLProgram } = require("../gl/shader.js")
 const { GfxScene, GfxCamera, GfxMaterial, GfxModel, GfxNodeRenderer, GfxNodeRendererTransform } = require("../gl/scene.js")
+const { ViewerStartPoints } = require("./viewerStartPoints.js")
 const { ViewerEnemyPaths } = require("./viewerEnemyPaths.js")
 const { ViewerItemPaths } = require("./viewerItemPaths.js")
 const { ViewerCheckpoints } = require("./viewerCheckpoints.js")
@@ -102,6 +103,7 @@ class Viewer
 			
 		this.subviewers =
 		[
+			new ViewerStartPoints(this.window, this, this.data),
 			new ViewerEnemyPaths(this.window, this, this.data),
 			new ViewerItemPaths(this.window, this, this.data),
 			new ViewerCheckpoints(this.window, this, this.data),
