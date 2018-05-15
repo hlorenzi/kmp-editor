@@ -10,7 +10,6 @@ let unhandledSections =
 	{ id: "CNPT", entryLen: 0x1c },
 	{ id: "MSPT", entryLen: 0x1c },
 	{ id: "STGI", entryLen: 0x0c },
-	{ id: "GOBJ", entryLen: 0x3c },
 ]
 
 
@@ -186,7 +185,7 @@ class KmpData
 					break
 				}
 				
-				/*case "GOBJ":
+				case "GOBJ":
 				{
 					for (let i = 0; i < entryNum; i++)
 					{
@@ -202,7 +201,7 @@ class KmpData
 						objects.push({ id, pos, rotation, scale, routeIndex, settings, presence })
 					}
 					break
-				}*/
+				}
 				
 				case "POTI":
 				{
@@ -277,7 +276,6 @@ class KmpData
 	{
 		let kmp = new KmpData()
 		kmp.unhandledSectionData = kmpData.unhandledSectionData
-		kmp.objects = kmpData.objects
 		kmp.routes = kmpData.routes
 		
 		for (let i = 0; i < kmpData.startPoints.length; i++)
@@ -379,6 +377,21 @@ class KmpData
 					kmp.checkpointPoints.linkNodes(kmp.checkpointPoints.nodes[lastPoint], kmp.checkpointPoints.nodes[nextPoint])
 				}
 			}
+		}
+		
+		for (let i = 0; i < kmpData.objects.length; i++)
+		{
+			let kmpObj = kmpData.objects[i]
+			
+			let node = kmp.objects.addNode()
+			node.pos = new Vec3(kmpObj.pos.x, -kmpObj.pos.z, -kmpObj.pos.y)
+			node.rotation = new Vec3(kmpObj.rotation.x, kmpObj.rotation.y, kmpObj.rotation.z)
+			node.scale = new Vec3(kmpObj.scale.x, kmpObj.scale.z, kmpObj.scale.y)
+			node.id = kmpObj.id
+			node.route = null
+			node.routeIndex = kmpObj.routeIndex
+			node.settings = kmpObj.settings
+			node.presence = kmpObj.presence
 		}
 		
 		for (let i = 0; i < kmpData.respawnPoints.length; i++)
@@ -701,6 +714,38 @@ class KmpData
 			w.writeUInt16(0)
 		}
 		
+		// Write GOBJ
+		let sectionGobjAddr = w.head
+		let sectionGobjOrder = sectionOrder.findIndex(s => s == "GOBJ")
+		w.seek(sectionOffsetsAddr + sectionGobjOrder * 4)
+		w.writeUInt32(sectionGobjAddr - headerEndAddr)
+		
+		w.seek(sectionGobjAddr)
+		w.writeAscii("GOBJ")
+		w.writeUInt16(this.objects.nodes.length)
+		w.writeUInt16(0)
+		for (let i = 0; i < this.objects.nodes.length; i++)
+		{
+			let obj = this.objects.nodes[i]
+			
+			w.writeUInt16(obj.id)
+			w.writeUInt16(0)
+			w.writeFloat32(obj.pos.x)
+			w.writeFloat32(-obj.pos.z)
+			w.writeFloat32(-obj.pos.y)
+			w.writeFloat32(obj.rotation.x)
+			w.writeFloat32(obj.rotation.y)
+			w.writeFloat32(obj.rotation.z)
+			w.writeFloat32(obj.scale.x)
+			w.writeFloat32(obj.scale.z)
+			w.writeFloat32(obj.scale.y)
+			w.writeUInt16(obj.routeIndex)
+			for (let s = 0; s < 8; s++)
+				w.writeUInt16(obj.settings[s])
+			
+			w.writeUInt16(obj.presence)
+		}
+		
 		// Write POTI
 		let sectionPotiAddr = w.head
 		let sectionPotiOrder = sectionOrder.findIndex(s => s == "POTI")
@@ -777,7 +822,6 @@ class KmpData
 			newNode.playerIndex = oldNode.playerIndex
 		}
 		
-		this.objects = []
 		this.routes = []
 		
 		this.enemyPoints = new NodeGraph()
@@ -816,6 +860,31 @@ class KmpData
 			newNode.size = oldNode.size
 			newNode.setting1 = oldNode.setting1
 			newNode.setting2 = oldNode.setting2
+		}
+		
+		this.objects = new NodeGraph()
+		this.objects.onAddNode = (node) =>
+		{
+			node.pos = new Vec3(0, 0, 0)
+			node.rotation = new Vec3(0, 0, 0)
+			node.scale = new Vec3(1, 1, 1)
+			node.id = 0
+			node.route = null
+			node.routeIndex = 0xffff
+			node.settings = [0, 0, 0, 0, 0, 0, 0, 0]
+			node.presence = 7
+		}
+		this.objects.onCloneNode = (newNode, oldNode) =>
+		{
+			newNode.pos = oldNode.pos.clone()
+			newNode.rotation = oldNode.rotation.clone()
+			newNode.scale = oldNode.scale.clone()
+			newNode.id = oldNode.id
+			newNode.route = oldNode.route
+			newNode.routeIndex = oldNode.routeIndex
+			newNode.settings = []
+			for (let i = 0; i < 8; i++) newNode.settings[i] = oldNode.settings[i]
+			newNode.presence = oldNode.presence
 		}
 		
 		this.checkpointPoints = new NodeGraph()
@@ -860,6 +929,7 @@ class KmpData
 		cloned.enemyPoints = this.enemyPoints.clone()
 		cloned.itemPoints = this.itemPoints.clone()
 		cloned.checkpointPoints = this.checkpointPoints.clone()
+		cloned.objects = this.objects.clone()
 		cloned.routes = this.routes
 		cloned.respawnPoints = this.respawnPoints.clone()
 		return cloned

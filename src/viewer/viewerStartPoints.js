@@ -385,9 +385,10 @@ class ViewerStartPoints
 				
 			let matrixDirection =
 				Mat4.scale(scale, scale / 1.5, scale / 1.5)
-				.mul(Mat4.rotation(new Vec3(0, 0, 1), (-point.rotation.y + 90) * Math.PI / 180))
+				.mul(Mat4.rotation(new Vec3(0, 0, 1), 90 * Math.PI / 180))
+				.mul(Mat4.rotation(new Vec3(1, 0, 0), point.rotation.x * Math.PI / 180))
+				.mul(Mat4.rotation(new Vec3(0, 0, 1), -point.rotation.y * Math.PI / 180))
 				.mul(Mat4.rotation(new Vec3(0, 1, 0), -point.rotation.z * Math.PI / 180))
-				.mul(Mat4.rotation(new Vec3(1, 0, 0), -point.rotation.x * Math.PI / 180))
 				.mul(Mat4.translation(point.pos.x, point.pos.y, point.pos.z))
 				
 			point.rendererDirection
