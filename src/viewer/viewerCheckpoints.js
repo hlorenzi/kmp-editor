@@ -86,12 +86,17 @@ class ViewerCheckpoints
 		this.panel = panel
 		
 		panel.addCheckbox(null, "Render vertical panels", this.viewer.cfg.checkpointsEnableVerticalPanels, (x) => this.viewer.cfg.checkpointsEnableVerticalPanels = x)
+		panel.addCheckbox(null, "Render respawn point links", this.viewer.cfg.checkpointsEnableRespawnPointLinks, (x) => this.viewer.cfg.checkpointsEnableRespawnPointLinks = x)
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Checkpoint")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Extend Path")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
+		panel.addButton(null, "(E) Clear Respawn Point Assignment", () => this.clearRespawnPoints())
+		panel.addButton(null, "(R) Assign Selected Respawn Points to Selected Checkpoints", () => this.assignRespawnPoints())
+		
+		panel.addSelectionNumericInput(null, "Editing Y", -1000000, 1000000, -this.zTop, null, 1.0, true, false, (x, i) => { this.zTop = -x })
 		
 		let selectedPoints = this.data.checkpointPoints.nodes.filter(p => p.selected[0] || p.selected[1])
 		
@@ -106,7 +111,6 @@ class ViewerCheckpoints
 		panel.addText(selectionGroup, "<strong>Type 0:</strong> Lap Counter")
 		panel.addText(selectionGroup, "<strong>Type 1-254:</strong> Key Checkpoints")
 		panel.addText(selectionGroup, "<strong>Type 255:</strong> Regular Checkpoint")
-		panel.addSelectionNumericInput(selectionGroup, "Respawn Index", 0, 255, selectedPoints.map(p => p.respawnIndex), null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].respawnIndex = x })
 	}
 	
 	
@@ -147,6 +151,11 @@ class ViewerCheckpoints
 				.setModel(this.modelPanel)
 				.setMaterial(this.viewer.material)
 			
+			point.rendererRespawnLink = new GfxNodeRendererTransform()
+				.attach(this.scene.root)
+				.setModel(this.modelPath)
+				.setMaterial(this.viewer.material)
+				
 			let rendererSelected1 = new GfxNodeRendererTransform()
 				.attach(this.sceneAfter.root)
 				.setModel(this.modelPointSelection)
@@ -178,6 +187,7 @@ class ViewerCheckpoints
 			this.renderers.push(rendererSelected2)
 			this.renderers.push(point.rendererCheckbar)
 			this.renderers.push(point.rendererCheckpanel)
+			this.renderers.push(point.rendererRespawnLink)
 				
 			point.rendererOutgoingPaths = []
 			point.rendererOutgoingPathArrows = []
@@ -343,8 +353,50 @@ class ViewerCheckpoints
 	}
 	
 	
+	clearRespawnPoints()
+	{
+		for (let point of this.data.checkpointPoints.nodes)
+		{
+			if (!point.selected[0] && !point.selected[1])
+				continue
+			
+			point.respawnNode = null
+		}
+		
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
+	}
+	
+	
+	assignRespawnPoints()
+	{
+		let selectedRespawnNodes = this.data.respawnPoints.nodes.filter(p => p.selected === true)
+		if (selectedRespawnNodes.length != 1)
+		{
+			alert("Select a single point using the Respawn Points panel.")
+			return
+		}
+		
+		for (let point of this.data.checkpointPoints.nodes)
+		{
+			if (!point.selected[0] && !point.selected[1])
+				continue
+			
+			point.respawnNode = selectedRespawnNodes[0]
+		}
+		
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
+	}
+	
+	
 	onKeyDown(ev)
 	{
+		if (ev.ctrlKey)
+			return false
+		
 		switch (ev.key)
 		{
 			case "A":
@@ -362,6 +414,16 @@ class ViewerCheckpoints
 			case "U":
 			case "u":
 				this.unlinkSelectedPoints()
+				return true
+				
+			case "E":
+			case "e":
+				this.clearRespawnPoints()
+				return true
+				
+			case "R":
+			case "r":
+				this.assignRespawnPoints()
 				return true
 		}
 		
@@ -592,6 +654,21 @@ class ViewerCheckpoints
 			
 			setupPanelMatrices(point.rendererCheckpanel, point.pos[0], point.pos[1])
 			point.rendererCheckpanel.setDiffuseColor(point.type == 0 ? [1, 0.5, 1, 0.6] : point.type != 0xff ? [1, 0.25, 1, 0.6] : [0, 0.25, 1, 0.6])
+			
+			let respawnNode = point.respawnNode
+			if (respawnNode == null && this.data.respawnPoints.nodes.length > 0)
+				respawnNode = this.data.respawnPoints.nodes[0]
+			
+			if (respawnNode != null)
+			{
+				setupPathMatrices(point.rendererRespawnLink, barScale, point.pos[0], respawnNode.pos)
+				
+				point.rendererRespawnLink
+					.setDiffuseColor([0.85, 0.85, 0, 1])
+					.setEnabled(this.viewer.cfg.checkpointsEnableRespawnPointLinks)
+			}
+			else
+				point.rendererRespawnLink.setEnabled(false)
 		}
 		
 		this.scene.render(this.viewer.gl, camera)

@@ -79,6 +79,7 @@ class MainWindow
 		this.cfg =
 		{
 			useOrthoProjection: false,
+			pointScale: 1,
 			shadingFactor: 0.3,
 			kclEnableColors: true,
 			kclEnableDeathBarriers: true,
@@ -86,6 +87,7 @@ class MainWindow
 			kclEnableEffects: false,
 			enemyPathsEnableSizeRender: true,
 			checkpointsEnableVerticalPanels: true,
+			checkpointsEnableRespawnPointLinks: true,
 			enableRotationRender: true,
 		}
 		
@@ -161,6 +163,7 @@ class MainWindow
 		panel.addButton(null, "(5) Toggle Projection", () => this.cfg.useOrthoProjection = !this.cfg.useOrthoProjection)
 		panel.addButton(null, "Center view", () => this.viewer.centerView())
 		panel.addSlider(null, "Shading", 0, 1, this.cfg.shadingFactor, 0.05, (x) => this.cfg.shadingFactor = x)
+		panel.addSlider(null, "Point Scale", 0.1, 5, this.cfg.pointScale, 0.1, (x) => this.cfg.pointScale = x)
 		let kclGroup = panel.addGroup(null, "Collision data:")
 		panel.addCheckbox(kclGroup, "Use colors", this.cfg.kclEnableColors, (x) => { this.cfg.kclEnableColors = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show death barriers", this.cfg.kclEnableDeathBarriers, (x) => { this.cfg.kclEnableDeathBarriers = x; this.openKcl(this.currentKclFilename) })

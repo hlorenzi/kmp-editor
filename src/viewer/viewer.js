@@ -113,6 +113,8 @@ class Viewer
 			new ViewerObjects(this.window, this, this.data),
 		]
 		
+		this.subviewerRespawnPoints = this.subviewers[4]
+		
 		this.currentSubviewer = this.subviewers[0]
 		
 		this.render()
@@ -242,9 +244,9 @@ class Viewer
 	getElementScale(pos)
 	{
 		if (this.cfg.useOrthoProjection)
-			return this.cameraDist / 15000
+			return this.cameraDist / 15000 * this.cfg.pointScale
 		else
-			return pos.sub(this.getCurrentCameraPosition()).magn() / 20000
+			return pos.sub(this.getCurrentCameraPosition()).magn() / 20000 * this.cfg.pointScale
 	}
 	
 	

@@ -357,7 +357,6 @@ class KmpData
 			node.pos = [new Vec3(kmpPoint.x1, -kmpPoint.z1, 0), new Vec3(kmpPoint.x2, -kmpPoint.z2, 0)]
 			node.type = kmpPoint.type
 			node.respawnNode = null
-			node.respawnIndex = kmpPoint.respawnIndex
 		}
 		
 		for (let i = 0; i < kmpData.checkpointPaths.length; i++)
@@ -402,6 +401,14 @@ class KmpData
 			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
 			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
 			node.size = kmpPoint.size
+		}
+		
+		for (let i = 0; i < kmpData.checkpointPoints.length; i++)
+		{
+			let respawnIndex = kmpData.checkpointPoints[i].respawnIndex
+			
+			if (respawnIndex >= 0 && respawnIndex < kmp.respawnPoints.nodes.length)
+				kmp.checkpointPoints.nodes[i].respawnNode = kmp.respawnPoints.nodes[respawnIndex]
 		}
 		
 		return kmp
@@ -658,7 +665,12 @@ class KmpData
 			w.writeFloat32(-p.pos[0].y)
 			w.writeFloat32(p.pos[1].x)
 			w.writeFloat32(-p.pos[1].y)
-			w.writeByte(p.respawnIndex)
+			
+			let respawnIndex = this.respawnPoints.nodes.findIndex(p2 => p.respawnNode === p2)
+			if (respawnIndex == -1)
+				respawnIndex = 0
+			
+			w.writeByte(respawnIndex)
 			w.writeByte(p.type)
 			
 			let path = checkpointPaths.find(pth => pth.nodes.find(p2 => p === p2) != null)
