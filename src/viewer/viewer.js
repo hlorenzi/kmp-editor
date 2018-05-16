@@ -5,6 +5,7 @@ const { ViewerEnemyPaths } = require("./viewerEnemyPaths.js")
 const { ViewerItemPaths } = require("./viewerItemPaths.js")
 const { ViewerCheckpoints } = require("./viewerCheckpoints.js")
 const { ViewerObjects } = require("./viewerObjects.js")
+const { ViewerRoutes } = require("./viewerRoutes.js")
 const { ViewerRespawnPoints } = require("./viewerRespawnPoints.js")
 const { ModelBuilder } = require("../util/modelBuilder.js")
 const { Vec3 } = require("../math/vec3.js")
@@ -111,9 +112,10 @@ class Viewer
 			new ViewerCheckpoints(this.window, this, this.data),
 			new ViewerRespawnPoints(this.window, this, this.data),
 			new ViewerObjects(this.window, this, this.data),
+			new ViewerRoutes(this.window, this, this.data),
 		]
 		
-		this.subviewerRespawnPoints = this.subviewers[4]
+		this.subviewerRoutes = this.subviewers[6]
 		
 		this.currentSubviewer = this.subviewers[0]
 		

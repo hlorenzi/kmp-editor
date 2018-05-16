@@ -216,8 +216,7 @@ class KmpData
 						for (let j = 0; j < pointNum; j++)
 						{
 							let point = {}
-							let pos = parser.readVec3()
-							point.pos = new Vec3(pos.x, -pos.z, -pos.y)
+							point.pos = parser.readVec3()
 							point.setting1 = parser.readUInt16()
 							point.setting2 = parser.readUInt16()
 							
@@ -276,7 +275,6 @@ class KmpData
 	{
 		let kmp = new KmpData()
 		kmp.unhandledSectionData = kmpData.unhandledSectionData
-		kmp.routes = kmpData.routes
 		
 		for (let i = 0; i < kmpData.startPoints.length; i++)
 		{
@@ -391,6 +389,30 @@ class KmpData
 			node.routeIndex = kmpObj.routeIndex
 			node.settings = kmpObj.settings
 			node.presence = kmpObj.presence
+		}
+		
+		for (let i = 0; i < kmpData.routes.length; i++)
+		{
+			let kmpRoute = kmpData.routes[i]
+			
+			let route = kmp.addNewRoute()
+			route.setting1 = kmpRoute.setting1
+			route.setting2 = kmpRoute.setting2
+			
+			let lastNode = null
+			
+			for (let kmpPoint of kmpRoute.points)
+			{
+				let node = route.points.addNode()
+				node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
+				node.setting1 = kmpPoint.setting1
+				node.setting2 = kmpPoint.setting2
+				
+				if (lastNode != null)
+					route.points.linkNodes(lastNode, node)
+				
+				lastNode = node
+			}
 		}
 		
 		for (let i = 0; i < kmpData.respawnPoints.length; i++)
@@ -767,17 +789,22 @@ class KmpData
 		w.seek(sectionPotiAddr)
 		w.writeAscii("POTI")
 		w.writeUInt16(this.routes.length)
-		w.writeUInt16(this.routes.reduce((accum, route) => accum + route.points.length, 0))
+		w.writeUInt16(this.routes.reduce((accum, route) => accum + route.points.nodes.length, 0))
 		for (let route of this.routes)
 		{
-			if (route.points.length > 0xffff)
-				throw "kmp encode: max route point number surpassed (have " + route.points.length + ", max 65535)"
+			// Prepare route points
+			let routePaths = route.points.convertToStorageFormat()
+			let routePoints = []
+			routePaths.forEach(path => path.nodes.forEach(node => routePoints.push(node)))
 			
-			w.writeUInt16(route.points.length)
+			if (routePoints.length > 0xffff)
+				throw "kmp encode: max route point number surpassed (have " + routePoints.length + ", max 65535)"
+			
+			w.writeUInt16(routePoints.length)
 			w.writeByte(route.setting1)
 			w.writeByte(route.setting2)
 			
-			for (let point of route.points)
+			for (let point of routePoints)
 			{
 				w.writeVec3(new Vec3(point.pos.x, -point.pos.z, -point.pos.y))
 				w.writeUInt16(point.setting1)
@@ -933,6 +960,41 @@ class KmpData
 	}
 	
 	
+	addNewRoute()
+	{
+		let route = {}
+		route.setting1 = 0
+		route.setting2 = 0
+		
+		route.points = new NodeGraph()
+		route.points.onAddNode = (node) =>
+		{
+			node.pos = new Vec3(0, 0, 0)
+			node.setting1 = 0
+			node.setting2 = 0
+		}
+		route.points.onCloneNode = (newNode, oldNode) =>
+		{
+			newNode.pos = oldNode.pos.clone()
+			newNode.setting1 = oldNode.setting1
+			newNode.setting2 = oldNode.setting2
+		}
+		
+		this.routes.push(route)
+		return route
+	}
+	
+	
+	removeRespawnPointLinks(node)
+	{
+		for (let checkpoint of this.checkpointPoints.nodes)
+		{
+			if (checkpoint.respawnNode === node)
+				checkpoint.respawnNode = null
+		}
+	}
+	
+	
 	clone()
 	{
 		let cloned = new KmpData()
@@ -942,8 +1004,25 @@ class KmpData
 		cloned.itemPoints = this.itemPoints.clone()
 		cloned.checkpointPoints = this.checkpointPoints.clone()
 		cloned.objects = this.objects.clone()
-		cloned.routes = this.routes
 		cloned.respawnPoints = this.respawnPoints.clone()
+		
+		for (let route of this.routes)
+		{
+			let newRoute = cloned.addNewRoute()
+			newRoute.setting1 = route.setting1
+			newRoute.setting2 = route.setting2
+			newRoute.points = route.points.clone()
+		}
+		
+		for (let checkpoint of cloned.checkpointPoints.nodes)
+		{
+			let respawnIndex = this.respawnPoints.nodes.findIndex(p => p == checkpoint.respawnNode)
+			checkpoint.respawnNode = null
+			
+			if (respawnIndex >= 0)
+				checkpoint.respawnNode = cloned.respawnPoints.nodes[respawnIndex]
+		}
+		
 		return cloned
 	}
 }

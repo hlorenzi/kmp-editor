@@ -6,7 +6,7 @@ const { KmpData } = require("./util/kmpData.js")
 const { Vec3 } = require("./math/vec3.js")
 
 
-let versionStr = "v0.2"
+let versionStr = "v0.3"
 
 
 let gMainWindow = null
@@ -218,7 +218,12 @@ class MainWindow
 		
 		this.undoStack.splice(this.undoPointer + 1, this.undoStack.length - this.undoPointer - 1)		
 		
-		this.undoStack.push({ data: this.currentKmpData.clone(), subviewer: this.viewer.currentSubviewer })
+		this.undoStack.push({
+			data: this.currentKmpData.clone(),
+			subviewer: this.viewer.currentSubviewer,
+			currentRouteIndex: this.viewer.subviewerRoutes.currentRouteIndex
+		})
+		
 		this.undoPointer += 1
 		this.undoNeedsNewSlot = false
 	}
@@ -242,6 +247,7 @@ class MainWindow
 		this.undoPointer -= 1
 		this.currentKmpData = this.undoStack[this.undoPointer].data.clone()
 		this.viewer.setSubviewer(this.undoStack[this.undoPointer].subviewer)
+		this.viewer.subviewerRoutes.currentRouteIndex = this.undoStack[this.undoPointer].currentRouteIndex
 		
 		this.setNotSaved()
 		this.undoNeedsNewSlot = false
@@ -259,6 +265,7 @@ class MainWindow
 		this.undoPointer += 1
 		this.currentKmpData = this.undoStack[this.undoPointer].data.clone()
 		this.viewer.setSubviewer(this.undoStack[this.undoPointer].subviewer)
+		this.viewer.subviewerRoutes.currentRouteIndex = this.undoStack[this.undoPointer].currentRouteIndex
 		
 		this.setNotSaved()
 		this.undoNeedsNewSlot = false

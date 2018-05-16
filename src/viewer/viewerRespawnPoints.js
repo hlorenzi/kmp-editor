@@ -221,7 +221,10 @@ class ViewerRespawnPoints
 		}
 		
 		for (let point of pointsToDelete)
+		{
 			this.data.respawnPoints.removeNode(point)
+			this.data.removeRespawnPointLinks(point)
+		}
 		
 		this.refresh()
 		this.window.setNotSaved()
