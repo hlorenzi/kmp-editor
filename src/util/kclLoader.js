@@ -102,6 +102,9 @@ class KclLoader
 			let v2 = vertex.add(crossB.scale(len / crossB.dot(normalC)))
 			let v3 = vertex.add(crossA.scale(len / crossA.dot(normalC)))
 			
+			if (!v1.isFinite() || !v2.isFinite() || !v3.isFinite())
+				continue
+			
 			let flagBasicType = collisionFlags & 0x1f
 			if (flagBasicType >= collisionTypeData.length)
 				continue

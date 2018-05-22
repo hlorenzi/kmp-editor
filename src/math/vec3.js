@@ -149,6 +149,12 @@ class Vec3
 	{
 		return [this.x, this.y, this.z]
 	}
+	
+	
+	isFinite()
+	{
+		return isFinite(this.x) && isFinite(this.y) && isFinite(this.z)
+	}
 }
 
 

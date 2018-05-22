@@ -76,7 +76,7 @@ class BrresLoader
 						let v2 = instr.vertices[i + 2]
 						let v3 = instr.vertices[i + 3]
 						
-						if (v0 && v1 && v2 && v3)
+						if (v0 && v1 && v2 && v3 && v0.isFinite() && v1.isFinite() && v2.isFinite() && v3.isFinite())
 							model.addQuad(v0, v1, v2, v3)
 					}
 				}
@@ -88,7 +88,7 @@ class BrresLoader
 						let v1 = instr.vertices[i + 1]
 						let v2 = instr.vertices[i + 2]
 						
-						if (v0 && v1 && v2)
+						if (v0 && v1 && v2 && v0.isFinite() && v1.isFinite() && v2.isFinite())
 							model.addTri(v0, v2, v1)
 					}
 				}
@@ -102,7 +102,7 @@ class BrresLoader
 					{
 						let v2 = instr.vertices[i]
 						
-						if (v0 && v1 && v2)
+						if (v0 && v1 && v2 && v0.isFinite() && v1.isFinite() && v2.isFinite())
 							if (winding)
 								model.addTri(v0, v1, v2)
 							else
@@ -122,7 +122,7 @@ class BrresLoader
 					{
 						let v2 = instr.vertices[i]
 						
-						if (v0 && v1 && v2)
+						if (v0 && v1 && v2 && v0.isFinite() && v1.isFinite() && v2.isFinite())
 							model.addTri(v0, v2, v1)
 						
 						v1 = v2
