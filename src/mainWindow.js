@@ -6,9 +6,6 @@ const { KmpData } = require("./util/kmpData.js")
 const { Vec3 } = require("./math/vec3.js")
 
 
-let versionStr = "v0.3"
-
-
 let gMainWindow = null
 let askBeforeClosing = true
 let isReloading = false
@@ -31,7 +28,7 @@ class MainWindow
 				submenu:
 				[
 					{ label: "New", accelerator: "CmdOrCtrl+N", click: () => this.newKmp() },
-					{ label: "Open...", accelerator: "CmdOrCtrl+O", click: () => this.openKmp() },
+					{ label: "Open...", accelerator: "CmdOrCtrl+O", click: () => this.askOpenKmp() },
 					{ type: "separator" },
 					{ label: "Save", accelerator: "CmdOrCtrl+S", click: () => this.saveKmp(this.currentKmpFilename) },
 					{ label: "Save as...", click: () => this.saveKmpAs() },
@@ -101,12 +98,17 @@ class MainWindow
 		this.undoPointer = -1
 		
 		this.panels = []
-		
+
+		this.refreshTitle()
+
 		this.sidePanelDiv = document.getElementById("divSidePanel")
 		this.viewer = new Viewer(this, document.getElementById("canvasMain"), this.cfg, this.currentKmpData)
 		this.refreshPanels()
 		
 		this.newKmp()
+		
+		if (remote.process.argv.length >= 2)
+			this.openKmp(remote.process.argv[1])
 	}
 
 	
@@ -180,7 +182,7 @@ class MainWindow
 		document.title =
 			(this.currentKmpFilename == null ? "[New File]" : "[" + this.currentKmpFilename + "]") +
 			(this.currentNotSaved ? "*" : "") +
-			" -- hlorenzi's KMP Editor " + versionStr
+			" -- Lorenzi's KMP Editor v" + remote.app.getVersion()
 	}
 	
 	
@@ -317,40 +319,48 @@ class MainWindow
 	}
 
 
-	openKmp()
+	askOpenKmp()
 	{
 		if (!this.askSaveChanges())
 			return
 		
 		let result = remote.dialog.showOpenDialog(remote.getCurrentWindow(), { properties: ["openFile"], filters: [{ name: "KMP Files (*.kmp)", extensions: ["kmp"] }] })
 		if (result)
+			this.openKmp(result[0])
+	}
+	
+	
+	openKmp(filename)
+	{
+		// Detect when run from `npm start`
+		if (filename == ".")
+			return
+		
+		try
 		{
-			try
-			{
-				let kmpFilename = result[0].replace(new RegExp("\\\\", "g"), "/")
-				this.currentKmpFilename = kmpFilename
-				this.currentKmpData = KmpData.convertToWorkingFormat(KmpData.load(fs.readFileSync(kmpFilename)))
-				this.currentNotSaved = false
-				
-				this.resetUndoStack()
-				
-				let kclFilename = this.currentKmpFilename.substr(0, this.currentKmpFilename.lastIndexOf("/")) + "/course.kcl"
-				if (fs.existsSync(kclFilename))
-					this.openKcl(kclFilename)
-				else
-					this.setDefaultModel()
-				
-				this.viewer.setData(this.currentKmpData)
-				this.viewer.centerView()
-				this.refreshPanels()
-				this.viewer.render()
-			}
-			catch (e)
-			{
-				console.error(e)
-				alert("KMP open error!\n\n" + e)
-				this.newKmp()
-			}
+			filename = filename.replace(new RegExp("\\\\", "g"), "/")
+			this.currentKmpFilename = filename
+			this.currentKmpData = KmpData.convertToWorkingFormat(KmpData.load(fs.readFileSync(filename)))
+			this.currentNotSaved = false
+			
+			this.resetUndoStack()
+			
+			let kclFilename = this.currentKmpFilename.substr(0, this.currentKmpFilename.lastIndexOf("/")) + "/course.kcl"
+			if (fs.existsSync(kclFilename))
+				this.openKcl(kclFilename)
+			else
+				this.setDefaultModel()
+			
+			this.viewer.setData(this.currentKmpData)
+			this.viewer.centerView()
+			this.refreshPanels()
+			this.viewer.render()
+		}
+		catch (e)
+		{
+			console.error(e)
+			alert("KMP open error!\n\n" + e)
+			this.newKmp()
 		}
 	}
 	

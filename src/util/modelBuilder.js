@@ -277,12 +277,22 @@ class ModelBuilder
 			this.normals[i + 2] = normal
 		}
 		
-		let rounding = 0.001
+		// Disable slow smooth-shading calculations for now
+		return this
+		
+		const rounding = 0.001
+		const hash = (vec) =>
+		{
+			return (
+				(Math.round(vec.x * rounding) / rounding) * 1000000 +
+				(Math.round(vec.y * rounding) / rounding) * 1000 +
+				(Math.round(vec.z * rounding) / rounding))
+		}
 		
 		let verticesSet = new Map()
 		for (let j = 0; j < this.positions.length; j++)
 		{
-			let key = this.positions[j].asArray().map(x => Math.round(x * rounding) / rounding).toString()
+			let key = hash(this.positions[j])
 			
 			let value = verticesSet.get(key)
 			if (value === undefined)
@@ -298,7 +308,7 @@ class ModelBuilder
 			normalAccum[j] = this.normals[j]
 			normalCount[j] = 1
 			
-			let vertices = verticesSet.get(this.positions[j].asArray().map(x => Math.round(x * rounding) / rounding).toString())
+			let vertices = verticesSet.get(hash(this.positions[j]))
 			if (vertices === undefined)
 				continue
 			
