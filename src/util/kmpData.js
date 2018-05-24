@@ -464,21 +464,24 @@ class KmpData
 		w.writeUInt16(headerEndAddr)
 		w.seek(headerEndAddr)
 		
-		for (let i = 0; i < this.unhandledSectionData.length; i++)
+		let writeUnhandledSection = (tag) =>
 		{
-			let order = sectionOrder.findIndex(s => s == this.unhandledSectionData[i].id)
+			let unhandledSection = this.unhandledSectionData.find(s => s.id == tag)
+			if (unhandledSection == null)
+				return
+			
+			let unhandledSectionProperties = unhandledSections.find(s => s.id == tag)
+			let order = sectionOrder.findIndex(s => s == tag)
 			
 			let head = w.head
 			w.seek(sectionOffsetsAddr + order * 4)
 			w.writeUInt32(head - headerEndAddr)
 			
-			let unhandledSection = unhandledSections.find(s => s.id == this.unhandledSectionData[i].id)
-			
 			w.seek(head)
-			w.writeAscii(this.unhandledSectionData[i].id)
-			w.writeUInt16(this.unhandledSectionData[i].bytes.length / unhandledSection.entryLen)
-			w.writeUInt16(this.unhandledSectionData[i].extraData)
-			w.writeBytes(this.unhandledSectionData[i].bytes)
+			w.writeAscii(unhandledSection.id)
+			w.writeUInt16(unhandledSection.bytes.length / unhandledSectionProperties.entryLen)
+			w.writeUInt16(unhandledSection.extraData)
+			w.writeBytes(unhandledSection.bytes)
 		}
 		
 		// Write KTPT
@@ -812,6 +815,12 @@ class KmpData
 			}
 		}
 		
+		// Write AREA
+		writeUnhandledSection("AREA")
+		
+		// Write CAME
+		writeUnhandledSection("CAME")
+		
 		// Write JGPT
 		let sectionJgptAddr = w.head
 		let sectionJgptOrder = sectionOrder.findIndex(s => s == "JGPT")
@@ -835,6 +844,15 @@ class KmpData
 			w.writeUInt16(i)
 			w.writeUInt16(p.size)
 		}
+		
+		// Write CNPT
+		writeUnhandledSection("CNPT")
+		
+		// Write MSPT
+		writeUnhandledSection("MSPT")
+		
+		// Write STGI
+		writeUnhandledSection("STGI")
 		
 		w.seek(fileLenAddr)
 		w.writeUInt32(w.getLength())
