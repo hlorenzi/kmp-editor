@@ -12,6 +12,7 @@ Currently edits the following sections:
 - Respawn points (`JGPT`)
 - Objects (`GOBJ`)
 - Routes (`POTI`)
+- Track Information (`STGI`)
 
 The tool will keep other sections intact when saving.
 

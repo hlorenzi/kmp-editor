@@ -832,7 +832,6 @@ class Panel
 		
 		label.appendChild(text)
 		label.appendChild(input)
-		div.appendChild(document.createElement("br"))
 		
 		if (group == null)
 			this.contentDiv.appendChild(div)
