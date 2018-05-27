@@ -119,6 +119,23 @@ class BinaryParser
 	}
 	
 	
+	readFloat32MSB2()
+	{
+		let b0 = this.readByte()
+		let b1 = this.readByte()
+		
+		let buf = new ArrayBuffer(4)
+		let view = new DataView(buf)
+
+		view.setUint8(0, b0)
+		view.setUint8(1, b1)
+		view.setUint8(2, 0)
+		view.setUint8(3, 0)
+
+		return view.getFloat32(0)
+	}
+	
+	
 	readVec3()
 	{
 		let x = this.readFloat32()

@@ -99,6 +99,15 @@ class BinaryWriter
 	}
 	
 	
+	writeFloat32MSB2(x)
+	{
+		let view = new DataView(new ArrayBuffer(4))
+		view.setFloat32(0, x)
+		this.writeByte(view.getUint8(0))
+		this.writeByte(view.getUint8(1))
+	}
+	
+	
 	writeVec3(v)
 	{
 		this.writeFloat32(v.x)

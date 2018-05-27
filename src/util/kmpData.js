@@ -9,7 +9,6 @@ let unhandledSections =
 	{ id: "CAME", entryLen: 0x48 },
 	{ id: "CNPT", entryLen: 0x1c },
 	{ id: "MSPT", entryLen: 0x1c },
-	{ id: "STGI", entryLen: 0x0c },
 ]
 
 
@@ -64,6 +63,7 @@ class KmpData
 		let objects = []
 		let routes = []
 		let respawnPoints = []
+		let trackInfo = {}
 		let unhandledSectionData = []
 		
 		for (let sectionOffset of sectionOffsets)
@@ -242,6 +242,19 @@ class KmpData
 					break
 				}
 				
+				case "STGI":
+				{
+					trackInfo.lapCount = parser.readByte()
+					trackInfo.polePosition = parser.readByte()
+					trackInfo.driverDistance = parser.readByte()
+					trackInfo.unknown1 = parser.readByte()
+					trackInfo.flareColor = parser.readBytes(4)
+					trackInfo.unknown2 = parser.readByte()
+					trackInfo.unknown3 = parser.readByte()
+					trackInfo.speedMod = parser.readFloat32MSB2()
+					break
+				}
+				
 				default:
 				{
 					let unhandledSection = unhandledSections.find(s => s.id == sectionId)
@@ -266,6 +279,7 @@ class KmpData
 			itemPoints, itemPaths,
 			checkpointPoints, checkpointPaths,
 			objects, routes,
+			trackInfo,
 			respawnPoints
 		}
 	}
@@ -274,6 +288,7 @@ class KmpData
 	static convertToWorkingFormat(kmpData)
 	{
 		let kmp = new KmpData()
+		kmp.trackInfo = kmpData.trackInfo
 		kmp.unhandledSectionData = kmpData.unhandledSectionData
 		
 		for (let i = 0; i < kmpData.startPoints.length; i++)
@@ -852,8 +867,25 @@ class KmpData
 		writeUnhandledSection("MSPT")
 		
 		// Write STGI
-		writeUnhandledSection("STGI")
+		let sectionStgiAddr = w.head
+		let sectionStgiOrder = sectionOrder.findIndex(s => s == "STGI")
+		w.seek(sectionOffsetsAddr + sectionStgiOrder * 4)
+		w.writeUInt32(sectionStgiAddr - headerEndAddr)
 		
+		w.seek(sectionStgiAddr)
+		w.writeAscii("STGI")
+		w.writeUInt16(1)
+		w.writeUInt16(0)
+		w.writeByte(this.trackInfo.lapCount)
+		w.writeByte(this.trackInfo.polePosition)
+		w.writeByte(this.trackInfo.driverDistance)
+		w.writeByte(this.trackInfo.unknown1)
+		w.writeBytes(this.trackInfo.flareColor)
+		w.writeByte(this.trackInfo.unknown2)
+		w.writeByte(this.trackInfo.unknown3)
+		w.writeFloat32MSB2(this.trackInfo.speedMod)
+		
+		// Write file length
 		w.seek(fileLenAddr)
 		w.writeUInt32(w.getLength())
 		
@@ -975,6 +1007,16 @@ class KmpData
 			newNode.rotation = oldNode.rotation.clone()
 			newNode.size = oldNode.size
 		}
+		
+		this.trackInfo = {}
+		this.trackInfo.lapCount = 3
+		this.trackInfo.polePosition = 0
+		this.trackInfo.driverDistance = 0
+		this.trackInfo.unknown1 = 0
+		this.trackInfo.flareColor = [0x00, 0xff, 0xff, 0xff]
+		this.trackInfo.unknown2 = 50
+		this.trackInfo.unknown3 = 0
+		this.trackInfo.speedMod = 0
 	}
 	
 	
