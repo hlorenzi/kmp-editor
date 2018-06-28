@@ -322,7 +322,7 @@ class KmpData
 			
 			for (let j = 0; j < 6; j++)
 			{
-				if (kmpPath.nextGroups[j] != 0xff)
+				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < kmpData.enemyPaths.length)
 				{
 					let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
 					let nextPoint = kmpData.enemyPaths[kmpPath.nextGroups[j]].startIndex
@@ -352,7 +352,7 @@ class KmpData
 			
 			for (let j = 0; j < 6; j++)
 			{
-				if (kmpPath.nextGroups[j] != 0xff)
+				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < kmpData.itemPaths.length)
 				{
 					let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
 					let nextPoint = kmpData.itemPaths[kmpPath.nextGroups[j]].startIndex
@@ -381,7 +381,7 @@ class KmpData
 			
 			for (let j = 0; j < 6; j++)
 			{
-				if (kmpPath.nextGroups[j] != 0xff)
+				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < kmpData.checkpointPaths.length)
 				{
 					let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
 					let nextPoint = kmpData.checkpointPaths[kmpPath.nextGroups[j]].startIndex
