@@ -68,7 +68,7 @@ class KmpData
 		
 		for (let sectionOffset of sectionOffsets)
 		{
-			if (sectionOffset + headerLenInBytes >= parser.getLength())
+			if (sectionOffset < 0 || sectionOffset + headerLenInBytes >= parser.getLength())
 				continue
 			
 			parser.seek(sectionOffset + headerLenInBytes)
@@ -76,6 +76,8 @@ class KmpData
 			let sectionId = parser.readAsciiLength(4)
 			let entryNum = parser.readUInt16()
 			let extraData = parser.readUInt16()
+			
+			//console.log("kmp: loading section at(" + sectionOffset + ") id(" + sectionId + ") entryNum(" + entryNum + ")")
 			
 			switch (sectionId)
 			{
@@ -483,7 +485,14 @@ class KmpData
 		{
 			let unhandledSection = this.unhandledSectionData.find(s => s.id == tag)
 			if (unhandledSection == null)
-				return
+			{
+				unhandledSection =
+				{
+					id: tag,
+					bytes: [],
+					extraData: 0
+				}
+			}
 			
 			let unhandledSectionProperties = unhandledSections.find(s => s.id == tag)
 			let order = sectionOrder.findIndex(s => s == tag)

@@ -55,7 +55,12 @@ class BinaryParser
 		let b0 = this.readByte()
 		let b1 = this.readByte()
 		
-		return (b0 << 8) | b1
+		let result = (b0 << 8) | b1
+		
+		if (result < 0)
+			return 0x10000 + result
+		else
+			return result
 	}
 	
 	
@@ -76,7 +81,12 @@ class BinaryParser
 		let b2 = this.readByte()
 		let b3 = this.readByte()
 		
-		return (b0 << 24) | (b1 << 16) | (b2 << 8) | b3
+		let result = (b0 << 24) | (b1 << 16) | (b2 << 8) | b3
+		
+		if (result < 0)
+			return 0x100000000 + result
+		else
+			return result
 	}
 	
 	
