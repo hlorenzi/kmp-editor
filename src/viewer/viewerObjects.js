@@ -392,6 +392,7 @@ class ViewerObjects
 		panel.addText(null, "<strong>Hold Alt + Drag Object:</strong> Duplicate Object")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
+		panel.addButton(null, "(S) Select All With Same ID", () => this.toggleAllSelectionByID())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		
 		let selectedPoints = this.data.objects.nodes.filter(p => p.selected)
@@ -542,6 +543,22 @@ class ViewerObjects
 	}
 	
 	
+	toggleAllSelectionByID()
+	{
+		let selectedObjs = this.data.objects.nodes.filter(p => p.selected)
+		
+		for (let point of this.data.objects.nodes)
+		{
+			if (selectedObjs.find(p => p.id == point.id) != null)
+				point.selected = true
+			else
+				point.selected = false
+		}
+		
+		this.refreshPanels()
+	}
+	
+	
 	deleteSelectedPoints()
 	{
 		let pointsToDelete = []
@@ -570,6 +587,11 @@ class ViewerObjects
 			case "A":
 			case "a":
 				this.toggleAllSelection()
+				return true
+			
+			case "S":
+			case "s":
+				this.toggleAllSelectionByID()
 				return true
 			
 			case "Backspace":
