@@ -299,7 +299,8 @@ class ViewerCannonPoints
 				let newPoint = this.data.cannonPoints.addNode()
 				newPoint.pos = hoveringOverElem.pos.clone()
 				newPoint.rotation = hoveringOverElem.rotation.clone()
-				newPoint.playerIndex = hoveringOverElem.playerIndex
+				newPoint.id = hoveringOverElem.id
+				newPoint.effect = hoveringOverElem.effect
 				
 				this.refresh()
 				

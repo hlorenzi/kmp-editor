@@ -270,7 +270,8 @@ class ViewerFinishPoints
 				let newPoint = this.data.finishPoints.addNode()
 				newPoint.pos = hoveringOverElem.pos.clone()
 				newPoint.rotation = hoveringOverElem.rotation.clone()
-				newPoint.playerIndex = hoveringOverElem.playerIndex
+				newPoint.id = hoveringOverElem.id
+				newPoint.unknown = hoveringOverElem.unknown
 				
 				this.refresh()
 				
