@@ -64,6 +64,7 @@ class KmpData
 		let objects = []
 		let routes = []
 		let respawnPoints = []
+		let cannonPoints = []
 		let trackInfo = {}
 		let unhandledSectionData = []
 		
@@ -245,6 +246,20 @@ class KmpData
 					break
 				}
 				
+				case "CNPT":
+				{
+					for (let i = 0; i < entryNum; i++)
+					{
+						let pos = parser.readVec3()
+						let rotation = parser.readVec3()
+						let id = parser.readUInt16()
+						let effect = parser.readUInt16()
+						
+						cannonPoints.push({ pos, rotation, id, effect })
+					}
+					break
+				}
+				
 				case "MSPT":
 				{
 					for (let i = 0; i < entryNum; i++)
@@ -295,7 +310,7 @@ class KmpData
 			enemyPoints, enemyPaths,
 			itemPoints, itemPaths,
 			checkpointPoints, checkpointPaths,
-			objects, routes,
+			objects, routes, cannonPoints,
 			trackInfo,
 			respawnPoints
 		}
@@ -466,6 +481,17 @@ class KmpData
 			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
 			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
 			node.size = kmpPoint.size
+		}
+		
+		for (let i = 0; i < kmpData.cannonPoints.length; i++)
+		{
+			let kmpPoint = kmpData.cannonPoints[i]
+			
+			let node = kmp.cannonPoints.addNode()
+			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
+			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
+			node.id = kmpPoint.id
+			node.effect = kmpPoint.effect
 		}
 		
 		for (let i = 0; i < kmpData.checkpointPoints.length; i++)
@@ -896,7 +922,26 @@ class KmpData
 		}
 		
 		// Write CNPT
-		writeUnhandledSection("CNPT")
+		let sectionCnptAddr = w.head
+		let sectionCnptOrder = sectionOrder.findIndex(s => s == "CNPT")
+		w.seek(sectionOffsetsAddr + sectionCnptOrder * 4)
+		w.writeUInt32(sectionCnptAddr - headerEndAddr)
+		
+		w.seek(sectionCnptAddr)
+		w.writeAscii("CNPT")
+		w.writeUInt16(this.cannonPoints.nodes.length)
+		w.writeUInt16(0)
+		for (let p of this.cannonPoints.nodes)
+		{
+			w.writeFloat32(p.pos.x)
+			w.writeFloat32(-p.pos.z)
+			w.writeFloat32(-p.pos.y)
+			w.writeFloat32(p.rotation.x)
+			w.writeFloat32(p.rotation.y)
+			w.writeFloat32(p.rotation.z)
+			w.writeUInt16(p.id)
+			w.writeUInt16(p.effect)
+		}
 		
 		// Write MSPT
 		let sectionMsptAddr = w.head
@@ -1062,6 +1107,22 @@ class KmpData
 			newNode.size = oldNode.size
 		}
 		
+		this.cannonPoints = new NodeGraph()
+		this.cannonPoints.onAddNode = (node) =>
+		{
+			node.pos = new Vec3(0, 0, 0)
+			node.rotation = new Vec3(0, 0, 0)
+			node.id = 0
+			node.effect = 0xffff
+		}
+		this.cannonPoints.onCloneNode = (newNode, oldNode) =>
+		{
+			newNode.pos = oldNode.pos.clone()
+			newNode.rotation = oldNode.rotation.clone()
+			newNode.id = oldNode.id
+			newNode.effect = oldNode.effect
+		}
+		
 		this.finishPoints = new NodeGraph()
 		this.finishPoints.onAddNode = (node) =>
 		{
@@ -1130,11 +1191,13 @@ class KmpData
 		let cloned = new KmpData()
 		cloned.unhandledSectionData = this.unhandledSectionData
 		cloned.startPoints = this.startPoints.clone()
+		cloned.finishPoints = this.finishPoints.clone()
 		cloned.enemyPoints = this.enemyPoints.clone()
 		cloned.itemPoints = this.itemPoints.clone()
 		cloned.checkpointPoints = this.checkpointPoints.clone()
 		cloned.objects = this.objects.clone()
 		cloned.respawnPoints = this.respawnPoints.clone()
+		cloned.cannonPoints = this.cannonPoints.clone()
 		
 		for (let route of this.routes)
 		{

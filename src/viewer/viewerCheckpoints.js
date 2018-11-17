@@ -52,6 +52,11 @@ class ViewerCheckpoints
 			.calculateNormals()
 			.makeModel(viewer.gl)
 			
+		this.modelPanelWithoutBacksize = new ModelBuilder()
+			.addQuad(new Vec3(0, 0, 1), new Vec3(1, 0, 1), new Vec3(1, 0, 0), new Vec3(0, 0, 0), panelFrontColor, panelFrontColor, panelFrontColor, panelFrontColor)
+			.calculateNormals()
+			.makeModel(viewer.gl)
+			
 		this.renderers = []
 	}
 	
@@ -86,6 +91,7 @@ class ViewerCheckpoints
 		this.panel = panel
 		
 		panel.addCheckbox(null, "Render vertical panels", this.viewer.cfg.checkpointsEnableVerticalPanels, (x) => this.viewer.cfg.checkpointsEnableVerticalPanels = x)
+		panel.addText(null, "⚠️ <strong>The correct orientation for checkpoints is towards the rendered vertical panel (the wrong/backwards direction has no panel rendered)!</strong>")
 		panel.addCheckbox(null, "Render respawn point links", this.viewer.cfg.checkpointsEnableRespawnPointLinks, (x) => this.viewer.cfg.checkpointsEnableRespawnPointLinks = x)
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Checkpoint")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Extend Path")
@@ -148,7 +154,7 @@ class ViewerCheckpoints
 				
 			point.rendererCheckpanel = new GfxNodeRendererTransform()
 				.attach(this.scenePanels.root)
-				.setModel(this.modelPanel)
+				.setModel(this.modelPanelWithoutBacksize)
 				.setMaterial(this.viewer.material)
 			
 			point.rendererRespawnLink = new GfxNodeRendererTransform()

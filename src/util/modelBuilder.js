@@ -243,6 +243,81 @@ class ModelBuilder
 	}
 	
 	
+	getSaneBoundingBox(maxSize = 100000)
+	{
+		let center = this.getMedianCenter()
+		
+		let bbox = 
+		{
+			xMin: null,
+			yMin: null,
+			zMin: null,
+			xMax: null,
+			yMax: null,
+			zMax: null
+		}
+		
+		for (let pos of this.positions)
+		{
+			if (Math.abs(pos.x - center.x) < maxSize)
+			{
+				bbox.xMin = (bbox.xMin == null ? pos.x : Math.min(bbox.xMin, pos.x))
+				bbox.xMax = (bbox.xMax == null ? pos.x : Math.max(bbox.xMax, pos.x))
+			}
+			
+			if (Math.abs(pos.y - center.y) < maxSize)
+			{
+				bbox.yMin = (bbox.xMin == null ? pos.y : Math.min(bbox.yMin, pos.y))
+				bbox.yMax = (bbox.xMax == null ? pos.y : Math.max(bbox.yMax, pos.y))
+			}
+			
+			if (Math.abs(pos.z - center.z) < maxSize)
+			{
+				bbox.zMin = (bbox.xMin == null ? pos.z : Math.min(bbox.zMin, pos.z))
+				bbox.zMax = (bbox.xMax == null ? pos.z : Math.max(bbox.zMax, pos.z))
+			}
+		}
+		
+		bbox.xSize = (bbox.xMax - bbox.xMin)
+		bbox.ySize = (bbox.yMax - bbox.yMin)
+		bbox.zSize = (bbox.zMax - bbox.zMin)
+		
+		bbox.xCenter = (bbox.xMin + bbox.xMax) / 2
+		bbox.yCenter = (bbox.yMin + bbox.yMax) / 2
+		bbox.zCenter = (bbox.zMin + bbox.zMax) / 2
+		
+		return bbox
+	}
+	
+	
+	getMedianCenter()
+	{
+		if (this.positions.length == 0)
+			return { x: 0, y: 0, z: 0 }
+		
+		let xs = []
+		let ys = []
+		let zs = []
+		
+		for (let pos of this.positions)
+		{
+			xs.push(pos.x)
+			ys.push(pos.y)
+			zs.push(pos.z)
+		}
+		
+		xs.sort((a, b) => a - b)
+		ys.sort((a, b) => a - b)
+		zs.sort((a, b) => a - b)
+		
+		return {
+			x: xs[Math.floor(xs.length / 2)],
+			y: ys[Math.floor(xs.length / 2)],
+			z: zs[Math.floor(xs.length / 2)]
+		}
+	}
+	
+	
 	makeDoubleSided()
 	{
 		let len = this.positions.length

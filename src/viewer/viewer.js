@@ -7,6 +7,7 @@ const { ViewerCheckpoints } = require("./viewerCheckpoints.js")
 const { ViewerObjects } = require("./viewerObjects.js")
 const { ViewerRoutes } = require("./viewerRoutes.js")
 const { ViewerRespawnPoints } = require("./viewerRespawnPoints.js")
+const { ViewerCannonPoints } = require("./viewerCannonPoints.js")
 const { ViewerFinishPoints } = require("./viewerFinishPoints.js")
 const { ViewerTrackInformation } = require("./viewerTrackInformation.js")
 const { ModelBuilder } = require("../util/modelBuilder.js")
@@ -115,6 +116,7 @@ class Viewer
 			new ViewerRespawnPoints(this.window, this, this.data),
 			new ViewerObjects(this.window, this, this.data),
 			new ViewerRoutes(this.window, this, this.data),
+			new ViewerCannonPoints(this.window, this, this.data),
 			new ViewerFinishPoints(this.window, this, this.data),
 			new ViewerTrackInformation(this.window, this, this.data),
 		]
@@ -194,7 +196,7 @@ class Viewer
 		if (this.modelBuilder == null)
 			return
 		
-		let bbox = this.modelBuilder.getBoundingBox()
+		let bbox = this.modelBuilder.getSaneBoundingBox()
 		
 		this.cameraFocus = new Vec3(bbox.xCenter, bbox.yCenter, bbox.zCenter)
 		this.cameraHorzAngle = Math.PI / 2

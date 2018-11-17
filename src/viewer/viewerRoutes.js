@@ -81,7 +81,7 @@ class ViewerRoutes
 		
 		let routeOptions = []
 		for (let i = 0; i < this.data.routes.length; i++)
-			routeOptions.push({ str: "Route " + i, value: i })
+			routeOptions.push({ str: "Route " + i + " (0x" + i.toString(16) + ")", value: i })
 		
 		panel.addText(null, "⚠️ <strong>Does not currently auto-manage route references from objects, cameras, and areas!</strong>")
 		panel.addSelectionDropdown(null, "Current", this.currentRouteIndex, routeOptions, true, false, (x, i) => { this.currentRouteIndex = x; this.refresh() })

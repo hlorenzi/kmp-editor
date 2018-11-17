@@ -12,6 +12,7 @@ Currently edits the following sections:
 - Respawn points (`JGPT`)
 - Objects (`GOBJ`)
 - Routes (`POTI`)
+- Cannon Points (`CNPT`)
 - Battle Finish Points (`MSPT`)
 - Track Information (`STGI`)
 

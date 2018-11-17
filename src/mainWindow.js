@@ -86,6 +86,7 @@ class MainWindow
 			checkpointsEnableVerticalPanels: true,
 			checkpointsEnableRespawnPointLinks: true,
 			enableRotationRender: true,
+			cannonsEnableDirectionRender: true
 		}
 		
 		this.currentKmpFilename = null
