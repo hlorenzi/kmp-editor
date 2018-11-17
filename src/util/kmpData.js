@@ -54,6 +54,7 @@ class KmpData
 			throw "kmp: invalid header length"
 	
 		let startPoints = []
+		let finishPoints = []
 		let enemyPoints = []
 		let enemyPaths = []
 		let itemPoints = []
@@ -244,6 +245,20 @@ class KmpData
 					break
 				}
 				
+				case "MSPT":
+				{
+					for (let i = 0; i < entryNum; i++)
+					{
+						let pos = parser.readVec3()
+						let rotation = parser.readVec3()
+						let id = parser.readUInt16()
+						let unknown = parser.readUInt16()
+						
+						finishPoints.push({ pos, rotation, id, unknown })
+					}
+					break
+				}
+				
 				case "STGI":
 				{
 					trackInfo.lapCount = parser.readByte()
@@ -276,7 +291,7 @@ class KmpData
 		
 		return {
 			unhandledSectionData,
-			startPoints,
+			startPoints, finishPoints,
 			enemyPoints, enemyPaths,
 			itemPoints, itemPaths,
 			checkpointPoints, checkpointPaths,
@@ -301,6 +316,17 @@ class KmpData
 			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
 			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
 			node.playerIndex = kmpPoint.playerIndex
+		}
+		
+		for (let i = 0; i < kmpData.finishPoints.length; i++)
+		{
+			let kmpPoint = kmpData.finishPoints[i]
+			
+			let node = kmp.finishPoints.addNode()
+			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
+			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
+			node.id = kmpPoint.id
+			node.unknown = kmpPoint.unknown
 		}
 		
 		for (let i = 0; i < kmpData.enemyPoints.length; i++)
@@ -873,7 +899,26 @@ class KmpData
 		writeUnhandledSection("CNPT")
 		
 		// Write MSPT
-		writeUnhandledSection("MSPT")
+		let sectionMsptAddr = w.head
+		let sectionMsptOrder = sectionOrder.findIndex(s => s == "MSPT")
+		w.seek(sectionOffsetsAddr + sectionMsptOrder * 4)
+		w.writeUInt32(sectionMsptAddr - headerEndAddr)
+		
+		w.seek(sectionMsptAddr)
+		w.writeAscii("MSPT")
+		w.writeUInt16(this.finishPoints.nodes.length)
+		w.writeUInt16(0)
+		for (let p of this.finishPoints.nodes)
+		{
+			w.writeFloat32(p.pos.x)
+			w.writeFloat32(-p.pos.z)
+			w.writeFloat32(-p.pos.y)
+			w.writeFloat32(p.rotation.x)
+			w.writeFloat32(p.rotation.y)
+			w.writeFloat32(p.rotation.z)
+			w.writeUInt16(p.id)
+			w.writeUInt16(p.unknown)
+		}
 		
 		// Write STGI
 		let sectionStgiAddr = w.head
@@ -1015,6 +1060,22 @@ class KmpData
 			newNode.pos = oldNode.pos.clone()
 			newNode.rotation = oldNode.rotation.clone()
 			newNode.size = oldNode.size
+		}
+		
+		this.finishPoints = new NodeGraph()
+		this.finishPoints.onAddNode = (node) =>
+		{
+			node.pos = new Vec3(0, 0, 0)
+			node.rotation = new Vec3(0, 0, 0)
+			node.id = 0
+			node.unknown = 0xffff
+		}
+		this.finishPoints.onCloneNode = (newNode, oldNode) =>
+		{
+			newNode.pos = oldNode.pos.clone()
+			newNode.rotation = oldNode.rotation.clone()
+			newNode.id = oldNode.id
+			newNode.unknown = oldNode.unknown
 		}
 		
 		this.trackInfo = {}
