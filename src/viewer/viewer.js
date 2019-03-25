@@ -76,7 +76,7 @@ class Viewer
 		this.materialColor = new GfxMaterial()
 			.setProgram(
 				GLProgram.makeFromSrc(this.gl, vertexSrcColor, fragmentSrcColor)
-				.registerLocations(this.gl, ["aPosition", "aNormal", "aColor"], ["uMatProj", "uMatView", "uMatModel", "uAmbientColor", "uDiffuseColor"]))
+				.registerLocations(this.gl, ["aPosition", "aNormal", "aColor"], ["uMatProj", "uMatView", "uMatModel", "uAmbientColor", "uDiffuseColor", "uFogDensity"]))
 				
 		this.materialUnshaded = new GfxMaterial()
 			.setProgram(
@@ -222,13 +222,13 @@ class Viewer
 		{
 			let scale = this.cameraDist / 1000
 			this.cachedCamera = new GfxCamera()
-				.setProjection(Mat4.ortho(-this.width * scale, this.width * scale, -this.height * scale, this.height * scale, -500000, 500000))
+				.setProjection(Mat4.ortho(-this.width * scale, this.width * scale, -this.height * scale, this.height * scale, -500000, 1000000))
 				.setView(Mat4.lookat(this.getCurrentCameraPosition(), this.cameraFocus, new Vec3(0, 0, -1)))
 		}
 		else
 		{
 			this.cachedCamera = new GfxCamera()
-				.setProjection(Mat4.perspective(30 * Math.PI / 180, this.width / this.height, 100, 500000))
+				.setProjection(Mat4.perspective(30 * Math.PI / 180, this.width / this.height, 100, 1000000))
 				.setView(Mat4.lookat(this.getCurrentCameraPosition(), this.cameraFocus, new Vec3(0, 0, -1)))
 		}
 		
@@ -238,6 +238,7 @@ class Viewer
 		let ambient = 1 - this.cfg.shadingFactor
 		this.material.program.use(this.gl).setVec4(this.gl, "uAmbientColor", [ambient, ambient, ambient, 1])
 		this.materialColor.program.use(this.gl).setVec4(this.gl, "uAmbientColor", [ambient, ambient, ambient, 1])
+		this.materialColor.program.use(this.gl).setFloat(this.gl, "uFogDensity", this.cfg.fogFactor)
 		
 		if (this.currentSubviewer != null && this.currentSubviewer.drawBeforeModel)
 			this.currentSubviewer.drawBeforeModel()
@@ -561,6 +562,7 @@ const vertexSrcColor = `
 	uniform mat4 uMatView;
 	uniform mat4 uMatProj;
 	
+	varying float vDepth;
 	varying vec4 vNormal;
 	varying vec4 vScreenNormal;
 	varying vec4 vColor;
@@ -572,19 +574,23 @@ const vertexSrcColor = `
 		
 		vColor = aColor;
 		
-		gl_Position = uMatProj * uMatView * uMatModel * aPosition;
+		vec4 position = uMatProj * uMatView * uMatModel * aPosition;
+		gl_Position = position;
+		vDepth = position.z / position.w;
 	}`
 
 
 const fragmentSrcColor = `
 	precision highp float;
 	
+	varying float vDepth;
 	varying vec4 vNormal;
 	varying vec4 vScreenNormal;
 	varying vec4 vColor;
 	
 	uniform vec4 uDiffuseColor;
 	uniform vec4 uAmbientColor;
+	uniform float uFogDensity;
 
 	void main()
 	{
@@ -594,9 +600,14 @@ const fragmentSrcColor = `
 		vec4 diffuseColor = uDiffuseColor * vColor;
 		vec4 lightColor = vec4(1, 1, 1, 1);
 		
+		const float log2 = 1.442695;
+		//const float fogDensity = 0.00001;
+		float z = gl_FragCoord.z / gl_FragCoord.w;
+		float fogFactor = clamp(exp2(-uFogDensity * uFogDensity * z * z * log2) + 0.01, 0.2, 1.0);
+		
 		float lightIncidence = max(0.0, dot(normalize(lightDir), normalize(vScreenNormal)));
 		
-		gl_FragColor = diffuseColor * mix(ambientColor, lightColor, lightIncidence);
+		gl_FragColor = diffuseColor * mix(ambientColor, lightColor, lightIncidence) * vec4(vec3(fogFactor), 1.0);
 	}`
 
 

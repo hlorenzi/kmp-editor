@@ -128,6 +128,13 @@ class GLProgram
 	}
 	
 	
+	setFloat(gl, unif, x)
+	{
+		gl.uniform1f(this.uniforms[unif], x)
+		return this
+	}
+	
+	
 	setMat4(gl, unif, matrix)
 	{
 		gl.uniformMatrix4fv(this.uniforms[unif], false, matrix.asFloat32Array())

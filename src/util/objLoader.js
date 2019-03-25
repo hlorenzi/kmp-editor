@@ -34,7 +34,17 @@ class ObjLoader
 			}
 			
 			if (curObject == null)
-				continue
+			{
+				let object = {}
+				object.name = "Default Object"
+				object.vertices = []
+				object.normals = []
+				object.texCoords = []
+				object.geometries = []
+				
+				objects.push(object)
+				curObject = object
+			}
 			
 			let tagV = line.match(/^v[ ]+([0-9.-]+)[ ]+([0-9.-]+)[ ]+([0-9.-]+)/)
 			if (tagV != null)

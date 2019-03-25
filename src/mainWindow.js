@@ -48,7 +48,7 @@ class MainWindow
 				[
 					{ label: "GitHub Repository", click: () => shell.openExternal("https://github.com/hlorenzi/kmp-editor") },
 					{ type: "separator" },
-					{ label: "Open Dev Tools", click: () => remote.getCurrentWindow().webContents.openDevTools() },
+					{ label: "Open Dev Tools", accelerator: "F12", click: () => remote.getCurrentWindow().webContents.openDevTools() },
 					{ label: "Reload app", accelerator: "CmdOrCtrl+R", click: () => this.onReload() }
 				]
 			}
@@ -73,11 +73,14 @@ class MainWindow
 			}
 		}
 		
+		this.noModelLoaded = true
+		
 		this.cfg =
 		{
 			useOrthoProjection: false,
 			pointScale: 1,
 			shadingFactor: 0.3,
+			fogFactor: 0.0000025,
 			kclEnableColors: true,
 			kclEnableDeathBarriers: true,
 			kclEnableInvisible: true,
@@ -166,6 +169,7 @@ class MainWindow
 		panel.addButton(null, "(5) Toggle Projection", () => this.cfg.useOrthoProjection = !this.cfg.useOrthoProjection)
 		panel.addButton(null, "Center view", () => this.viewer.centerView())
 		panel.addSlider(null, "Shading", 0, 1, this.cfg.shadingFactor, 0.05, (x) => this.cfg.shadingFactor = x)
+		panel.addSlider(null, "Fog", 0.0000001, 0.0002, this.cfg.fogFactor, 0.0000001, (x) => this.cfg.fogFactor = x)
 		panel.addSlider(null, "Point Scale", 0.1, 5, this.cfg.pointScale, 0.1, (x) => this.cfg.pointScale = x)
 		let kclGroup = panel.addGroup(null, "Collision data:")
 		panel.addCheckbox(kclGroup, "Use colors", this.cfg.kclEnableColors, (x) => { this.cfg.kclEnableColors = x; this.openKcl(this.currentKclFilename) })
@@ -317,6 +321,7 @@ class MainWindow
 		this.setDefaultModel()
 		this.refreshPanels()
 		this.viewer.render()
+		this.noModelLoaded = true
 	}
 
 
@@ -356,6 +361,7 @@ class MainWindow
 			this.viewer.centerView()
 			this.refreshPanels()
 			this.viewer.render()
+			this.noModelLoaded = false
 		}
 		catch (e)
 		{
@@ -409,6 +415,7 @@ class MainWindow
 		this.viewer.setModel(model)
 		this.viewer.centerView()
 		this.currentKclFilename = null
+		this.noModelLoaded = true
 	}
 	
 	
@@ -453,6 +460,11 @@ class MainWindow
 				let modelBuilder = require("./util/objLoader.js").ObjLoader.makeModelBuilder(data)
 				this.viewer.setModel(modelBuilder)
 				this.currentKclFilename = null
+				
+				if (this.noModelLoaded)
+					this.viewer.centerView()
+				
+				this.noModelLoaded = false
 			}
 		}
 	}
@@ -464,9 +476,24 @@ class MainWindow
 			return
 		
 		let brresData = fs.readFileSync(filename)
-		let modelBuilder = require("./util/brresLoader.js").BrresLoader.load(brresData)
+		let modelBuilder = null
+		try
+		{
+			modelBuilder = require("./util/brresLoader.js").BrresLoader.load(brresData)
+		}
+		catch (e)
+		{
+			window.alert("Error opening BRRES file!\n\n" + e.toString())
+			return
+		}
+		
 		this.viewer.setModel(modelBuilder)
 		this.currentKclFilename = null
+		
+		if (this.noModelLoaded)
+			this.viewer.centerView()
+		
+		this.noModelLoaded = false
 	}
 	
 	
@@ -479,6 +506,11 @@ class MainWindow
 		let modelBuilder = require("./util/kclLoader.js").KclLoader.load(kclData, this.cfg)
 		this.viewer.setModel(modelBuilder)
 		this.currentKclFilename = filename
+		
+		if (this.noModelLoaded)
+			this.viewer.centerView()
+		
+		this.noModelLoaded = false
 	}
 }
 
