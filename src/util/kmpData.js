@@ -361,16 +361,30 @@ class KmpData
 			let kmpPath = kmpData.enemyPaths[i]
 		
 			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
+			{
 				kmp.enemyPoints.linkNodes(kmp.enemyPoints.nodes[p], kmp.enemyPoints.nodes[p + 1])
+				kmp.enemyPoints.nodes[p].pathIndex = i
+				kmp.enemyPoints.nodes[p + 1].pathIndex = i
+			}
+			
+			const emptyPrevGroups = kmpPath.prevGroups.find(g => g != 0xff && g < kmpData.enemyPaths.length) == null
 			
 			for (let j = 0; j < 6; j++)
 			{
 				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < kmpData.enemyPaths.length)
 				{
-					let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
-					let nextPoint = kmpData.enemyPaths[kmpPath.nextGroups[j]].startIndex
+					const nextComesBackToThis = kmpData.enemyPaths[kmpPath.nextGroups[j]].nextGroups.find(g => g == i) != null
+					const nextIsBattleDispatch = kmpPath.nextGroups[j] > i && kmpData.enemyPaths[kmpPath.nextGroups[j]].prevGroups.find(g => g != 0xff && g < kmpData.enemyPaths.length) == null
 					
-					kmp.enemyPoints.linkNodes(kmp.enemyPoints.nodes[lastPoint], kmp.enemyPoints.nodes[nextPoint])
+					if (!emptyPrevGroups || (!nextComesBackToThis || nextIsBattleDispatch))
+					{
+						let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
+						let nextPoint = kmpData.enemyPaths[kmpPath.nextGroups[j]].startIndex
+						
+						kmp.enemyPoints.linkNodes(kmp.enemyPoints.nodes[lastPoint], kmp.enemyPoints.nodes[nextPoint])
+						kmp.enemyPoints.nodes[lastPoint].pathIndex = i
+						kmp.enemyPoints.nodes[nextPoint].pathIndex = kmpPath.nextGroups[j]
+					}
 				}
 			}
 		}
@@ -502,11 +516,13 @@ class KmpData
 				kmp.checkpointPoints.nodes[i].respawnNode = kmp.respawnPoints.nodes[respawnIndex]
 		}
 		
+		kmp.isBattleTrack = kmpData.itemPaths.length == 0 && kmpData.checkpointPaths.length == 0 && kmpData.finishPoints.length > 0
+		
 		return kmp
 	}
 	
 	
-	convertToStorageFormat()
+	convertToStorageFormat(asBattle = false)
 	{
 		let w = new BinaryWriter()
 		
@@ -583,7 +599,7 @@ class KmpData
 		}
 		
 		// Prepare enemy points
-		let enemyPaths = this.enemyPoints.convertToStorageFormat()
+		let enemyPaths = this.enemyPoints.convertToStorageFormat(asBattle)
 		let enemyPoints = []
 		enemyPaths.forEach(path => path.nodes.forEach(node => enemyPoints.push(node)))
 		
@@ -1092,6 +1108,10 @@ class KmpData
 			newNode.respawnIndex = oldNode.respawnIndex
 			newNode.type = oldNode.type
 		}
+		this.checkpointPoints.findFirstNode = (nodes) =>
+		{
+			return nodes.find(n => n.type == 0)
+		}
 		
 		this.respawnPoints = new NodeGraph()
 		this.respawnPoints.onAddNode = (node) =>
@@ -1186,6 +1206,14 @@ class KmpData
 	}
 	
 	
+	refreshIndices(asBattle)
+	{
+		this.enemyPoints.convertToStorageFormat(asBattle)
+		this.itemPoints.convertToStorageFormat()
+		this.checkpointPoints.convertToStorageFormat()
+	}
+	
+	
 	clone()
 	{
 		let cloned = new KmpData()
@@ -1230,6 +1258,7 @@ class NodeGraph
 		this.maxPrevNodes = 1
 		this.onAddNode = () => { }
 		this.onCloneNode = () => { }
+		this.findFirstNode = (nodes) => (nodes.length > 0 ? nodes[0] : null)
 	}
 	
 	
@@ -1353,40 +1382,73 @@ class NodeGraph
 	}
 	
 	
-	convertToStorageFormat()
+	convertToStorageFormat(asBattle = false)
 	{
 		let paths = []
 		
 		let nodesToHandle = this.nodes.map(n => n)
 		let nodesToPath = new Map()
 		
+		const firstNode = this.findFirstNode(this.nodes) || (this.nodes.length > 0 ? this.nodes[0] : null)
+		if (firstNode)
+		{
+			nodesToHandle.filter(n => n !== firstNode)
+			nodesToHandle.unshift(firstNode)
+		}
+		
+		const nodeIsBattleDispatcher = (node) => (asBattle && node.next.length + node.prev.length > 2)
+		
 		while (nodesToHandle.length > 0)
 		{
-			let node = nodesToHandle.splice(0, 1)[0]
+			const node = nodesToHandle[0]
 			
+			const pathIndex = paths.length
 			let path = { nodes: [], next: [], prev: [] }
-			if (nodesToPath.has(node))
-				path = nodesToPath.get(node)
-			else
+			paths.push(path)
+			
+			if (nodeIsBattleDispatcher(node))
 			{
+				node.pathIndex = pathIndex
+				path.nodes.push(node)
 				nodesToPath.set(node, path)
-				paths.push(path)
+				nodesToHandle = nodesToHandle.filter(n => n !== node)
+				continue
 			}
 			
-			path.nodes.push(node)
-			
-			while (node.next.length == 1 && node.next[0].node.prev.length == 1 && !nodesToPath.has(node.next[0].node))
+			let nodeAtPathStart = node
+			if (node !== firstNode)
 			{
-				node = node.next[0].node
-				nodesToPath.set(node, path)
-				path.nodes.push(node)
+				while (nodeAtPathStart.prev.length == 1 && nodeAtPathStart.prev[0].node.next.length == 1 && !nodeIsBattleDispatcher(nodeAtPathStart.prev[0].node))
+				{
+					if (nodesToPath.get(nodeAtPathStart.prev[0].node, path))
+						break
+					
+					nodeAtPathStart = nodeAtPathStart.prev[0].node
+					if (nodeAtPathStart === node)
+						break
+				}
+			}
+			
+			nodeAtPathStart.pathIndex = pathIndex
+			path.nodes.push(nodeAtPathStart)
+			nodesToPath.set(nodeAtPathStart, path)
+			nodesToHandle = nodesToHandle.filter(n => n !== nodeAtPathStart)
+			
+			let nodeAtPath = nodeAtPathStart
+			while (nodeAtPath.next.length == 1 && nodeAtPath.next[0].node.prev.length == 1 && !nodeIsBattleDispatcher(nodeAtPath.next[0].node))
+			{
+				nodeAtPath = nodeAtPath.next[0].node
+				if (nodesToPath.get(nodeAtPath, path))
+					break
 				
-				let index = nodesToHandle.findIndex(n => n == node)
-				if (index >= 0)
-					nodesToHandle.splice(index, 1)
+				nodeAtPath.pathIndex = pathIndex
+				path.nodes.push(nodeAtPath)
+				nodesToPath.set(nodeAtPath, path)
+				nodesToHandle = nodesToHandle.filter(n => n !== nodeAtPath)
 			}
 		}
 		
+		let pointIndex = 0
 		for (let path of paths)
 		{
 			let lastNode = path.nodes[path.nodes.length - 1]
@@ -1399,8 +1461,34 @@ class NodeGraph
 				
 				nextPath.prev.push(path)
 			}
-		}
 			
+			for (let i = 0; i < path.nodes.length; i++)
+			{
+				path.nodes[i].pathPointIndex = i
+				path.nodes[i].pointIndex = pointIndex
+				pointIndex += 1
+			}
+		}
+		
+		if (asBattle)
+		{
+			for (let path of paths)
+			{
+				if (path.nodes.length == 1 && path.next.length + path.prev.length > 2)
+				{
+					for (let prev of path.prev)
+					{
+						if (path.next.find(g => g === prev))
+							continue
+						
+						path.next.push(prev)
+					}
+					
+					path.prev = []
+				}
+			}
+		}
+		
 		return paths
 	}
 }

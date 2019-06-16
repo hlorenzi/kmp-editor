@@ -1,21 +1,23 @@
 {
   "name": "hlorenzi-kmp-editor",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-	"dist": "electron-builder",
-	"postinstall": "electron-builder install-app-deps"
+    "dist": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
   },
   "devDependencies": {
-    "electron": "^1.8.4",
-    "electron-builder": "^20.14.7"
+    "electron": "^1.8.8",
+    "electron-builder": "^20.43.0"
   },
   "build": {
     "appId": "com.hlorenzi.kmp-editor",
-	"productName": "Lorenzi's KMP Editor",
+    "productName": "Lorenzi's KMP Editor",
     "win": {
-      "target": ["portable"]
+      "target": [
+        "portable"
+      ]
     }
   }
 }

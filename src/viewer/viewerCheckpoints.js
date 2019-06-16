@@ -109,6 +109,29 @@ class ViewerCheckpoints
 		let selectionGroup = panel.addGroup(null, "Selection:")
 		let enabled = (selectedPoints.length > 0)
 		let multiedit = (selectedPoints.length > 1)
+		
+		if (selectedPoints.length == 1)
+		{
+			const formatNum = (x) =>
+			{
+				if (x === null || x === undefined)
+					return ""
+				
+				return x.toString()
+			}
+			
+			const formatNumHex = (x) =>
+			{
+				if (x === null || x === undefined)
+					return ""
+				
+				return x.toString() + " (0x" + x.toString(16) + ")"
+			}
+			
+			panel.addText(selectionGroup, "<strong>CKPH Index:</strong> " + formatNumHex(selectedPoints[0].pathIndex) + ", point #" + formatNum(selectedPoints[0].pathPointIndex))
+			panel.addText(selectionGroup, "<strong>CKPT Index:</strong> " + formatNumHex(selectedPoints[0].pointIndex))
+		}
+		
 		panel.addSelectionNumericInput(selectionGroup,    "X1", -1000000, 1000000, selectedPoints.map(p =>  p.pos[0].x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[0].x = x })
 		panel.addSelectionNumericInput(selectionGroup,    "Z1", -1000000, 1000000, selectedPoints.map(p => -p.pos[0].y), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[0].y = -x })
 		panel.addSelectionNumericInput(selectionGroup,    "X2", -1000000, 1000000, selectedPoints.map(p =>  p.pos[1].x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[1].x = x })

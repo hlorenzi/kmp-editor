@@ -77,12 +77,36 @@ class ViewerItemPaths
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
+		panel.addButton(null, "(F) Set Selected as First Point", () => this.setSelectedAsFirstPoint())
 		
 		let selectedPoints = this.data.itemPoints.nodes.filter(p => p.selected)
 		
 		let selectionGroup = panel.addGroup(null, "Selection:")
 		let enabled = (selectedPoints.length > 0)
 		let multiedit = (selectedPoints.length > 1)
+		
+		if (selectedPoints.length == 1)
+		{
+			const formatNum = (x) =>
+			{
+				if (x === null || x === undefined)
+					return ""
+				
+				return x.toString()
+			}
+			
+			const formatNumHex = (x) =>
+			{
+				if (x === null || x === undefined)
+					return ""
+				
+				return x.toString() + " (0x" + x.toString(16) + ")"
+			}
+			
+			panel.addText(selectionGroup, "<strong>ITPH Index:</strong> " + formatNumHex(selectedPoints[0].pathIndex) + ", point #" + formatNum(selectedPoints[0].pathPointIndex))
+			panel.addText(selectionGroup, "<strong>ITPT Index:</strong> " + formatNumHex(selectedPoints[0].pointIndex))
+		}
+		
 		panel.addSelectionNumericInput(selectionGroup,    "X", -1000000, 1000000, selectedPoints.map(p =>  p.pos.x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.x = x })
 		panel.addSelectionNumericInput(selectionGroup,    "Y", -1000000, 1000000, selectedPoints.map(p => -p.pos.z), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.z = -x })
 		panel.addSelectionNumericInput(selectionGroup,    "Z", -1000000, 1000000, selectedPoints.map(p => -p.pos.y), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.y = -x })
@@ -282,6 +306,25 @@ class ViewerItemPaths
 	}
 	
 	
+	setSelectedAsFirstPoint()
+	{
+		for (let p = 0; p < this.data.itemPoints.nodes.length; p++)
+		{
+			let point = this.data.itemPoints.nodes[p]
+			
+			if (!point.selected)
+				continue
+			
+			this.data.itemPoints.nodes.splice(p, 1)
+			this.data.itemPoints.nodes.unshift(point)
+		}
+		
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
+	}
+	
+	
 	onKeyDown(ev)
 	{
 		switch (ev.key)
@@ -301,6 +344,11 @@ class ViewerItemPaths
 			case "U":
 			case "u":
 				this.unlinkSelectedPoints()
+				return true
+				
+			case "F":
+			case "f":
+				this.setSelectedAsFirstPoint()
 				return true
 		}
 		
@@ -445,8 +493,10 @@ class ViewerItemPaths
 	{
 		let cameraPos = this.viewer.getCurrentCameraPosition()
 		
-		for (let point of this.data.itemPoints.nodes)
+		for (let p = 0; p < this.data.itemPoints.nodes.length; p++)
 		{
+			let point = this.data.itemPoints.nodes[p]
+			
 			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * this.viewer.getElementScale(point.pos)
 			
 			let bbillCantStop = (point.setting2 & 0x1) != 0
@@ -454,7 +504,7 @@ class ViewerItemPaths
 			point.renderer
 				.setTranslation(point.pos)
 				.setScaling(new Vec3(scale, scale, scale))
-				.setDiffuseColor(bbillCantStop ? [0.75, 0.75, 0.75, 1] : [0, 0.8, 0, 1])
+				.setDiffuseColor(p == 0 ? [0, 0.4, 0, 1] : bbillCantStop ? [0.75, 0.75, 0.75, 1] : [0, 0.8, 0, 1])
 				
 			let sizeCircleScale = point.size * 50
 			point.rendererSizeCircle
@@ -493,8 +543,10 @@ class ViewerItemPaths
 		
 		this.scene.render(this.viewer.gl, this.viewer.getCurrentCamera())
 		
-		for (let point of this.data.itemPoints.nodes)
+		for (let p = 0; p < this.data.itemPoints.nodes.length; p++)
 		{
+			let point = this.data.itemPoints.nodes[p]
+			
 			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * this.viewer.getElementScale(point.pos)
 			
 			point.rendererSelected
@@ -504,7 +556,7 @@ class ViewerItemPaths
 				.setEnabled(point.selected)
 				
 			point.rendererSelectedCore
-				.setDiffuseColor([0, 0.8, 0, 1])
+				.setDiffuseColor(p == 0 ? [0, 0.4, 0, 1] :[0, 0.8, 0, 1])
 		}
 		
 		this.sceneAfter.clearDepth(this.viewer.gl)

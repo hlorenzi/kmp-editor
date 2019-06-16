@@ -77,6 +77,7 @@ class MainWindow
 		
 		this.cfg =
 		{
+			isBattleTrack: false,
 			useOrthoProjection: false,
 			pointScale: 1,
 			shadingFactor: 0.3,
@@ -233,6 +234,8 @@ class MainWindow
 		
 		this.undoPointer += 1
 		this.undoNeedsNewSlot = false
+		
+		this.currentKmpData.refreshIndices(this.cfg.isBattleTrack)
 	}
 	
 	
@@ -241,6 +244,8 @@ class MainWindow
 		this.undoNeedsNewSlot = true
 		this.undoStack = []
 		this.undoPointer = -1
+		
+		this.currentKmpData.refreshIndices(this.cfg.isBattleTrack)
 	}
 	
 	
@@ -314,6 +319,7 @@ class MainWindow
 		this.currentKmpFilename = null
 		this.currentKmpData = new KmpData()
 		this.currentNotSaved = false
+		this.cfg.isBattleTrack = false
 		
 		this.resetUndoStack()
 		
@@ -349,6 +355,8 @@ class MainWindow
 			this.currentKmpData = KmpData.convertToWorkingFormat(KmpData.load(fs.readFileSync(filename)))
 			this.currentNotSaved = false
 			
+			this.cfg.isBattleTrack = this.currentKmpData.isBattleTrack
+			
 			this.resetUndoStack()
 			
 			let kclFilename = this.currentKmpFilename.substr(0, this.currentKmpFilename.lastIndexOf("/")) + "/course.kcl"
@@ -379,7 +387,7 @@ class MainWindow
 		
 		try
 		{
-			let bytes = this.currentKmpData.convertToStorageFormat()
+			let bytes = this.currentKmpData.convertToStorageFormat(this.cfg.isBattleTrack)
 			fs.writeFileSync(filename, new Uint8Array(bytes))
 			
 			this.currentKmpFilename = filename

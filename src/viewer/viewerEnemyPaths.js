@@ -70,6 +70,7 @@ class ViewerEnemyPaths
 		let panel = this.window.addPanel("Enemy Paths", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
 	
+		panel.addCheckbox(null, "Treat as Battle Track", this.viewer.cfg.isBattleTrack, (x) => this.viewer.cfg.isBattleTrack = x)
 		panel.addCheckbox(null, "Show point sizes", this.viewer.cfg.enemyPathsEnableSizeRender, (x) => this.viewer.cfg.enemyPathsEnableSizeRender = x)
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Extend Path")
@@ -77,12 +78,36 @@ class ViewerEnemyPaths
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
+		panel.addButton(null, "(F) Set Selected as First Point", () => this.setSelectedAsFirstPoint())
 		
 		let selectedPoints = this.data.enemyPoints.nodes.filter(p => p.selected)
 		
 		let selectionGroup = panel.addGroup(null, "Selection:")
 		let enabled = (selectedPoints.length > 0)
 		let multiedit = (selectedPoints.length > 1)
+		
+		if (selectedPoints.length == 1)
+		{
+			const formatNum = (x) =>
+			{
+				if (x === null || x === undefined)
+					return ""
+				
+				return x.toString()
+			}
+			
+			const formatNumHex = (x) =>
+			{
+				if (x === null || x === undefined)
+					return ""
+				
+				return x.toString() + " (0x" + x.toString(16) + ")"
+			}
+			
+			panel.addText(selectionGroup, "<strong>ENPH Index:</strong> " + formatNumHex(selectedPoints[0].pathIndex) + ", point #" + formatNum(selectedPoints[0].pathPointIndex))
+			panel.addText(selectionGroup, "<strong>ENPT Index:</strong> " + formatNumHex(selectedPoints[0].pointIndex))
+		}
+		
 		panel.addSelectionNumericInput(selectionGroup,    "X", -1000000, 1000000, selectedPoints.map(p =>  p.pos.x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.x = x })
 		panel.addSelectionNumericInput(selectionGroup,    "Y", -1000000, 1000000, selectedPoints.map(p => -p.pos.z), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.z = -x })
 		panel.addSelectionNumericInput(selectionGroup,    "Z", -1000000, 1000000, selectedPoints.map(p => -p.pos.y), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.y = -x })
@@ -284,6 +309,25 @@ class ViewerEnemyPaths
 	}
 	
 	
+	setSelectedAsFirstPoint()
+	{
+		for (let p = 0; p < this.data.enemyPoints.nodes.length; p++)
+		{
+			let point = this.data.enemyPoints.nodes[p]
+			
+			if (!point.selected)
+				continue
+			
+			this.data.enemyPoints.nodes.splice(p, 1)
+			this.data.enemyPoints.nodes.unshift(point)
+		}
+		
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
+	}
+	
+	
 	onKeyDown(ev)
 	{
 		switch (ev.key)
@@ -303,6 +347,11 @@ class ViewerEnemyPaths
 			case "U":
 			case "u":
 				this.unlinkSelectedPoints()
+				return true
+				
+			case "F":
+			case "f":
+				this.setSelectedAsFirstPoint()
 				return true
 		}
 		
@@ -447,8 +496,10 @@ class ViewerEnemyPaths
 	{
 		let cameraPos = this.viewer.getCurrentCameraPosition()
 		
-		for (let point of this.data.enemyPoints.nodes)
+		for (let p = 0; p < this.data.enemyPoints.nodes.length; p++)
 		{
+			let point = this.data.enemyPoints.nodes[p]
+			
 			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * this.viewer.getElementScale(point.pos)
 			
 			let useMushroom = (point.setting1 == 2)
@@ -456,7 +507,7 @@ class ViewerEnemyPaths
 			point.renderer
 				.setTranslation(point.pos)
 				.setScaling(new Vec3(scale, scale, scale))
-				.setDiffuseColor(useMushroom ? [1, 0.5, 0.95, 1] : [1, 0, 0, 1])
+				.setDiffuseColor(p == 0 ? [0.6, 0, 0, 1] : useMushroom ? [1, 0.5, 0.95, 1] : [1, 0, 0, 1])
 				
 			let sizeCircleScale = point.size * 50
 			point.rendererSizeCircle
@@ -494,8 +545,10 @@ class ViewerEnemyPaths
 		
 		this.scene.render(this.viewer.gl, this.viewer.getCurrentCamera())
 		
-		for (let point of this.data.enemyPoints.nodes)
+		for (let p = 0; p < this.data.enemyPoints.nodes.length; p++)
 		{
+			let point = this.data.enemyPoints.nodes[p]
+			
 			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * this.viewer.getElementScale(point.pos)
 			
 			point.rendererSelected
@@ -505,7 +558,7 @@ class ViewerEnemyPaths
 				.setEnabled(point.selected)
 				
 			point.rendererSelectedCore
-				.setDiffuseColor([1, 0, 0, 1])
+				.setDiffuseColor(p == 0 ? [0.6, 0, 0, 1] : [1, 0, 0, 1])
 		}
 		
 		this.sceneAfter.clearDepth(this.viewer.gl)
