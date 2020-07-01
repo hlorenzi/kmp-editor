@@ -1,11 +1,11 @@
-const { GfxModel } = require("../gl/scene.js")
+import GfxModel from "../gl/model.js"
 const { GLBuffer } = require("../gl/buffer.js")
-const { CollisionMesh } = require("./collisionMesh.js")
-const { Vec3 } = require("../math/vec3.js")
-const { Mat4 } = require("../math/mat4.js")
+import CollisionMesh from "./collisionMesh.js"
+import Mat4 from "../math/mat4.js"
+import Vec3 from "../math/vec3.js"
 
 
-class ModelBuilder
+export default class ModelBuilder
 {
 	constructor()
 	{
@@ -448,7 +448,3 @@ class ModelBuilder
 		return col
 	}
 }
-
-
-if (module)
-	module.exports = { ModelBuilder }

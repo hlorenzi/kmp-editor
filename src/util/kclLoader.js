@@ -1,9 +1,9 @@
-const { BinaryParser } = require("./binaryParser.js")
-const { ModelBuilder } = require("./modelBuilder.js")
-const { Vec3 } = require("../math/vec3.js")
+import BinaryParser from "./binaryParser.js"
+import ModelBuilder from "./modelBuilder.js"
+import Vec3 from "../math/vec3.js"
 
 
-class KclLoader
+export default class KclLoader
 {
 	static load(bytes, cfg)
 	{
@@ -129,7 +129,3 @@ class KclLoader
 		return model.calculateNormals()
 	}
 }
-
-
-if (module)
-	module.exports = { KclLoader }

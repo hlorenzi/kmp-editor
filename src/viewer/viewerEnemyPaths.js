@@ -442,7 +442,7 @@ class ViewerEnemyPaths
 						point.pos = linkToPoint.pos
 					}
 					else
-					{					
+					{
 						let screenPosMoved = this.viewer.pointToScreen(point.moveOrigin)
 						screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
 						screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y

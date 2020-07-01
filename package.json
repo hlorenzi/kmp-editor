@@ -3,12 +3,13 @@
   "version": "0.5.2",
   "main": "main.js",
   "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch --mode development",
     "start": "electron .",
     "dist": "electron-builder",
     "postinstall": "electron-builder install-app-deps"
   },
   "devDependencies": {
-    "electron": "^1.8.8",
     "electron-builder": "^20.43.0"
   },
   "build": {
@@ -19,5 +20,17 @@
         "portable"
       ]
     }
+  },
+  "dependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
+    "@babel/preset-react": "^7.8.3",
+    "babel-loader": "^8.0.6",
+    "electron": "^8.0.0",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10"
   }
 }

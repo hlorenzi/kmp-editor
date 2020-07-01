@@ -1,7 +1,7 @@
-const { Vec3 } = require("../math/vec3.js")
+import Vec3 from "../math/vec3.js"
 
 
-class CollisionMesh
+export default class CollisionMesh
 {
 	constructor()
 	{
@@ -180,6 +180,7 @@ class CollisionMesh
 				nearestHit =
 				{
 					distScaled: distScaled,
+					dist: distScaled * dir.magn(),
 					position: origin.add(dir.scale(distScaled)),
 					u: u,
 					v: v,
@@ -225,7 +226,3 @@ class CollisionMesh
 		return pos
 	}
 }
-
-
-if (module)
-	module.exports = { CollisionMesh }

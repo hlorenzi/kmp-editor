@@ -1,4 +1,4 @@
-class GLShader
+export class GLShader
 {
 	static makeVertex(gl, src)
 	{
@@ -36,7 +36,7 @@ class GLShader
 }
 
 
-class GLProgram
+export class GLProgram
 {
 	static makeFromSrc(gl, vertexSrc, fragmentSrc)
 	{
@@ -162,7 +162,3 @@ class GLProgram
 		return this
 	}
 }
-
-
-if (module)
-	module.exports = { GLShader, GLProgram }

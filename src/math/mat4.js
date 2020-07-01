@@ -1,23 +1,20 @@
-const { Vec3 } = require("./vec3.js")
+import Vec3 from "./vec3.js"
 
 
-class Mat4
+const ArrayType = Float32Array
+
+
+export default class Mat4
 {
 	constructor(cells)
 	{
-		this.m = cells
+		this.m = new ArrayType(cells)
 	}
 
 
 	static identity()
 	{
-		return new Mat4(
-		[
-			[1, 0, 0, 0],
-			[0, 1, 0, 0],
-			[0, 0, 1, 0],
-			[0, 0, 0, 1]
-		])
+		return identity
 	}
 
 
@@ -25,10 +22,10 @@ class Mat4
 	{
 		return new Mat4(
 		[
-			[1, 0, 0, 0],
-			[0, 1, 0, 0],
-			[0, 0, 1, 0],
-			[x, y, z, 1]
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			x, y, z, 1
 		])
 	}
 
@@ -37,10 +34,10 @@ class Mat4
 	{
 		return new Mat4(
 		[
-			[x, 0, 0, 0],
-			[0, y, 0, 0],
-			[0, 0, z, 0],
-			[0, 0, 0, 1]
+			x, 0, 0, 0,
+			0, y, 0, 0,
+			0, 0, z, 0,
+			0, 0, 0, 1
 		])
 	}
 
@@ -56,10 +53,10 @@ class Mat4
 
 		return new Mat4(
 		[
-			[t*x*x + c,    t*x*y - z*s,  t*x*z + y*s, 0],
-			[t*x*y + z*s,  t*y*y + c,    t*y*z - x*s, 0],
-			[t*x*z - y*s,  t*y*z + x*s,  t*z*z + c,   0],
-			[          0,            0,          0,   1]
+			t*x*x + c,    t*x*y - z*s,  t*x*z + y*s, 0,
+			t*x*y + z*s,  t*y*y + c,    t*y*z - x*s, 0,
+			t*x*z - y*s,  t*y*z + x*s,  t*z*z + c,   0,
+			          0,            0,          0,   1
 		])
 	}
 	
@@ -77,18 +74,18 @@ class Mat4
 	{
 		const basis1 = new Mat4(
 		[
-			[i1.x, j1.x, k1.x, 0],
-			[i1.y, j1.y, k1.y, 0],
-			[i1.z, j1.z, k1.z, 0],
-			[   0,    0,    0, 1],
+			i1.x, j1.x, k1.x, 0,
+			i1.y, j1.y, k1.y, 0,
+			i1.z, j1.z, k1.z, 0,
+			   0,    0,    0, 1,
 		])
 		
 		const basis2 = new Mat4(
 		[
-			[i2.x, j2.x, k2.x, 0],
-			[i2.y, j2.y, k2.y, 0],
-			[i2.z, j2.z, k2.z, 0],
-			[   0,    0,    0, 1],
+			i2.x, j2.x, k2.x, 0,
+			i2.y, j2.y, k2.y, 0,
+			i2.z, j2.z, k2.z, 0,
+			   0,    0,    0, 1,
 		])
 		
 		return basis1.mul(basis2.transpose())
@@ -99,10 +96,10 @@ class Mat4
 	{
 		return new Mat4(
 		[
-			[               2 / (right - left),                                0,                            0, 0 ],
-			[                                0,               2 / (top - bottom),                            0, 0 ],
-			[                                0,                                0,            -2 / (far - near), 0 ],
-			[ -(right + left) / (right - left), -(top + bottom) / (top - bottom), -(far + near) / (far - near), 1 ]
+			               2 / (right - left),                                0,                            0, 0,
+			                                0,               2 / (top - bottom),                            0, 0,
+			                                0,                                0,            -2 / (far - near), 0,
+			 -(right + left) / (right - left), -(top + bottom) / (top - bottom), -(far + near) / (far - near), 1
 		])
 	}
 
@@ -111,10 +108,10 @@ class Mat4
 	{
 		return new Mat4(
 		[
-			[       2 * near / (right - left),                               0,                                0,  0 ],
-			[                               0,       2 * near / (top - bottom),                                0,  0 ],
-			[ (right + left) / (right - left), (top + bottom) / (top - bottom),     -(far + near) / (far - near), -1 ],
-			[                               0,                               0, -(2 * far * near) / (far - near),  0 ]
+			      2 * near / (right - left),                               0,                                0,  0,
+			                              0,       2 * near / (top - bottom),                                0,  0,
+			(right + left) / (right - left), (top + bottom) / (top - bottom),     -(far + near) / (far - near), -1,
+			                              0,                               0, -(2 * far * near) / (far - near),  0
 		])
 	}
 
@@ -136,10 +133,10 @@ class Mat4
 
 		return new Mat4(
 		[
-			[         xaxis.x,         yaxis.x,         zaxis.x, 0 ],
-			[         xaxis.y,         yaxis.y,         zaxis.y, 0 ],
-			[         xaxis.z,         yaxis.z,         zaxis.z, 0 ],
-			[ -xaxis.dot(eye), -yaxis.dot(eye), -zaxis.dot(eye), 1 ]
+			        xaxis.x,         yaxis.x,         zaxis.x, 0,
+			        xaxis.y,         yaxis.y,         zaxis.y, 0,
+			        xaxis.z,         yaxis.z,         zaxis.z, 0,
+			-xaxis.dot(eye), -yaxis.dot(eye), -zaxis.dot(eye), 1
 		])
 	}
 
@@ -148,49 +145,55 @@ class Mat4
 	{
 		return new Mat4(
 		[
-			[ this.m[0][0], this.m[1][0], this.m[2][0], this.m[3][0] ],
-			[ this.m[0][1], this.m[1][1], this.m[2][1], this.m[3][1] ],
-			[ this.m[0][2], this.m[1][2], this.m[2][2], this.m[3][2] ],
-			[ this.m[0][3], this.m[1][3], this.m[2][3], this.m[3][3] ]
+			this.m[0 * 4 + 0], this.m[1 * 4 + 0], this.m[2 * 4 + 0], this.m[3 * 4 + 0],
+			this.m[0 * 4 + 1], this.m[1 * 4 + 1], this.m[2 * 4 + 1], this.m[3 * 4 + 1],
+			this.m[0 * 4 + 2], this.m[1 * 4 + 2], this.m[2 * 4 + 2], this.m[3 * 4 + 2],
+			this.m[0 * 4 + 3], this.m[1 * 4 + 3], this.m[2 * 4 + 3], this.m[3 * 4 + 3]
 		])
 	}
 
 
 	mul(other)
 	{
-		const a00 = +this.m[0][0]
-		const a01 = +this.m[0][1]
-		const a02 = +this.m[0][2]
-		const a03 = +this.m[0][3]
-		const a10 = +this.m[1][0]
-		const a11 = +this.m[1][1]
-		const a12 = +this.m[1][2]
-		const a13 = +this.m[1][3]
-		const a20 = +this.m[2][0]
-		const a21 = +this.m[2][1]
-		const a22 = +this.m[2][2]
-		const a23 = +this.m[2][3]
-		const a30 = +this.m[3][0]
-		const a31 = +this.m[3][1]
-		const a32 = +this.m[3][2]
-		const a33 = +this.m[3][3]
+		if (this === identity)
+			return other
+
+		if (other === identity)
+			return this
+
+		const a00 = +this.m[0 * 4 + 0]
+		const a01 = +this.m[0 * 4 + 1]
+		const a02 = +this.m[0 * 4 + 2]
+		const a03 = +this.m[0 * 4 + 3]
+		const a10 = +this.m[1 * 4 + 0]
+		const a11 = +this.m[1 * 4 + 1]
+		const a12 = +this.m[1 * 4 + 2]
+		const a13 = +this.m[1 * 4 + 3]
+		const a20 = +this.m[2 * 4 + 0]
+		const a21 = +this.m[2 * 4 + 1]
+		const a22 = +this.m[2 * 4 + 2]
+		const a23 = +this.m[2 * 4 + 3]
+		const a30 = +this.m[3 * 4 + 0]
+		const a31 = +this.m[3 * 4 + 1]
+		const a32 = +this.m[3 * 4 + 2]
+		const a33 = +this.m[3 * 4 + 3]
 		
-		const b00 = +other.m[0][0]
-		const b01 = +other.m[0][1]
-		const b02 = +other.m[0][2]
-		const b03 = +other.m[0][3]
-		const b10 = +other.m[1][0]
-		const b11 = +other.m[1][1]
-		const b12 = +other.m[1][2]
-		const b13 = +other.m[1][3]
-		const b20 = +other.m[2][0]
-		const b21 = +other.m[2][1]
-		const b22 = +other.m[2][2]
-		const b23 = +other.m[2][3]
-		const b30 = +other.m[3][0]
-		const b31 = +other.m[3][1]
-		const b32 = +other.m[3][2]
-		const b33 = +other.m[3][3]
+		const b00 = +other.m[0 * 4 + 0]
+		const b01 = +other.m[0 * 4 + 1]
+		const b02 = +other.m[0 * 4 + 2]
+		const b03 = +other.m[0 * 4 + 3]
+		const b10 = +other.m[1 * 4 + 0]
+		const b11 = +other.m[1 * 4 + 1]
+		const b12 = +other.m[1 * 4 + 2]
+		const b13 = +other.m[1 * 4 + 3]
+		const b20 = +other.m[2 * 4 + 0]
+		const b21 = +other.m[2 * 4 + 1]
+		const b22 = +other.m[2 * 4 + 2]
+		const b23 = +other.m[2 * 4 + 3]
+		const b30 = +other.m[3 * 4 + 0]
+		const b31 = +other.m[3 * 4 + 1]
+		const b32 = +other.m[3 * 4 + 2]
+		const b33 = +other.m[3 * 4 + 3]
 		
 		const m00 = (a00 * b00) + (a01 * b10) + (a02 * b20) + (a03 * b30) 
 		const m01 = (a00 * b01) + (a01 * b11) + (a02 * b21) + (a03 * b31) 
@@ -211,10 +214,10 @@ class Mat4
 
 		return new Mat4(
 		[
-			[m00, m01, m02, m03],
-			[m10, m11, m12, m13],
-			[m20, m21, m22, m23],
-			[m30, m31, m32, m33]
+			m00, m01, m02, m03,
+			m10, m11, m12, m13,
+			m20, m21, m22, m23,
+			m30, m31, m32, m33
 		])
 		
 		/*let result =
@@ -231,7 +234,7 @@ class Mat4
 			{
 				let acc = 0
 				for (let k = 0; k < 4; k++)
-					acc += this.m[j][k] * other.m[k][i]
+					acc += this.m[j * 4 + k] * other.m[k * 4 + i]
 				
 				result[j][i] = acc
 			}
@@ -249,7 +252,7 @@ class Mat4
 		{
 			let acc = 0
 			for (let k = 0; k < 4; k++)
-				acc += this.m[i][k] * v[k]
+				acc += this.m[i * 4 + k] * v[k]
 			
 			result[i] = acc
 		}
@@ -267,7 +270,7 @@ class Mat4
 		{
 			let acc = 0
 			for (let k = 0; k < 4; k++)
-				acc += this.m[i][k] * v[k]
+				acc += this.m[i * 4 + k] * v[k]
 			
 			result[i] = acc
 		}
@@ -285,7 +288,7 @@ class Mat4
 		{
 			let acc = 0
 			for (let k = 0; k < 4; k++)
-				acc += this.m[i][k] * v[k]
+				acc += this.m[i * 4 + k] * v[k]
 			
 			result[i] = acc
 		}
@@ -296,11 +299,11 @@ class Mat4
 	
 	asFloat32Array()
 	{
-		return new Float32Array([
-			this.m[0][0], this.m[0][1], this.m[0][2], this.m[0][3],
-			this.m[1][0], this.m[1][1], this.m[1][2], this.m[1][3],
-			this.m[2][0], this.m[2][1], this.m[2][2], this.m[2][3],
-			this.m[3][0], this.m[3][1], this.m[3][2], this.m[3][3]])
+		return this.m/*new Float32Array([
+			this.m[0 * 4 + 0], this.m[0 * 4 + 1], this.m[0 * 4 + 2], this.m[0 * 4 + 3],
+			this.m[1 * 4 + 0], this.m[1 * 4 + 1], this.m[1 * 4 + 2], this.m[1 * 4 + 3],
+			this.m[2 * 4 + 0], this.m[2 * 4 + 1], this.m[2 * 4 + 2], this.m[2 * 4 + 3],
+			this.m[3 * 4 + 0], this.m[3 * 4 + 1], this.m[3 * 4 + 2], this.m[3 * 4 + 3]])*/
 	}
 	
 	
@@ -308,61 +311,61 @@ class Mat4
 	{
 		// From https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
 		
-		const a2323 = this.m[2][2] * this.m[3][3] - this.m[2][3] * this.m[3][2]
-		const a1323 = this.m[2][1] * this.m[3][3] - this.m[2][3] * this.m[3][1]
-		const a1223 = this.m[2][1] * this.m[3][2] - this.m[2][2] * this.m[3][1]
-		const a0323 = this.m[2][0] * this.m[3][3] - this.m[2][3] * this.m[3][0]
-		const a0223 = this.m[2][0] * this.m[3][2] - this.m[2][2] * this.m[3][0]
-		const a0123 = this.m[2][0] * this.m[3][1] - this.m[2][1] * this.m[3][0]
-		const a2313 = this.m[1][2] * this.m[3][3] - this.m[1][3] * this.m[3][2]
-		const a1313 = this.m[1][1] * this.m[3][3] - this.m[1][3] * this.m[3][1]
-		const a1213 = this.m[1][1] * this.m[3][2] - this.m[1][2] * this.m[3][1]
-		const a2312 = this.m[1][2] * this.m[2][3] - this.m[1][3] * this.m[2][2]
-		const a1312 = this.m[1][1] * this.m[2][3] - this.m[1][3] * this.m[2][1]
-		const a1212 = this.m[1][1] * this.m[2][2] - this.m[1][2] * this.m[2][1]
-		const a0313 = this.m[1][0] * this.m[3][3] - this.m[1][3] * this.m[3][0]
-		const a0213 = this.m[1][0] * this.m[3][2] - this.m[1][2] * this.m[3][0]
-		const a0312 = this.m[1][0] * this.m[2][3] - this.m[1][3] * this.m[2][0]
-		const a0212 = this.m[1][0] * this.m[2][2] - this.m[1][2] * this.m[2][0]
-		const a0113 = this.m[1][0] * this.m[3][1] - this.m[1][1] * this.m[3][0]
-		const a0112 = this.m[1][0] * this.m[2][1] - this.m[1][1] * this.m[2][0]
+		const a2323 = this.m[2 * 4 + 2] * this.m[3 * 4 + 3] - this.m[2 * 4 + 3] * this.m[3 * 4 + 2]
+		const a1323 = this.m[2 * 4 + 1] * this.m[3 * 4 + 3] - this.m[2 * 4 + 3] * this.m[3 * 4 + 1]
+		const a1223 = this.m[2 * 4 + 1] * this.m[3 * 4 + 2] - this.m[2 * 4 + 2] * this.m[3 * 4 + 1]
+		const a0323 = this.m[2 * 4 + 0] * this.m[3 * 4 + 3] - this.m[2 * 4 + 3] * this.m[3 * 4 + 0]
+		const a0223 = this.m[2 * 4 + 0] * this.m[3 * 4 + 2] - this.m[2 * 4 + 2] * this.m[3 * 4 + 0]
+		const a0123 = this.m[2 * 4 + 0] * this.m[3 * 4 + 1] - this.m[2 * 4 + 1] * this.m[3 * 4 + 0]
+		const a2313 = this.m[1 * 4 + 2] * this.m[3 * 4 + 3] - this.m[1 * 4 + 3] * this.m[3 * 4 + 2]
+		const a1313 = this.m[1 * 4 + 1] * this.m[3 * 4 + 3] - this.m[1 * 4 + 3] * this.m[3 * 4 + 1]
+		const a1213 = this.m[1 * 4 + 1] * this.m[3 * 4 + 2] - this.m[1 * 4 + 2] * this.m[3 * 4 + 1]
+		const a2312 = this.m[1 * 4 + 2] * this.m[2 * 4 + 3] - this.m[1 * 4 + 3] * this.m[2 * 4 + 2]
+		const a1312 = this.m[1 * 4 + 1] * this.m[2 * 4 + 3] - this.m[1 * 4 + 3] * this.m[2 * 4 + 1]
+		const a1212 = this.m[1 * 4 + 1] * this.m[2 * 4 + 2] - this.m[1 * 4 + 2] * this.m[2 * 4 + 1]
+		const a0313 = this.m[1 * 4 + 0] * this.m[3 * 4 + 3] - this.m[1 * 4 + 3] * this.m[3 * 4 + 0]
+		const a0213 = this.m[1 * 4 + 0] * this.m[3 * 4 + 2] - this.m[1 * 4 + 2] * this.m[3 * 4 + 0]
+		const a0312 = this.m[1 * 4 + 0] * this.m[2 * 4 + 3] - this.m[1 * 4 + 3] * this.m[2 * 4 + 0]
+		const a0212 = this.m[1 * 4 + 0] * this.m[2 * 4 + 2] - this.m[1 * 4 + 2] * this.m[2 * 4 + 0]
+		const a0113 = this.m[1 * 4 + 0] * this.m[3 * 4 + 1] - this.m[1 * 4 + 1] * this.m[3 * 4 + 0]
+		const a0112 = this.m[1 * 4 + 0] * this.m[2 * 4 + 1] - this.m[1 * 4 + 1] * this.m[2 * 4 + 0]
 
 		const det = 1 / (
-			this.m[0][0] * (this.m[1][1] * a2323 - this.m[1][2] * a1323 + this.m[1][3] * a1223) -
-			this.m[0][1] * (this.m[1][0] * a2323 - this.m[1][2] * a0323 + this.m[1][3] * a0223) + 
-			this.m[0][2] * (this.m[1][0] * a1323 - this.m[1][1] * a0323 + this.m[1][3] * a0123) -
-			this.m[0][3] * (this.m[1][0] * a1223 - this.m[1][1] * a0223 + this.m[1][2] * a0123))
+			this.m[0 * 4 + 0] * (this.m[1 * 4 + 1] * a2323 - this.m[1 * 4 + 2] * a1323 + this.m[1 * 4 + 3] * a1223) -
+			this.m[0 * 4 + 1] * (this.m[1 * 4 + 0] * a2323 - this.m[1 * 4 + 2] * a0323 + this.m[1 * 4 + 3] * a0223) + 
+			this.m[0 * 4 + 2] * (this.m[1 * 4 + 0] * a1323 - this.m[1 * 4 + 1] * a0323 + this.m[1 * 4 + 3] * a0123) -
+			this.m[0 * 4 + 3] * (this.m[1 * 4 + 0] * a1223 - this.m[1 * 4 + 1] * a0223 + this.m[1 * 4 + 2] * a0123))
 		
 		return new Mat4(
 		[
-			[
-				det *  (this.m[1][1] * a2323 - this.m[1][2] * a1323 + this.m[1][3] * a1223),
-				det * -(this.m[0][1] * a2323 - this.m[0][2] * a1323 + this.m[0][3] * a1223),
-				det *  (this.m[0][1] * a2313 - this.m[0][2] * a1313 + this.m[0][3] * a1213),
-				det * -(this.m[0][1] * a2312 - this.m[0][2] * a1312 + this.m[0][3] * a1212)
-			],
-			[
-				det * -(this.m[1][0] * a2323 - this.m[1][2] * a0323 + this.m[1][3] * a0223),
-				det *  (this.m[0][0] * a2323 - this.m[0][2] * a0323 + this.m[0][3] * a0223),
-				det * -(this.m[0][0] * a2313 - this.m[0][2] * a0313 + this.m[0][3] * a0213),
-				det *  (this.m[0][0] * a2312 - this.m[0][2] * a0312 + this.m[0][3] * a0212)
-			],
-			[
-				det *  (this.m[1][0] * a1323 - this.m[1][1] * a0323 + this.m[1][3] * a0123),
-				det * -(this.m[0][0] * a1323 - this.m[0][1] * a0323 + this.m[0][3] * a0123),
-				det *  (this.m[0][0] * a1313 - this.m[0][1] * a0313 + this.m[0][3] * a0113),
-				det * -(this.m[0][0] * a1312 - this.m[0][1] * a0312 + this.m[0][3] * a0112)
-			],
-			[
-				det * -(this.m[1][0] * a1223 - this.m[1][1] * a0223 + this.m[1][2] * a0123),
-				det *  (this.m[0][0] * a1223 - this.m[0][1] * a0223 + this.m[0][2] * a0123),
-				det * -(this.m[0][0] * a1213 - this.m[0][1] * a0213 + this.m[0][2] * a0113),
-				det *  (this.m[0][0] * a1212 - this.m[0][1] * a0212 + this.m[0][2] * a0112)
-			]
+			det *  (this.m[1 * 4 + 1] * a2323 - this.m[1 * 4 + 2] * a1323 + this.m[1 * 4 + 3] * a1223),
+			det * -(this.m[0 * 4 + 1] * a2323 - this.m[0 * 4 + 2] * a1323 + this.m[0 * 4 + 3] * a1223),
+			det *  (this.m[0 * 4 + 1] * a2313 - this.m[0 * 4 + 2] * a1313 + this.m[0 * 4 + 3] * a1213),
+			det * -(this.m[0 * 4 + 1] * a2312 - this.m[0 * 4 + 2] * a1312 + this.m[0 * 4 + 3] * a1212),
+		
+			det * -(this.m[1 * 4 + 0] * a2323 - this.m[1 * 4 + 2] * a0323 + this.m[1 * 4 + 3] * a0223),
+			det *  (this.m[0 * 4 + 0] * a2323 - this.m[0 * 4 + 2] * a0323 + this.m[0 * 4 + 3] * a0223),
+			det * -(this.m[0 * 4 + 0] * a2313 - this.m[0 * 4 + 2] * a0313 + this.m[0 * 4 + 3] * a0213),
+			det *  (this.m[0 * 4 + 0] * a2312 - this.m[0 * 4 + 2] * a0312 + this.m[0 * 4 + 3] * a0212),
+		
+			det *  (this.m[1 * 4 + 0] * a1323 - this.m[1 * 4 + 1] * a0323 + this.m[1 * 4 + 3] * a0123),
+			det * -(this.m[0 * 4 + 0] * a1323 - this.m[0 * 4 + 1] * a0323 + this.m[0 * 4 + 3] * a0123),
+			det *  (this.m[0 * 4 + 0] * a1313 - this.m[0 * 4 + 1] * a0313 + this.m[0 * 4 + 3] * a0113),
+			det * -(this.m[0 * 4 + 0] * a1312 - this.m[0 * 4 + 1] * a0312 + this.m[0 * 4 + 3] * a0112),
+
+			det * -(this.m[1 * 4 + 0] * a1223 - this.m[1 * 4 + 1] * a0223 + this.m[1 * 4 + 2] * a0123),
+			det *  (this.m[0 * 4 + 0] * a1223 - this.m[0 * 4 + 1] * a0223 + this.m[0 * 4 + 2] * a0123),
+			det * -(this.m[0 * 4 + 0] * a1213 - this.m[0 * 4 + 1] * a0213 + this.m[0 * 4 + 2] * a0113),
+			det *  (this.m[0 * 4 + 0] * a1212 - this.m[0 * 4 + 1] * a0212 + this.m[0 * 4 + 2] * a0112),
 		]).transpose()
 	}
 }
 
 
-if (module)
-	module.exports = { Mat4 }
+const identity = new Mat4(
+[
+	1, 0, 0, 0,
+	0, 1, 0, 0,
+	0, 0, 1, 0,
+	0, 0, 0, 1
+])

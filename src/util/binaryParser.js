@@ -1,7 +1,7 @@
-const { Vec3 } = require("../math/vec3.js")
+import Vec3 from "../math/vec3.js"
 
 
-class BinaryParser
+export default class BinaryParser
 {
 	constructor(bytes)
 	{
@@ -181,7 +181,3 @@ class BinaryParser
 		return str
 	}
 }
-
-
-if (module)
-	module.exports = { BinaryParser }

@@ -1,4 +1,4 @@
-class Vec3
+export default class Vec3
 {
 	constructor(x, y, z)
 	{
@@ -156,7 +156,3 @@ class Vec3
 		return isFinite(this.x) && isFinite(this.y) && isFinite(this.z)
 	}
 }
-
-
-if (module)
-	module.exports = { Vec3 }

@@ -8,12 +8,19 @@ let mainWindow = null
 
 function createWindow()
 {
-	mainWindow = new BrowserWindow({width: 1800, height: 900})
+	mainWindow = new BrowserWindow({
+		width: 1800,
+		height: 900,
+		webPreferences:
+		{
+			nodeIntegration: true,
+		},
+	})
 
 	mainWindow.loadURL(url.format({
 		pathname: path.join(__dirname, 'index.html'),
 		protocol: 'file:',
-		slashes: true
+		slashes: true,
 	}))
 
 	mainWindow.on('closed', () => mainWindow = null)

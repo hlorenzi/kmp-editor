@@ -1,6 +1,6 @@
-const { BinaryParser } = require("./binaryParser.js")
+import BinaryParser from "./binaryParser.js"
 const { BinaryWriter } = require("./binaryWriter.js")
-const { Vec3 } = require("../math/vec3.js")
+import Vec3 from "../math/vec3.js"
 
 
 let unhandledSections =
@@ -32,7 +32,7 @@ let sectionOrder =
 ]
 
 
-class KmpData
+export default class KmpData
 {
 	static load(bytes)
 	{
@@ -102,12 +102,14 @@ class KmpData
 					for (let i = 0; i < entryNum; i++)
 					{
 						let pos = parser.readVec3()
+						pos = new Vec3(pos.x, -pos.z, -pos.y)
+
 						let size = parser.readFloat32()
 						let setting1 = parser.readUInt16()
 						let setting2 = parser.readByte()
 						let setting3 = parser.readByte()
 						
-						enemyPoints.push({ pos, size, setting1, setting2, setting3 })
+						enemyPoints.push({ kind: "ENPT", index: i, pos, size, setting1, setting2, setting3 })
 					}
 					break
 				}
@@ -122,7 +124,7 @@ class KmpData
 						let nextGroups = parser.readBytes(6)
 						parser.readUInt16()
 						
-						enemyPaths.push({ startIndex, pointNum, prevGroups, nextGroups })
+						enemyPaths.push({ kind: "ENPH", index: i, startIndex, pointNum, prevGroups, nextGroups })
 					}
 					break
 				}
@@ -314,6 +316,61 @@ class KmpData
 			trackInfo,
 			respawnPoints
 		}
+	}
+
+
+	static getEnphGraph(kmp)
+	{
+		let graph = new NodeGraph()
+		graph.maxNextNodes = 6
+		graph.maxPrevNodes = 6
+
+		if (!kmp.enemyPaths || !kmp.enemyPoints)
+			return graph
+
+		for (let i = 0; i < kmp.enemyPoints.length; i++)
+		{
+			let kmpPoint = kmp.enemyPoints[i]
+			
+			let node = graph.addNode()
+			Object.assign(node, kmpPoint)
+			node.selectId = "ENPT." + i
+		}
+		
+		for (let i = 0; i < kmp.enemyPaths.length; i++)
+		{
+			let kmpPath = kmp.enemyPaths[i]
+		
+			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
+			{
+				graph.linkNodes(graph.nodes[p], graph.nodes[p + 1])
+				graph.nodes[p].pathIndex = i
+				graph.nodes[p + 1].pathIndex = i
+			}
+			
+			const emptyPrevGroups = kmpPath.prevGroups.find(g => g != 0xff && g < kmp.enemyPaths.length) == null
+			
+			for (let j = 0; j < 6; j++)
+			{
+				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < kmp.enemyPaths.length)
+				{
+					const nextComesBackToThis = kmp.enemyPaths[kmpPath.nextGroups[j]].nextGroups.find(g => g == i) != null
+					const nextIsBattleDispatch = kmpPath.nextGroups[j] > i && kmp.enemyPaths[kmpPath.nextGroups[j]].prevGroups.find(g => g != 0xff && g < kmp.enemyPaths.length) == null
+					
+					if (!emptyPrevGroups || (!nextComesBackToThis || nextIsBattleDispatch))
+					{
+						let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
+						let nextPoint = kmp.enemyPaths[kmpPath.nextGroups[j]].startIndex
+						
+						graph.linkNodes(graph.nodes[lastPoint], graph.nodes[nextPoint])
+						graph.nodes[lastPoint].pathIndex = i
+						graph.nodes[nextPoint].pathIndex = kmpPath.nextGroups[j]
+					}
+				}
+			}
+		}
+
+		return graph
 	}
 	
 	
@@ -1492,7 +1549,3 @@ class NodeGraph
 		return paths
 	}
 }
-
-
-if (module)
-	module.exports = { KmpData }

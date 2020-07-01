@@ -1,395 +1,435 @@
-const { Vec3 } = require("../math/vec3.js")
-const { Mat4 } = require("../math/mat4.js")
+import Mat4 from "../math/mat4.js"
+import Vec3 from "../math/vec3.js"
+import { GLProgram } from "./shader.js"
+import ModelBuilder from "../util/modelBuilder.js"
 
 
-class GfxScene
+export default class GfxScene
 {
-	constructor()
+	constructor(gl)
 	{
-		this.root = new GfxNode()
-	}
-	
-	
-	clear(gl, r = 0, g = 0, b = 0, a = 1, depth = 1)
-	{
-		gl.clearColor(r, g, b, a)
-		gl.clearDepth(depth)
+		this.gl = gl
+
+		this.matProjection = null
+		this.matView = null
+		this.matTransformStack = [Mat4.identity()]
+
+		this.modelPoint = new ModelBuilder()
+			.addSphere(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 4)
+			.calculateNormals()
+			.makeModel(gl)
 		
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	}
-	
-	
-	clearDepth(gl, depth = 1)
-	{
-		gl.clearDepth(depth)
+		this.modelPointSelected = new ModelBuilder()
+			.addSphere(-0.75, -0.75, 0.75, 0.75, 0.75, -0.75, 4)
+			.calculateNormals()
+			.makeModel(gl)
+			
+		this.modelPath = new ModelBuilder()
+			.addCylinder(-0.5, -0.5, 0, 0.5, 0.5, 1, 16)
+			.calculateNormals()
+			.makeModel(gl)
 		
-		gl.clear(gl.DEPTH_BUFFER_BIT)
-	}
-	
-	
-	render(gl, camera)
-	{
-		this.renderNode(gl, camera, null, this.root)
-	}
-	
-	
-	renderNode(gl, camera, transform, node)
-	{
-		if (!node.enabled)
-			return
-		
-		if ((node instanceof GfxNodeTransform) || (node instanceof GfxNodeRendererTransform))
-		{
-			let nodeMatrix = node.computeMatrix()
-			transform = (transform == null ? nodeMatrix : transform.mul(nodeMatrix))
-		}
-		
-		if ((node instanceof GfxNodeRenderer) || (node instanceof GfxNodeRendererTransform))
-		{
-			if (node.material != null && node.model != null)
-			{			
-				node.material.program.use(gl)
-				node.material.program.bindPosition(gl, "aPosition", node.model.positions)
-				node.material.program.bindNormals(gl, "aNormal", node.model.normals)
+		this.modelArrow = new ModelBuilder()
+			.addCone(-0.5, -0.5, -1, 0.5, 0.5, 0, 16)
+			.calculateNormals()
+			.makeModel(gl)
+			
+		this.modelSizeCircle = new ModelBuilder()
+			.addSphere(-1, -1, -1, 1, 1, 1, 8)
+			.calculateNormals()
+			.makeModel(gl)
+
+		this.material = GLProgram.makeFromSrc(gl, vertexSrc, fragmentSrc)
+			.registerLocations(gl, ["aPosition", "aNormal"], ["uMatProj", "uMatView", "uMatModel", "uAmbientColor", "uDiffuseColor"])
 				
-				if (node.material.program.hasColor)
-					node.material.program.bindColors(gl, "aColor", node.model.colors)
+		this.materialColor = GLProgram.makeFromSrc(gl, vertexSrcColor, fragmentSrcColor)
+			.registerLocations(gl, ["aPosition", "aNormal", "aColor"], ["uMatProj", "uMatView", "uMatModel", "uAmbientColor", "uDiffuseColor", "uFogDensity"])
 				
-				if (node.material.lastProjectionMatrix !== camera.projection)
-				{
-					node.material.lastProjectionMatrix = camera.projection
-					node.material.program.setMat4(gl, "uMatProj", camera.projection)
-				}
-				
-				if (node.material.lastViewMatrix !== camera.view)
-				{
-					node.material.lastViewMatrix = camera.view
-					node.material.program.setMat4(gl, "uMatView", camera.view)
-				}
-				
-				node.material.program.setMat4(gl, "uMatModel", transform != null ? transform : Mat4.identity())
-				node.material.program.setVec4(gl, "uDiffuseColor", node.diffuseColor)
-				node.material.program.drawTriangles(gl, node.model.positions.count / 3)
-			}
-		}
+		this.materialUnshaded = GLProgram.makeFromSrc(gl, vertexSrc, fragmentSrcUnshaded)
+			.registerLocations(gl, ["aPosition", "aNormal"], ["uMatProj", "uMatView", "uMatModel", "uDiffuseColor"])
 		
-		for (let child of node.children)
-			this.renderNode(gl, camera, transform, child)	
+		this.gl.enable(this.gl.DEPTH_TEST)
+		this.gl.enable(this.gl.CULL_FACE)
+		this.gl.depthFunc(this.gl.LEQUAL)
+		this.gl.enable(this.gl.BLEND)
+		this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA)
+
+		this.matrixCache = []
+		this.matrixCachePointer = 0
+		this.matrixCacheUtilization = 0
+		this.matrixCacheUtilizationTotal = 0
 	}
-}
 
 
-class GfxCamera
-{
-	constructor()
+	begin()
 	{
-		this.projection = Mat4.identity()
-		this.view = Mat4.identity()
+		if (this.matrixCacheUtilization < this.matrixCacheUtilizationTotal)
+			console.log("last frame cache utilization: " + this.matrixCacheUtilization + " / " + this.matrixCacheUtilizationTotal)
+
+		this.matTransformStack.splice(1, this.matTransformStack.length)
+		this.matrixCachePointer = 0
+		this.matrixCacheUtilization = 0
+		this.matrixCacheUtilizationTotal = 0
+	}
+
+
+	viewport(x, y, w, h)
+	{
+		this.gl.viewport(x, y, w, h)
 	}
 	
 	
+	clear(r = 0, g = 0, b = 0, a = 1, depth = 1)
+	{
+		this.gl.clearColor(r, g, b, a)
+		this.gl.clearDepth(depth)
+		
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT)
+	}
+	
+	
+	clearDepth(depth = 1)
+	{
+		this.gl.clearDepth(depth)
+		
+		this.gl.clear(this.gl.DEPTH_BUFFER_BIT)
+	}
+
+
 	setProjection(matrix)
 	{
-		this.projection = matrix
-		return this
+		this.matProjection = matrix
+
+		let materials =
+		[
+			this.material,
+			this.materialColor,
+			this.materialUnshaded,
+		]
+		
+		for (const mat of materials)
+		{
+			mat.use(this.gl)
+			mat.setMat4(this.gl, "uMatProj", this.matProjection)
+		}
 	}
-	
-	
+
+
 	setView(matrix)
 	{
-		this.view = matrix
-		return this
-	}
-	
-	
-	computeMatrix()
-	{
-		return this.projection.mul(this.view)
-	}	
-}
+		this.matView = matrix
 
+		let materials =
+		[
+			this.material,
+			this.materialColor,
+			this.materialUnshaded,
+		]
 
-class GfxMaterial
-{
-	constructor()
-	{
-		this.program = null
-	}
-	
-	
-	setProgram(program)
-	{
-		this.program = program
-		return this
-	}
-}
-
-
-class GfxModel
-{
-	constructor()
-	{
-		this.positions = null
-		this.normals = null
-		this.colors = null
-	}
-	
-	
-	setPositions(positions)
-	{
-		this.positions = positions
-		return this
-	}
-	
-	
-	setNormals(normals)
-	{
-		this.normals = normals
-		return this
-	}
-	
-	
-	setColors(colors)
-	{
-		this.colors = colors
-		return this
-	}
-}
-
-
-class GfxNode
-{
-	constructor()
-	{
-		this.parent = null
-		this.children = []
-		this.enabled = true
-	}
-	
-	
-	attach(parent)
-	{
-		this.detach()
-		parent.children.push(this)
-		this.parent = parent
-		
-		return this
-	}
-	
-	
-	detach()
-	{
-		if (this.parent != null)
+		for (const mat of materials)
 		{
-			this.parent.children.splice(this.parent.children.indexOf(this), 1)
-			this.parent = null
+			mat.use(this.gl)
+			mat.setMat4(this.gl, "uMatView", this.matView)
+			mat.setVec4(this.gl, "uAmbientColor", [0.5, 0.5, 0.5, 1])
 		}
-		
-		return this
 	}
-	
-	
-	setEnabled(enabled)
+
+
+	saveCache(newCache)
 	{
-		this.enabled = enabled
-		return this
+		if (this.matrixCachePointer < this.matrixCache.length)
+		{
+			this.matrixCache[this.matrixCachePointer] = newCache
+			this.matrixCachePointer++
+		}
+		else
+		{
+			this.matrixCache.push(newCache)
+			this.matrixCachePointer = this.matrixCache.length
+		}
+	}
+
+
+	pushMatrix(matrix)
+	{
+		this.matTransformStack.push(this.matTransformStack[this.matTransformStack.length - 1].mul(matrix))
+	}
+
+
+	popMatrix()
+	{
+		this.matTransformStack.pop()
+	}
+
+
+	pushTranslationScale(x, y, z, sx, sy, sz)
+	{
+		this.matrixCacheUtilizationTotal++
+
+		if (this.matrixCachePointer < this.matrixCache.length)
+		{
+			let cache = this.matrixCache[this.matrixCachePointer]
+			if (cache.x === x && cache.y === y && cache.z === z &&
+				cache.sx === sx && cache.sy === sy && cache.sz === sz)
+			{
+				this.matTransformStack.push(cache.matrix)
+				this.matrixCachePointer++
+				this.matrixCacheUtilization++
+				return
+			}
+		}
+
+		const matrix = this.matTransformStack[this.matTransformStack.length - 1]
+			.mul(Mat4.scale(sx, sy, sz).mul(Mat4.translation(x, y, z)))
+
+		this.saveCache({ x, y, z, sx, sy, sz, matrix })
+
+		this.matTransformStack.push(matrix)
+	}
+
+
+	popTranslationScale()
+	{
+		this.popMatrix()
+	}
+
+
+	drawModel(model, material, diffuseColor)
+	{
+		material.use(this.gl)
+		material.bindPosition(this.gl, "aPosition", model.positions)
+		material.bindNormals(this.gl, "aNormal", model.normals)
+		
+		if (material.hasColor)
+			material.bindColors(this.gl, "aColor", model.colors)
+		
+		material.setMat4(this.gl, "uMatModel", this.matTransformStack[this.matTransformStack.length - 1])
+		material.setVec4(this.gl, "uDiffuseColor", diffuseColor)
+		material.drawTriangles(this.gl, model.positions.count / 3)
+	}
+
+
+	drawPoint(pos, scale, color)
+	{
+		this.pushTranslationScale(pos.x, pos.y, pos.z, scale, scale, scale)
+		this.drawModel(this.modelPoint, this.material, color)
+		this.popTranslationScale()
+	}
+
+
+	drawPointSelected(pos, scale, colorCore, colorOutline)
+	{
+		this.pushTranslationScale(pos.x, pos.y, pos.z, scale, scale, scale)
+		this.drawModel(this.modelPointSelected, this.materialUnshaded, colorOutline)
+		this.drawModel(this.modelPoint, this.material, colorCore)
+		this.popTranslationScale()
+	}
+
+
+	drawArrow(pos1, pos2, scale, color)
+	{
+		this.matrixCacheUtilizationTotal++
+
+		let hadCache = false
+		let matrixLine = null
+		let matrixArrow = null
+
+		if (this.matrixCachePointer < this.matrixCache.length)
+		{
+			let cache = this.matrixCache[this.matrixCachePointer]
+			if (cache.x1 === pos1.x && cache.y1 === pos1.y && cache.z1 === pos1.z &&
+				cache.x2 === pos2.x && cache.y2 === pos2.y && cache.z2 === pos2.z &&
+				cache.scale === scale)
+			{
+				matrixLine = cache.matrixLine
+				matrixArrow = cache.matrixArrow
+				this.matrixCachePointer++
+				this.matrixCacheUtilization++
+				hadCache = true
+			}
+		}
+
+		if (matrixLine === null || matrixArrow === null)
+		{
+			let matrixScale = Mat4.scale(scale, scale, pos2.sub(pos1).magn() - scale * 2)
+			let matrixAlign = Mat4.rotationFromTo(new Vec3(0, 0, 1), pos2.sub(pos1).normalize())
+			let matrixTranslate = Mat4.translation(pos1.x, pos1.y, pos1.z)
+			
+			let matrixScaleArrow = Mat4.scale(scale * 2, scale * 2, scale * 2)
+			let matrixTranslateArrow = Mat4.translation(pos2.x, pos2.y, pos2.z)
+
+			matrixLine = this.matTransformStack[this.matTransformStack.length - 1]
+				.mul(matrixScale.mul(matrixAlign.mul(matrixTranslate)))
+			matrixArrow = this.matTransformStack[this.matTransformStack.length - 1]
+				.mul(matrixScaleArrow.mul(matrixAlign.mul(matrixTranslateArrow)))
+		}
+
+		this.matTransformStack.push(matrixLine)
+		this.drawModel(this.modelPath, this.material, color)
+		this.matTransformStack.pop()
+		
+		this.matTransformStack.push(matrixArrow)
+		this.drawModel(this.modelArrow, this.material, color)
+		this.matTransformStack.pop()
+		
+		if (!hadCache)
+		{
+			const newCache = {
+				x1: pos1.x, y1: pos1.y, z1: pos1.z,
+				x2: pos2.x, y2: pos2.y, z2: pos2.z,
+				scale,
+				matrixLine, matrixArrow,
+			}
+
+			this.saveCache(newCache)
+		}
+	}
+
+
+	doStencilStampPass(fn)
+	{
+		this.gl.enable(this.gl.STENCIL_TEST)
+		this.gl.stencilFunc(this.gl.ALWAYS, 0, 0xff)
+		this.gl.stencilMask(0xff)
+		this.gl.clearStencil(0)
+		this.gl.clear(this.gl.STENCIL_BUFFER_BIT)
+
+		this.gl.colorMask(false, false, false, false)
+		this.gl.depthMask(false)
+		this.gl.cullFace(this.gl.FRONT)
+		this.gl.stencilOp(this.gl.KEEP, this.gl.INCR, this.gl.KEEP)
+		fn()
+		
+		this.gl.cullFace(this.gl.BACK)
+		this.gl.stencilOp(this.gl.KEEP, this.gl.DECR, this.gl.KEEP)
+		fn()
+		
+		this.gl.cullFace(this.gl.BACK)
+		this.gl.colorMask(true, true, true, true)
+		this.gl.stencilMask(0x00)
+		this.gl.stencilFunc(this.gl.NOTEQUAL, 0, 0xff)
+		fn()
+		
+		this.gl.depthMask(true)
+		this.gl.disable(this.gl.STENCIL_TEST)
 	}
 }
 
 
-class GfxNodeTransform extends GfxNode
-{
-	constructor()
+const vertexSrc = `
+	precision highp float;
+	
+	attribute vec4 aPosition;
+	attribute vec4 aNormal;
+
+	uniform mat4 uMatModel;
+	uniform mat4 uMatView;
+	uniform mat4 uMatProj;
+	
+	varying vec4 vNormal;
+	varying vec4 vScreenNormal;
+
+	void main()
 	{
-		super()
-		this.translation = null
-		this.scaling = null
-		this.rotationAxis = null
-		this.rotationAngle = null
-		this.customMatrix = null
-	}
-	
-	
-	setTranslation(vec)
-	{
-		this.translation = vec
-		return this
-	}
-	
-	
-	setRotation(axis, angle)
-	{
-		this.rotationAxis = axis
-		this.rotationAngle = angle
-		return this
-	}
-	
-	
-	setScaling(vec)
-	{
-		this.scaling = vec
-		return this
-	}
-	
-	
-	setCustom(matrix)
-	{
-		this.customMatrix = matrix
-		return this
-	}
-	
-	
-	computeMatrix()
-	{
-		let matrix = Mat4.identity()
+		vNormal = uMatModel * vec4(aNormal.xyz, 0);
+		vScreenNormal = uMatView * uMatModel * vec4(aNormal.xyz, 0);
 		
-		if (this.customMatrix != null)
-			matrix = this.customMatrix
-			
-		if (this.translation != null)
-			matrix = matrix.mul(Mat4.translation(this.translation.x, this.translation.y, this.translation.z))
-		
-		if (this.scaling != null)
-			matrix = matrix.mul(Mat4.scale(this.scaling.x, this.scaling.y, this.scaling.z))
-		
-		if (this.rotationAxis != null)
-			matrix = matrix.mul(Mat4.rotation(this.rotationAxis, this.rotationAngle))
-			
-		return matrix
-	}
-}
+		gl_Position = uMatProj * uMatView * uMatModel * aPosition;
+	}`
 
 
-class GfxNodeRenderer extends GfxNode
-{
-	constructor()
+const fragmentSrc = `
+	precision highp float;
+	
+	varying vec4 vNormal;
+	varying vec4 vScreenNormal;
+	
+	uniform vec4 uDiffuseColor;
+	uniform vec4 uAmbientColor;
+
+	void main()
 	{
-		super()
-		this.model = null
-		this.material = null
-		this.diffuseColor = [1, 1, 1, 1]
-	}
-	
-	
-	setModel(model)
-	{
-		this.model = model
-		return this
-	}
-	
-	
-	setMaterial(material)
-	{
-		this.material = material
-		return this
-	}
-	
-	
-	setDiffuseColor(color)
-	{
-		this.diffuseColor = color
-		return this
-	}
-}
+		vec4 lightDir = vec4(0, 0, -1, 0);
+		
+		vec4 ambientColor = uAmbientColor;
+		vec4 diffuseColor = uDiffuseColor;
+		vec4 lightColor = vec4(1, 1, 1, 1);
+		
+		float lightIncidence = max(0.0, dot(normalize(lightDir), normalize(vScreenNormal)));
+		
+		gl_FragColor = diffuseColor * mix(ambientColor, lightColor, lightIncidence);
+	}`
 
 
-class GfxNodeRendererTransform extends GfxNode
-{
-	constructor()
+const vertexSrcColor = `
+	precision highp float;
+	
+	attribute vec4 aPosition;
+	attribute vec4 aNormal;
+	attribute vec4 aColor;
+
+	uniform mat4 uMatModel;
+	uniform mat4 uMatView;
+	uniform mat4 uMatProj;
+	
+	varying float vDepth;
+	varying vec4 vNormal;
+	varying vec4 vScreenNormal;
+	varying vec4 vColor;
+
+	void main()
 	{
-		super()
-		this.model = null
-		this.material = null
-		this.diffuseColor = [1, 1, 1, 1]
+		vNormal = uMatModel * vec4(aNormal.xyz, 0);
+		vScreenNormal = uMatView * uMatModel * vec4(aNormal.xyz, 0);
 		
-		this.translation = null
-		this.scaling = null
-		this.rotationAxis = null
-		this.rotationAngle = null
-		this.customMatrix = null
-	}
-	
-	
-	setModel(model)
-	{
-		this.model = model
-		return this
-	}
-	
-	
-	setMaterial(material)
-	{
-		this.material = material
-		return this
-	}
-	
-	
-	setDiffuseColor(color)
-	{
-		this.diffuseColor = color
-		return this
-	}
-	
-	
-	setTranslation(vec)
-	{
-		this.translation = vec
-		return this
-	}
-	
-	
-	setRotation(axis, angle)
-	{
-		this.rotationAxis = axis
-		this.rotationAngle = angle
-		return this
-	}
-	
-	
-	setScaling(vec)
-	{
-		this.scaling = vec
-		return this
-	}
-	
-	
-	setCustomMatrix(matrix)
-	{
-		this.customMatrix = matrix
-		return this
-	}
-	
-	
-	computeMatrix()
-	{
-		let matrix = Mat4.identity()
+		vColor = aColor;
 		
-		if (this.customMatrix != null)
-			matrix = matrix.mul(this.customMatrix)
-			
-		if (this.scaling != null)
-			matrix = matrix.mul(Mat4.scale(this.scaling.x, this.scaling.y, this.scaling.z))
-		
-		if (this.translation != null)
-			matrix = matrix.mul(Mat4.translation(this.translation.x, this.translation.y, this.translation.z))
-		
-		if (this.rotationAxis != null)
-			matrix = matrix.mul(Mat4.rotation(this.rotationAxis, this.rotationAngle))
-			
-		return matrix
-	}
-}
+		vec4 position = uMatProj * uMatView * uMatModel * aPosition;
+		gl_Position = position;
+		vDepth = position.z / position.w;
+	}`
 
 
-if (module)
-	module.exports =
+const fragmentSrcColor = `
+	precision highp float;
+	
+	varying float vDepth;
+	varying vec4 vNormal;
+	varying vec4 vScreenNormal;
+	varying vec4 vColor;
+	
+	uniform vec4 uDiffuseColor;
+	uniform vec4 uAmbientColor;
+	uniform float uFogDensity;
+
+	void main()
 	{
-		GfxScene,
-		GfxCamera,
-		GfxMaterial,
-		GfxModel,
-		GfxNode,
-		GfxNodeTransform,
-		GfxNodeRenderer,
-		GfxNodeRendererTransform
-	}
+		vec4 lightDir = vec4(0, 0, -1, 0);
+		
+		vec4 ambientColor = uAmbientColor;
+		vec4 diffuseColor = uDiffuseColor * vColor;
+		vec4 lightColor = vec4(1, 1, 1, 1);
+		
+		const float log2 = 1.442695;
+		//const float fogDensity = 0.00001;
+		float z = gl_FragCoord.z / gl_FragCoord.w;
+		float fogFactor = clamp(exp2(-uFogDensity * uFogDensity * z * z * log2) + 0.01, 0.2, 1.0);
+		
+		float lightIncidence = max(0.0, dot(normalize(lightDir), normalize(vScreenNormal)));
+		
+		gl_FragColor = diffuseColor * mix(ambientColor, lightColor, lightIncidence) * vec4(vec3(fogFactor), 1.0);
+	}`
+
+
+const fragmentSrcUnshaded = `
+	precision highp float;
+	
+	varying vec4 vNormal;
+	varying vec4 vScreenNormal;
+	
+	uniform vec4 uDiffuseColor;
+
+	void main()
+	{
+		gl_FragColor = uDiffuseColor;
+	}`

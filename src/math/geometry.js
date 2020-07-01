@@ -1,4 +1,4 @@
-class Geometry
+export default class Geometry
 {
 	static linePointMinimumVec(origin, direction, point)
 	{
@@ -32,7 +32,3 @@ class Geometry
 		return origin.add(direction.scale((planeZ - origin.z) / direction.z))
 	}
 }
-
-
-if (module)
-	module.exports = { Geometry }
