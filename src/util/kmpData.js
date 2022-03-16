@@ -1217,6 +1217,22 @@ class KmpData
 	clone()
 	{
 		let cloned = new KmpData()
+		
+		cloned.trackInfo = {}
+		cloned.trackInfo.lapCount = this.trackInfo.lapCount
+		cloned.trackInfo.polePosition = this.trackInfo.polePosition
+		cloned.trackInfo.driverDistance = this.trackInfo.driverDistance
+		cloned.trackInfo.unknown1 = this.trackInfo.unknown1
+		cloned.trackInfo.flareColor = [
+			this.trackInfo.flareColor[0],
+			this.trackInfo.flareColor[1],
+			this.trackInfo.flareColor[2],
+			this.trackInfo.flareColor[3]
+		]
+		cloned.trackInfo.unknown2 = this.trackInfo.unknown2
+		cloned.trackInfo.unknown3 = this.trackInfo.unknown3
+		cloned.trackInfo.speedMod = this.trackInfo.speedMod
+
 		cloned.unhandledSectionData = this.unhandledSectionData
 		cloned.startPoints = this.startPoints.clone()
 		cloned.finishPoints = this.finishPoints.clone()
