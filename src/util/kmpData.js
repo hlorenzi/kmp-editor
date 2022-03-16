@@ -1217,6 +1217,7 @@ class KmpData
 	clone()
 	{
 		let cloned = new KmpData()
+		cloned.trackInfo = this.trackInfo
 		cloned.unhandledSectionData = this.unhandledSectionData
 		cloned.startPoints = this.startPoints.clone()
 		cloned.finishPoints = this.finishPoints.clone()
