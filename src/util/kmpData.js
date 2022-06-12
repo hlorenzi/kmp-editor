@@ -427,6 +427,7 @@ class KmpData
 			node.pos = [new Vec3(kmpPoint.x1, -kmpPoint.z1, 0), new Vec3(kmpPoint.x2, -kmpPoint.z2, 0)]
 			node.type = kmpPoint.type
 			node.respawnNode = null
+			node.firstInPath = false
 		}
 		
 		for (let i = 0; i < kmpData.checkpointPaths.length; i++)
@@ -446,6 +447,8 @@ class KmpData
 					kmp.checkpointPoints.linkNodes(kmp.checkpointPoints.nodes[lastPoint], kmp.checkpointPoints.nodes[nextPoint])
 				}
 			}
+			
+			kmp.checkpointPoints.nodes[kmpPath.startIndex].firstInPath = true
 		}
 		
 		for (let i = 0; i < kmpData.objects.length; i++)
@@ -753,7 +756,7 @@ class KmpData
 			w.writeUInt16(0)
 		}
 						
-		// Prepare item points
+		// Prepare checkpoints
 		let checkpointPaths = this.checkpointPoints.convertToStorageFormat()
 		let checkpointPoints = []
 		checkpointPaths.forEach(path => path.nodes.forEach(node => checkpointPoints.push(node)))
@@ -1100,6 +1103,7 @@ class KmpData
 			node.respawnNode = null
 			node.respawnIndex = 0
 			node.type = 0xff
+			node.firstInPath = false
 		}
 		this.checkpointPoints.onCloneNode = (newNode, oldNode) =>
 		{
@@ -1107,6 +1111,7 @@ class KmpData
 			newNode.respawnNode = oldNode.respawnNode
 			newNode.respawnIndex = oldNode.respawnIndex
 			newNode.type = oldNode.type
+			newNode.firstInPath = oldNode.firstInPath
 		}
 		this.checkpointPoints.findFirstNode = (nodes) =>
 		{
@@ -1455,6 +1460,9 @@ class NodeGraph
 			{
 				nodeAtPath = nodeAtPath.next[0].node
 				if (nodesToPath.get(nodeAtPath, path))
+					break
+				
+				if ('firstInPath' in nodeAtPath && nodeAtPath.firstInPath)
 					break
 				
 				nodeAtPath.pathIndex = pathIndex
