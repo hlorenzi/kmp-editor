@@ -730,11 +730,11 @@ class ViewerCheckpoints
 					
 					point.rendererOutgoingPaths[n][which]
 						.setCustomMatrix(matrixScale.mul(matrixAlign.mul(matrixTranslate)))
-						.setDiffuseColor([0, 0.5, 1, 1])
+						.setDiffuseColor(point.next[n].node.firstInPath ? [0, 0.8, 0.7, 1] : [0, 0.5, 1, 1])
 						
 					point.rendererOutgoingPathArrows[n][which]
 						.setCustomMatrix(matrixScaleArrow.mul(matrixAlign.mul(matrixTranslateArrow)))
-						.setDiffuseColor([0, 0.75, 1, 1])
+						.setDiffuseColor(point.next[n].node.firstInPath ? [0, 0.9, 0.8, 1] : [0, 0.75, 1, 1])
 						
 					setupPanelMatrices(point.rendererOutgoingPathPanels[n][which], point.pos[which], nextPos)
 					point.rendererOutgoingPathPanels[n][which].setDiffuseColor([0, 0.25, 1, 0.3])
