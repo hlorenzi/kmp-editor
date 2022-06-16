@@ -429,19 +429,13 @@ class KmpData
 			node.respawnNode = null
 			node.firstInPath = false
 		}
-		
-		// calculateGroupLayers(kmpData.checkpointPaths)
 
 		for (let i = 0; i < kmpData.checkpointPaths.length; i++)
 		{
 			let kmpPath = kmpData.checkpointPaths[i]
 		
 			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
-			{
 				kmp.checkpointPoints.linkNodes(kmp.checkpointPoints.nodes[p], kmp.checkpointPoints.nodes[p + 1])
-				kmp.checkpointPoints.nodes[p].pathLen = kmpPath.pointNum
-				kmp.checkpointPoints.nodes[p].pathLayer = kmpPath.layer
-			}
 
 			for (let j = 0; j < 6; j++)
 			{
@@ -451,8 +445,6 @@ class KmpData
 					let nextPoint = kmpData.checkpointPaths[kmpPath.nextGroups[j]].startIndex
 					
 					kmp.checkpointPoints.linkNodes(kmp.checkpointPoints.nodes[lastPoint], kmp.checkpointPoints.nodes[nextPoint])
-					kmp.checkpointPoints.nodes[lastPoint].pathLen = kmpPath.pointNum
-					kmp.checkpointPoints.nodes[lastPoint].pathLayer = kmpPath.layer
 				}
 			}
 			
@@ -1510,7 +1502,7 @@ class NodeGraph
 		{
 			for (let path of checkpointPaths)
 				for (let node of path.nodes)
-					node.pathLayer = -1
+					node.pathLayer = null
 
 			const calculateGroupLayers = (group, layer) =>
 			{
@@ -1518,14 +1510,14 @@ class NodeGraph
 				if (layer > this.maxLayer)
 					this.maxLayer = layer
 				if (checkpointPaths.length > 1)
+				{
 					for (let next of group.next)
-					{
-						if (!('layer' in next) || next.layer == -1)
-						{
-
+						if (!('layer' in next) || next.layer == null)
 							calculateGroupLayers(next, layer + 1)
-						}
-					}
+					for (let prev of group.prev)
+						if (!('layer' in prev) || prev.layer == null)
+							calculateGroupLayers(prev, layer - 1)
+				}
 			}
 		
 			this.maxLayer = 1
@@ -1560,61 +1552,6 @@ class NodeGraph
 		
 		return paths
 	}
-}
-
-
-function calculateGroupLayers2(paths, group, layer)
-{
-	paths[group].layer = layer
-	if (paths.length > 1)
-		for (let next of paths[group].next)
-			if (next.layer == -1)
-				calculateGroupLayers2(paths, next.pathIndex, layer + 1)
-}
-
-
-function calculateGroupLayers1(paths)
-{
-	if (paths.length > 0)
-	{
-		let pathsToVisit = []
-		let pathLayer = 2
-		let maxLayer = 1
-
-		pathsToVisit.push(paths[0])
-		paths[0].layer = 1
-
-		const getNext = (p) =>
-		{
-			if ('nextGroups' in p)
-				return p.nextGroups.filter(n => n != 0xff).map(n => paths[n])
-			else
-				return p.next
-		}
-
-		while (pathsToVisit.length > 0)
-		{
-			let path = pathsToVisit.pop()
-
-			for (let next of getNext(path))
-			{
-				if (!('layer' in next) || next.layer == -1)
-				{
-					next.layer = pathLayer
-					pathsToVisit.push(next)
-
-					if (pathLayer > maxLayer)
-						maxLayer = pathLayer
-				}
-			}
-
-			pathLayer += 1
-		}
-
-		return maxLayer
-	}
-	
-	return 0
 }
 
 
