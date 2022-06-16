@@ -430,13 +430,19 @@ class KmpData
 			node.firstInPath = false
 		}
 		
+		// calculateGroupLayers(kmpData.checkpointPaths)
+
 		for (let i = 0; i < kmpData.checkpointPaths.length; i++)
 		{
 			let kmpPath = kmpData.checkpointPaths[i]
 		
 			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
+			{
 				kmp.checkpointPoints.linkNodes(kmp.checkpointPoints.nodes[p], kmp.checkpointPoints.nodes[p + 1])
-			
+				kmp.checkpointPoints.nodes[p].pathLen = kmpPath.pointNum
+				kmp.checkpointPoints.nodes[p].pathLayer = kmpPath.layer
+			}
+
 			for (let j = 0; j < 6; j++)
 			{
 				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < kmpData.checkpointPaths.length)
@@ -445,6 +451,8 @@ class KmpData
 					let nextPoint = kmpData.checkpointPaths[kmpPath.nextGroups[j]].startIndex
 					
 					kmp.checkpointPoints.linkNodes(kmp.checkpointPoints.nodes[lastPoint], kmp.checkpointPoints.nodes[nextPoint])
+					kmp.checkpointPoints.nodes[lastPoint].pathLen = kmpPath.pointNum
+					kmp.checkpointPoints.nodes[lastPoint].pathLayer = kmpPath.layer
 				}
 			}
 			
@@ -518,7 +526,7 @@ class KmpData
 			if (respawnIndex >= 0 && respawnIndex < kmp.respawnPoints.nodes.length)
 				kmp.checkpointPoints.nodes[i].respawnNode = kmp.respawnPoints.nodes[respawnIndex]
 		}
-		
+
 		kmp.isBattleTrack = kmpData.itemPaths.length == 0 && kmpData.checkpointPaths.length == 0 && kmpData.finishPoints.length > 0
 		
 		return kmp
@@ -1474,7 +1482,7 @@ class NodeGraph
 				nodesToHandle = nodesToHandle.filter(n => n !== nodeAtPath)
 			}
 		}
-		
+
 		let pointIndex = 0
 		for (let path of paths)
 		{
@@ -1495,6 +1503,40 @@ class NodeGraph
 				path.nodes[i].pointIndex = pointIndex
 				pointIndex += 1
 			}
+		}
+
+		let checkpointPaths = paths.filter(p => 'firstInPath' in p.nodes[0])
+		if (checkpointPaths.length > 0)
+		{
+			for (let path of checkpointPaths)
+				for (let node of path.nodes)
+					node.pathLayer = -1
+
+			const calculateGroupLayers = (group, layer) =>
+			{
+				group.layer = layer
+				if (layer > this.maxLayer)
+					this.maxLayer = layer
+				if (checkpointPaths.length > 1)
+					for (let next of group.next)
+					{
+						if (!('layer' in next) || next.layer == -1)
+						{
+
+							calculateGroupLayers(next, layer + 1)
+						}
+					}
+			}
+		
+			this.maxLayer = 1
+			calculateGroupLayers(checkpointPaths[0], 1)
+		
+			for (let path of checkpointPaths)
+				for (let node of path.nodes)
+				{
+					node.pathLen = path.nodes.length
+					node.pathLayer = path.layer
+				}
 		}
 		
 		if (asBattle)
@@ -1518,6 +1560,61 @@ class NodeGraph
 		
 		return paths
 	}
+}
+
+
+function calculateGroupLayers2(paths, group, layer)
+{
+	paths[group].layer = layer
+	if (paths.length > 1)
+		for (let next of paths[group].next)
+			if (next.layer == -1)
+				calculateGroupLayers2(paths, next.pathIndex, layer + 1)
+}
+
+
+function calculateGroupLayers1(paths)
+{
+	if (paths.length > 0)
+	{
+		let pathsToVisit = []
+		let pathLayer = 2
+		let maxLayer = 1
+
+		pathsToVisit.push(paths[0])
+		paths[0].layer = 1
+
+		const getNext = (p) =>
+		{
+			if ('nextGroups' in p)
+				return p.nextGroups.filter(n => n != 0xff).map(n => paths[n])
+			else
+				return p.next
+		}
+
+		while (pathsToVisit.length > 0)
+		{
+			let path = pathsToVisit.pop()
+
+			for (let next of getNext(path))
+			{
+				if (!('layer' in next) || next.layer == -1)
+				{
+					next.layer = pathLayer
+					pathsToVisit.push(next)
+
+					if (pathLayer > maxLayer)
+						maxLayer = pathLayer
+				}
+			}
+
+			pathLayer += 1
+		}
+
+		return maxLayer
+	}
+	
+	return 0
 }
 
 
