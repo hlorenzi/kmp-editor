@@ -127,9 +127,6 @@ class ViewerCheckpoints
 				
 				return x.toString() + " (0x" + x.toString(16) + ")"
 			}
-			
-			panel.addText(selectionGroup, "<strong>CKPH Index:</strong> " + formatNumHex(selectedPoints[0].pathIndex) + ", point #" + formatNum(selectedPoints[0].pathPointIndex))
-			panel.addText(selectionGroup, "<strong>CKPT Index:</strong> " + formatNumHex(selectedPoints[0].pointIndex))
 
 			const setPath = (x) => 
 			{
@@ -145,6 +142,18 @@ class ViewerCheckpoints
 				}
 			}
 
+			const getCompletion = () =>
+			{
+				let maxLayer = this.data.checkpointPoints.maxLayer
+				let groupComp = selectedPoints[0].pathPointIndex / selectedPoints[0].pathLen
+				let overallComp = (groupComp + selectedPoints[0].pathLayer - 1) / maxLayer
+				return (100 * overallComp).toFixed(4).toString() + "%"
+			}
+			
+			panel.addText(selectionGroup, "<strong>CKPH Index:</strong> " + formatNumHex(selectedPoints[0].pathIndex) + ", point #" + formatNum(selectedPoints[0].pathPointIndex))
+			panel.addText(selectionGroup, "<strong>CKPT Index:</strong> " + formatNumHex(selectedPoints[0].pointIndex))
+			panel.addText(selectionGroup, "<strong>Group Layer:</strong> " + formatNum(selectedPoints[0].pathLayer))
+			panel.addText(selectionGroup, "<strong>Lap Completion:</strong> " + getCompletion())
 			panel.addCheckbox(selectionGroup, "Start new checkpoint group", selectedPoints[0].firstInPath, setPath)
 		}
 		

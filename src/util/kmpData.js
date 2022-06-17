@@ -429,14 +429,14 @@ class KmpData
 			node.respawnNode = null
 			node.firstInPath = false
 		}
-		
+
 		for (let i = 0; i < kmpData.checkpointPaths.length; i++)
 		{
 			let kmpPath = kmpData.checkpointPaths[i]
 		
 			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
 				kmp.checkpointPoints.linkNodes(kmp.checkpointPoints.nodes[p], kmp.checkpointPoints.nodes[p + 1])
-			
+
 			for (let j = 0; j < 6; j++)
 			{
 				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < kmpData.checkpointPaths.length)
@@ -518,7 +518,7 @@ class KmpData
 			if (respawnIndex >= 0 && respawnIndex < kmp.respawnPoints.nodes.length)
 				kmp.checkpointPoints.nodes[i].respawnNode = kmp.respawnPoints.nodes[respawnIndex]
 		}
-		
+
 		kmp.isBattleTrack = kmpData.itemPaths.length == 0 && kmpData.checkpointPaths.length == 0 && kmpData.finishPoints.length > 0
 		
 		return kmp
@@ -1474,7 +1474,7 @@ class NodeGraph
 				nodesToHandle = nodesToHandle.filter(n => n !== nodeAtPath)
 			}
 		}
-		
+
 		let pointIndex = 0
 		for (let path of paths)
 		{
@@ -1495,6 +1495,40 @@ class NodeGraph
 				path.nodes[i].pointIndex = pointIndex
 				pointIndex += 1
 			}
+		}
+
+		let checkpointPaths = paths.filter(p => 'firstInPath' in p.nodes[0])
+		if (checkpointPaths.length > 0)
+		{
+			for (let path of checkpointPaths)
+				for (let node of path.nodes)
+					node.pathLayer = null
+
+			const calculateGroupLayers = (group, layer) =>
+			{
+				group.layer = layer
+				if (layer > this.maxLayer)
+					this.maxLayer = layer
+				if (checkpointPaths.length > 1)
+				{
+					for (let next of group.next)
+						if (!('layer' in next) || next.layer == null)
+							calculateGroupLayers(next, layer + 1)
+					for (let prev of group.prev)
+						if (!('layer' in prev) || prev.layer == null)
+							calculateGroupLayers(prev, layer - 1)
+				}
+			}
+		
+			this.maxLayer = 1
+			calculateGroupLayers(checkpointPaths[0], 1)
+		
+			for (let path of checkpointPaths)
+				for (let node of path.nodes)
+				{
+					node.pathLen = path.nodes.length
+					node.pathLayer = path.layer
+				}
 		}
 		
 		if (asBattle)
