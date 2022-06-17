@@ -59,30 +59,6 @@ class ViewerCheckpoints
 			
 		this.renderers = []
 	}
-
-
-	genPathInfo()
-	{
-		if (this.data.checkpointPoints.length > 0)
-		{
-			let pointsToVisit = []
-			let pathLen = 0
-			let pathLayer = 0
-			pointsToVisit.push(this.data.checkpointPoints[0])
-
-			while (pointsToVisit.length > 0)
-			{
-				let point = pointsToVisit.pop()
-
-				for (let next of point)
-					if (next.layer == 0)
-					{
-						next.layer = pathLayer
-						pointsToVisit.push(next)
-					}
-			}
-		}
-	}
 	
 	
 	setModel(model)
@@ -465,12 +441,6 @@ class ViewerCheckpoints
 		this.refresh()
 		this.window.setNotSaved()
 		this.window.setUndoPoint()
-	}
-
-
-	getCompletion(point)
-	{
-		
 	}
 	
 	
