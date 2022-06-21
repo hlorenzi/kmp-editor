@@ -43,6 +43,18 @@ class ViewerStartPoints
 			.addCone(-150, -150, 600, 150, 150, 1500, 8, new Vec3(0, 0.01, 1).normalize())
 			.calculateNormals()
 			.makeModel(viewer.gl)
+
+		this.modelZoneWide = new ModelBuilder()
+			.addQuad(new Vec3(0, -1000, -20), new Vec3(0, 1000, -20), new Vec3(-5300, 1000, -20), new Vec3(-5300, -1000, -20))
+			.addQuad(new Vec3(-5300, -1000, -20), new Vec3(-5300, 1000, -20), new Vec3(0, 1000, -20), new Vec3(0, -1000, -20))
+			.calculateNormals()
+			.makeModel(viewer.gl)
+		
+		this.modelZoneNarrow = new ModelBuilder()
+			.addQuad(new Vec3(0, -1000, -20), new Vec3(0, 1000, -20), new Vec3(-4800, 1000, -20), new Vec3(-4800, -1000, -20))
+			.addQuad(new Vec3(-4800, -1000, -20), new Vec3(-4800, 1000, -20), new Vec3(0, 1000, -20), new Vec3(0, -1000, -20))
+			.calculateNormals()
+			.makeModel(viewer.gl)
 			
 		this.renderers = []
 	}
@@ -70,6 +82,7 @@ class ViewerStartPoints
 		this.panel = panel
 	
 		panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
+		panel.addCheckbox(null, "Draw start zone bounds", this.viewer.cfg.startPointsEnableZoneRender, (x) => this.viewer.cfg.startPointsEnableZoneRender = x)
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Duplicate Point")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
@@ -136,12 +149,18 @@ class ViewerStartPoints
 				.attach(this.scene.root)
 				.setModel(this.modelArrowUp)
 				.setMaterial(this.viewer.material)
+
+			point.rendererStartZone = new GfxNodeRendererTransform()
+				.attach(this.scene.root)
+				.setModel(this.data.trackInfo.driverDistance ? this.modelZoneNarrow : this.modelZoneWide)
+				.setMaterial(this.viewer.material)
 				
 			this.renderers.push(point.renderer)
 			this.renderers.push(point.rendererSelected)
 			this.renderers.push(point.rendererDirection)
 			this.renderers.push(point.rendererDirectionArrow)
 			this.renderers.push(point.rendererDirectionUp)
+			this.renderers.push(point.rendererStartZone)
 		}
 		
 		this.refreshPanels()
@@ -383,28 +402,33 @@ class ViewerStartPoints
 			point.rendererSelectedCore
 				.setDiffuseColor([0, 0, 1, 1])
 				
-			let matrixDirection =
-				Mat4.scale(scale, scale / 1.5, scale / 1.5)
-				.mul(Mat4.rotation(new Vec3(0, 0, 1), 90 * Math.PI / 180))
+			let matrixScale = Mat4.scale(scale, scale / 1.5, scale / 1.5)
+			let matrixDirection = 
+				Mat4.rotation(new Vec3(0, 0, 1), 90 * Math.PI / 180)
 				.mul(Mat4.rotation(new Vec3(1, 0, 0), point.rotation.x * Math.PI / 180))
 				.mul(Mat4.rotation(new Vec3(0, 0, 1), -point.rotation.y * Math.PI / 180))
 				.mul(Mat4.rotation(new Vec3(0, 1, 0), -point.rotation.z * Math.PI / 180))
 				.mul(Mat4.translation(point.pos.x, point.pos.y, point.pos.z))
 				
 			point.rendererDirection
-				.setCustomMatrix(matrixDirection)
+				.setCustomMatrix(matrixScale.mul(matrixDirection))
 				.setDiffuseColor([0.75, 0.75, 1, 1])
 				.setEnabled(this.viewer.cfg.enableRotationRender)
 				
 			point.rendererDirectionArrow
-				.setCustomMatrix(matrixDirection)
+				.setCustomMatrix(matrixScale.mul(matrixDirection))
 				.setDiffuseColor([0, 0, 1, 1])
 				.setEnabled(this.viewer.cfg.enableRotationRender)
 				
 			point.rendererDirectionUp
-				.setCustomMatrix(matrixDirection)
+				.setCustomMatrix(matrixScale.mul(matrixDirection))
 				.setDiffuseColor([0.25, 0.25, 1, 1])
 				.setEnabled(this.viewer.cfg.enableRotationRender)
+			
+			point.rendererStartZone
+				.setCustomMatrix(matrixDirection)
+				.setDiffuseColor([0.25, 0.25, 1, 0.5])
+				.setEnabled(this.viewer.cfg.startPointsEnableZoneRender)
 		}
 		
 		this.scene.render(this.viewer.gl, this.viewer.getCurrentCamera())

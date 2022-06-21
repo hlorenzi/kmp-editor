@@ -91,7 +91,8 @@ class MainWindow
 			checkpointsEnableRespawnPointLinks: true,
 			enableRotationRender: true,
 			cannonsEnableDirectionRender: true,
-			enableTrueRespawns: false
+			respawnsEnablePlayerSlots: false,
+			startPointsEnableZoneRender: false
 		}
 		
 		this.currentKmpFilename = null
