@@ -1,6 +1,6 @@
 {
   "name": "hlorenzi-kmp-editor",
-  "version": "0.5.3",
+  "version": "DEV",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
