@@ -34,8 +34,18 @@ class ViewerTrackInformation
 		this.panel = panel
 	
 		panel.addSelectionNumericInput(null, "Lap Count", 1, 9, this.data.trackInfo.lapCount, 1.0, 1.0, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.lapCount = x })
-		panel.addSelectionNumericInput(null, "Speed Mod.", 0, 100, this.data.trackInfo.speedMod, null, 0.1, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.speedMod = x })
-		
+
+		const convertFloat32MSB2 = (x) =>
+		{
+			let view = new DataView(new ArrayBuffer(4))
+			view.setFloat32(0, x)
+			view.setUint8(2, 0)
+			view.setUint8(3, 0)
+
+			return view.getFloat32(0)
+		}
+		panel.addSelectionNumericInput(null, "Speed Mod.", 0, 99999, this.data.trackInfo.speedMod, null, 0.1, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.speedMod = convertFloat32MSB2(x) })
+
 		let lensFlareOptions =
 		[
 			{ str: "Disabled", value: 0 },

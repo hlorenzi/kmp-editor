@@ -770,7 +770,7 @@ class Panel
 		
 		let inFocus = false
 		input.onfocus = () => { inFocus = true; this.window.setUndoPoint() }
-		input.onblur = () => { inFocus = false; this.window.setUndoPoint(); this.window.viewer.canvas.focus() }
+		input.onblur = () => { inFocus = false; this.window.setUndoPoint(); this.window.viewer.canvas.focus(); this.window.viewer.currentSubviewer.refreshPanels() }
 		input.onkeydown = (ev) => { if (inFocus) ev.stopPropagation() }
 		
 		let safeParseFloat = (s) =>
@@ -802,7 +802,7 @@ class Panel
 			valueDelta = 0
 			
 			for (let i = 0; i < values.length; i++)
-				onchange(input.value != "" ? safeParseFloat(input.value) : values[i], i)
+				onchange(input.value != "" ? clampValue(safeParseFloat(input.value)) : values[i], i)
 			
 			this.onRefreshView()
 		}
