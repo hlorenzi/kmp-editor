@@ -92,7 +92,7 @@ class MainWindow
 			enableRotationRender: true,
 			cannonsEnableDirectionRender: true,
 			respawnsEnablePlayerSlots: false,
-			startPointsEnableZoneRender: false
+			startPointsEnableZoneRender: true
 		}
 		
 		this.currentKmpFilename = null

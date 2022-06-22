@@ -88,7 +88,21 @@ class ViewerStartPoints
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
+
+		let polePosOptions =
+		[
+			{ str: "Left", value: 0 },
+			{ str: "Right", value: 1 }
+		]
+		panel.addSelectionDropdown(null, "Pole Position", this.data.trackInfo.polePosition, polePosOptions, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.polePosition = x; this.refresh() })
 		
+		let driverDistOptions =
+		[
+			{ str: "Normal", value: 0 },
+			{ str: "Narrow", value: 1 }
+		]
+		panel.addSelectionDropdown(null, "Start Zone", this.data.trackInfo.driverDistance, driverDistOptions, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.driverDistance = x; this.refresh() })
+
 		let selectedPoints = this.data.startPoints.nodes.filter(p => p.selected)
 		
 		let selectionGroup = panel.addGroup(null, "Selection:")
