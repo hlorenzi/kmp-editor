@@ -75,7 +75,7 @@ class ViewerRespawnPoints
 		this.panel = panel
 	
 		panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
-		panel.addCheckbox(null, "Show player respawn positions", this.viewer.cfg.enableTrueRespawns, (x) => this.viewer.cfg.enableTrueRespawns = x)
+		panel.addCheckbox(null, "Draw player respawn positions", this.viewer.cfg.respawnsEnablePlayerSlots, (x) => this.viewer.cfg.respawnsEnablePlayerSlots = x)
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Duplicate Point")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
@@ -438,7 +438,7 @@ class ViewerRespawnPoints
 					point.rendererPlayerPositions[k]
 						.setCustomMatrix(customMatrix(i, j, 400, 0.5))
 						.setDiffuseColor([0.75, 0.75, 0, 1])
-						.setEnabled(this.viewer.cfg.enableTrueRespawns)
+						.setEnabled(this.viewer.cfg.respawnsEnablePlayerSlots)
 					k++
 				}
 		}

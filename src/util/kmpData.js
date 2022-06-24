@@ -279,10 +279,10 @@ class KmpData
 					trackInfo.lapCount = parser.readByte()
 					trackInfo.polePosition = parser.readByte()
 					trackInfo.driverDistance = parser.readByte()
+					trackInfo.lensFlareFlash = parser.readByte()
 					trackInfo.unknown1 = parser.readByte()
 					trackInfo.flareColor = parser.readBytes(4)
 					trackInfo.unknown2 = parser.readByte()
-					trackInfo.unknown3 = parser.readByte()
 					trackInfo.speedMod = parser.readFloat32MSB2()
 					break
 				}
@@ -428,6 +428,7 @@ class KmpData
 			node.type = kmpPoint.type
 			node.respawnNode = null
 			node.firstInPath = false
+			node.isRendered = true
 		}
 
 		for (let i = 0; i < kmpData.checkpointPaths.length; i++)
@@ -997,10 +998,10 @@ class KmpData
 		w.writeByte(this.trackInfo.lapCount)
 		w.writeByte(this.trackInfo.polePosition)
 		w.writeByte(this.trackInfo.driverDistance)
+		w.writeByte(this.trackInfo.lensFlareFlash)
 		w.writeByte(this.trackInfo.unknown1)
 		w.writeBytes(this.trackInfo.flareColor)
 		w.writeByte(this.trackInfo.unknown2)
-		w.writeByte(this.trackInfo.unknown3)
 		w.writeFloat32MSB2(this.trackInfo.speedMod)
 		
 		// Write file length
@@ -1104,6 +1105,7 @@ class KmpData
 			node.respawnIndex = 0
 			node.type = 0xff
 			node.firstInPath = false
+			node.isRendered = true
 		}
 		this.checkpointPoints.onCloneNode = (newNode, oldNode) =>
 		{
@@ -1112,6 +1114,7 @@ class KmpData
 			newNode.respawnIndex = oldNode.respawnIndex
 			newNode.type = oldNode.type
 			newNode.firstInPath = oldNode.firstInPath
+			newNode.isRendered = oldNode.isRendered
 		}
 		this.checkpointPoints.findFirstNode = (nodes) =>
 		{
@@ -1168,10 +1171,10 @@ class KmpData
 		this.trackInfo.lapCount = 3
 		this.trackInfo.polePosition = 0
 		this.trackInfo.driverDistance = 0
+		this.trackInfo.lensFlareFlash = 0
 		this.trackInfo.unknown1 = 0
-		this.trackInfo.flareColor = [0x00, 0xff, 0xff, 0xff]
-		this.trackInfo.unknown2 = 50
-		this.trackInfo.unknown3 = 0
+		this.trackInfo.flareColor = [0xff, 0xff, 0xff, 0x00]
+		this.trackInfo.unknown2 = 0
 		this.trackInfo.speedMod = 0
 	}
 	
@@ -1227,6 +1230,7 @@ class KmpData
 		cloned.trackInfo.lapCount = this.trackInfo.lapCount
 		cloned.trackInfo.polePosition = this.trackInfo.polePosition
 		cloned.trackInfo.driverDistance = this.trackInfo.driverDistance
+		cloned.trackInfo.lensFlareFlash = this.trackInfo.lensFlareFlash
 		cloned.trackInfo.unknown1 = this.trackInfo.unknown1
 		cloned.trackInfo.flareColor = [
 			this.trackInfo.flareColor[0],
@@ -1235,7 +1239,6 @@ class KmpData
 			this.trackInfo.flareColor[3]
 		]
 		cloned.trackInfo.unknown2 = this.trackInfo.unknown2
-		cloned.trackInfo.unknown3 = this.trackInfo.unknown3
 		cloned.trackInfo.speedMod = this.trackInfo.speedMod
 
 		cloned.unhandledSectionData = this.unhandledSectionData

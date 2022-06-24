@@ -109,6 +109,7 @@ class Viewer
 			
 		this.subviewers =
 		[
+			new ViewerTrackInformation(this.window, this, this.data),
 			new ViewerStartPoints(this.window, this, this.data),
 			new ViewerEnemyPaths(this.window, this, this.data),
 			new ViewerItemPaths(this.window, this, this.data),
@@ -118,7 +119,6 @@ class Viewer
 			new ViewerRoutes(this.window, this, this.data),
 			new ViewerCannonPoints(this.window, this, this.data),
 			new ViewerFinishPoints(this.window, this, this.data),
-			new ViewerTrackInformation(this.window, this, this.data),
 		]
 		
 		this.subviewerRoutes = this.subviewers[6]
