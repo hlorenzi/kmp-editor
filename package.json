@@ -4,7 +4,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder",
+    "dist": "electron-builder --win",
     "postinstall": "electron-builder install-app-deps"
   },
   "devDependencies": {
@@ -15,6 +15,7 @@
     "appId": "com.hlorenzi.kmp-editor",
     "productName": "Lorenzi's KMP Editor",
     "win": {
+      "artifactName": "${productName}.${ext}",
       "target": [
         "portable"
       ]
