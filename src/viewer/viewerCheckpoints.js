@@ -127,9 +127,34 @@ class ViewerCheckpoints
 				
 				return x.toString() + " (0x" + x.toString(16) + ")"
 			}
+
+			const setPath = (x) => 
+			{
+				if (selectedPoints[0].pointIndex != 0 && selectedPoints[0].prev.length == 1 && selectedPoints[0].prev[0].node.next.length == 1)
+				{
+					this.window.setNotSaved()
+					selectedPoints[0].firstInPath = x
+					this.refresh()
+				}
+				else
+				{
+					selectedPoints[0].firstInPath = true
+				}
+			}
+
+			const getCompletion = () =>
+			{
+				let maxLayer = this.data.checkpointPoints.maxLayer
+				let groupComp = selectedPoints[0].pathPointIndex / selectedPoints[0].pathLen
+				let overallComp = (groupComp + selectedPoints[0].pathLayer - 1) / maxLayer
+				return (100 * overallComp).toFixed(4).toString() + "%"
+			}
 			
 			panel.addText(selectionGroup, "<strong>CKPH Index:</strong> " + formatNumHex(selectedPoints[0].pathIndex) + ", point #" + formatNum(selectedPoints[0].pathPointIndex))
 			panel.addText(selectionGroup, "<strong>CKPT Index:</strong> " + formatNumHex(selectedPoints[0].pointIndex))
+			panel.addText(selectionGroup, "<strong>Group Layer:</strong> " + formatNum(selectedPoints[0].pathLayer))
+			panel.addText(selectionGroup, "<strong>Lap Completion:</strong> " + getCompletion())
+			panel.addCheckbox(selectionGroup, "Start new checkpoint group", selectedPoints[0].firstInPath, setPath)
 		}
 		
 		panel.addSelectionNumericInput(selectionGroup,    "X1", -1000000, 1000000, selectedPoints.map(p =>  p.pos[0].x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[0].x = x })
@@ -347,8 +372,30 @@ class ViewerCheckpoints
 		}
 		
 		for (let point of pointsToDelete)
+		{
+			let nextPoints = point.next.map((x) => x)
+			let prevPoints = point.prev.map((x) => x)
+
 			this.data.checkpointPoints.removeNode(point)
-		
+			
+			for (let next of nextPoints)
+			{
+				if (next.node.pointIndex != 0 && next.node.prev.length == 1 && next.node.prev[0].node.next.length == 1)
+					next.node.firstInPath = false
+				else
+					next.node.firstInPath = true
+			}
+			
+			for (let prev of prevPoints)
+				for (let adj of prev.node.next)
+				{
+					if (adj.node.pointIndex != 0 && adj.node.prev.length == 1 && adj.node.prev[0].node.next.length == 1)
+						adj.node.firstInPath = false
+					else
+						adj.node.firstInPath = true
+				}
+		}
+
 		this.refresh()
 		this.window.setNotSaved()
 		this.window.setUndoPoint()
@@ -373,7 +420,22 @@ class ViewerCheckpoints
 			}
 			
 			for (let next of nextPointsToUnlink)
+			{
 				this.data.checkpointPoints.unlinkNodes(point, next)
+
+				if (next.pointIndex != 0 && next.prev.length == 1 && next.prev[0].node.next.length == 1)
+					next.firstInPath = false
+				else
+					next.firstInPath = true
+			}
+			
+			for (let next of point.next)
+			{
+				if (next.node.pointIndex != 0 && next.node.prev.length == 1 && next.node.prev[0].node.next.length == 1)
+					next.node.firstInPath = false
+				else
+					next.node.firstInPath = true
+			}
 		}
 		
 		this.refresh()
@@ -480,6 +542,10 @@ class ViewerCheckpoints
 				newPoint.pos = [hoveringOverElem.point.pos[0], hoveringOverElem.point.pos[1]]
 				
 				this.data.checkpointPoints.linkNodes(hoveringOverElem.point, newPoint)
+
+				if (hoveringOverElem.point.next.length > 1)
+					for (let next of hoveringOverElem.point.next)
+						next.node.firstInPath = true
 				
 				this.refresh()
 				
@@ -507,6 +573,8 @@ class ViewerCheckpoints
 			
 			newPoint.pos[0].z = 0
 			newPoint.pos[1].z = 0
+
+			newPoint.firstInPath = true
 			
 			this.refresh()
 			newPoint.selected[0] = true
@@ -596,6 +664,12 @@ class ViewerCheckpoints
 				{
 					this.data.checkpointPoints.removeNode(pointBeingLinked)
 					this.data.checkpointPoints.linkNodes(pointBeingLinked.prev[0].node, pointBeingLinkedTo)
+
+					if (pointBeingLinkedTo.pointIndex != 0 && pointBeingLinkedTo.prev.length == 1 && pointBeingLinkedTo.prev[0].node.next.length == 1)
+						pointBeingLinkedTo.firstInPath = false
+					else
+						pointBeingLinkedTo.firstInPath = true
+
 					this.refresh()
 					this.window.setNotSaved()
 				}
@@ -665,11 +739,11 @@ class ViewerCheckpoints
 					
 					point.rendererOutgoingPaths[n][which]
 						.setCustomMatrix(matrixScale.mul(matrixAlign.mul(matrixTranslate)))
-						.setDiffuseColor([0, 0.5, 1, 1])
+						.setDiffuseColor(point.next[n].node.firstInPath ? [0, 0.8, 0.7, 1] : [0, 0.5, 1, 1])
 						
 					point.rendererOutgoingPathArrows[n][which]
 						.setCustomMatrix(matrixScaleArrow.mul(matrixAlign.mul(matrixTranslateArrow)))
-						.setDiffuseColor([0, 0.75, 1, 1])
+						.setDiffuseColor(point.next[n].node.firstInPath ? [0, 0.9, 0.8, 1] : [0, 0.75, 1, 1])
 						
 					setupPanelMatrices(point.rendererOutgoingPathPanels[n][which], point.pos[which], nextPos)
 					point.rendererOutgoingPathPanels[n][which].setDiffuseColor([0, 0.25, 1, 0.3])

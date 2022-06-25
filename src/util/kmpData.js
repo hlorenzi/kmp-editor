@@ -279,10 +279,10 @@ class KmpData
 					trackInfo.lapCount = parser.readByte()
 					trackInfo.polePosition = parser.readByte()
 					trackInfo.driverDistance = parser.readByte()
+					trackInfo.lensFlareFlash = parser.readByte()
 					trackInfo.unknown1 = parser.readByte()
 					trackInfo.flareColor = parser.readBytes(4)
 					trackInfo.unknown2 = parser.readByte()
-					trackInfo.unknown3 = parser.readByte()
 					trackInfo.speedMod = parser.readFloat32MSB2()
 					break
 				}
@@ -427,15 +427,17 @@ class KmpData
 			node.pos = [new Vec3(kmpPoint.x1, -kmpPoint.z1, 0), new Vec3(kmpPoint.x2, -kmpPoint.z2, 0)]
 			node.type = kmpPoint.type
 			node.respawnNode = null
+			node.firstInPath = false
+			node.isRendered = true
 		}
-		
+
 		for (let i = 0; i < kmpData.checkpointPaths.length; i++)
 		{
 			let kmpPath = kmpData.checkpointPaths[i]
 		
 			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
 				kmp.checkpointPoints.linkNodes(kmp.checkpointPoints.nodes[p], kmp.checkpointPoints.nodes[p + 1])
-			
+
 			for (let j = 0; j < 6; j++)
 			{
 				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < kmpData.checkpointPaths.length)
@@ -446,6 +448,8 @@ class KmpData
 					kmp.checkpointPoints.linkNodes(kmp.checkpointPoints.nodes[lastPoint], kmp.checkpointPoints.nodes[nextPoint])
 				}
 			}
+			
+			kmp.checkpointPoints.nodes[kmpPath.startIndex].firstInPath = true
 		}
 		
 		for (let i = 0; i < kmpData.objects.length; i++)
@@ -515,7 +519,7 @@ class KmpData
 			if (respawnIndex >= 0 && respawnIndex < kmp.respawnPoints.nodes.length)
 				kmp.checkpointPoints.nodes[i].respawnNode = kmp.respawnPoints.nodes[respawnIndex]
 		}
-		
+
 		kmp.isBattleTrack = kmpData.itemPaths.length == 0 && kmpData.checkpointPaths.length == 0 && kmpData.finishPoints.length > 0
 		
 		return kmp
@@ -753,7 +757,7 @@ class KmpData
 			w.writeUInt16(0)
 		}
 						
-		// Prepare item points
+		// Prepare checkpoints
 		let checkpointPaths = this.checkpointPoints.convertToStorageFormat()
 		let checkpointPoints = []
 		checkpointPaths.forEach(path => path.nodes.forEach(node => checkpointPoints.push(node)))
@@ -994,10 +998,10 @@ class KmpData
 		w.writeByte(this.trackInfo.lapCount)
 		w.writeByte(this.trackInfo.polePosition)
 		w.writeByte(this.trackInfo.driverDistance)
+		w.writeByte(this.trackInfo.lensFlareFlash)
 		w.writeByte(this.trackInfo.unknown1)
 		w.writeBytes(this.trackInfo.flareColor)
 		w.writeByte(this.trackInfo.unknown2)
-		w.writeByte(this.trackInfo.unknown3)
 		w.writeFloat32MSB2(this.trackInfo.speedMod)
 		
 		// Write file length
@@ -1100,6 +1104,8 @@ class KmpData
 			node.respawnNode = null
 			node.respawnIndex = 0
 			node.type = 0xff
+			node.firstInPath = false
+			node.isRendered = true
 		}
 		this.checkpointPoints.onCloneNode = (newNode, oldNode) =>
 		{
@@ -1107,6 +1113,8 @@ class KmpData
 			newNode.respawnNode = oldNode.respawnNode
 			newNode.respawnIndex = oldNode.respawnIndex
 			newNode.type = oldNode.type
+			newNode.firstInPath = oldNode.firstInPath
+			newNode.isRendered = oldNode.isRendered
 		}
 		this.checkpointPoints.findFirstNode = (nodes) =>
 		{
@@ -1163,10 +1171,10 @@ class KmpData
 		this.trackInfo.lapCount = 3
 		this.trackInfo.polePosition = 0
 		this.trackInfo.driverDistance = 0
+		this.trackInfo.lensFlareFlash = 0
 		this.trackInfo.unknown1 = 0
-		this.trackInfo.flareColor = [0x00, 0xff, 0xff, 0xff]
-		this.trackInfo.unknown2 = 50
-		this.trackInfo.unknown3 = 0
+		this.trackInfo.flareColor = [0xff, 0xff, 0xff, 0x00]
+		this.trackInfo.unknown2 = 0
 		this.trackInfo.speedMod = 0
 	}
 	
@@ -1222,6 +1230,7 @@ class KmpData
 		cloned.trackInfo.lapCount = this.trackInfo.lapCount
 		cloned.trackInfo.polePosition = this.trackInfo.polePosition
 		cloned.trackInfo.driverDistance = this.trackInfo.driverDistance
+		cloned.trackInfo.lensFlareFlash = this.trackInfo.lensFlareFlash
 		cloned.trackInfo.unknown1 = this.trackInfo.unknown1
 		cloned.trackInfo.flareColor = [
 			this.trackInfo.flareColor[0],
@@ -1230,7 +1239,6 @@ class KmpData
 			this.trackInfo.flareColor[3]
 		]
 		cloned.trackInfo.unknown2 = this.trackInfo.unknown2
-		cloned.trackInfo.unknown3 = this.trackInfo.unknown3
 		cloned.trackInfo.speedMod = this.trackInfo.speedMod
 
 		cloned.unhandledSectionData = this.unhandledSectionData
@@ -1315,6 +1323,9 @@ class NodeGraph
 	
 	linkNodes(node1, node2)
 	{
+		if (node1 == node2)
+			return
+			
 		let node1NextIndex = node1.next.findIndex(n => n.node == node2)
 		if (node1NextIndex >= 0)
 			node1.next[node1NextIndex].count += 1
@@ -1457,13 +1468,16 @@ class NodeGraph
 				if (nodesToPath.get(nodeAtPath, path))
 					break
 				
+				if ('firstInPath' in nodeAtPath && nodeAtPath.firstInPath)
+					break
+				
 				nodeAtPath.pathIndex = pathIndex
 				path.nodes.push(nodeAtPath)
 				nodesToPath.set(nodeAtPath, path)
 				nodesToHandle = nodesToHandle.filter(n => n !== nodeAtPath)
 			}
 		}
-		
+
 		let pointIndex = 0
 		for (let path of paths)
 		{
@@ -1484,6 +1498,40 @@ class NodeGraph
 				path.nodes[i].pointIndex = pointIndex
 				pointIndex += 1
 			}
+		}
+
+		let checkpointPaths = paths.filter(p => 'firstInPath' in p.nodes[0])
+		if (checkpointPaths.length > 0)
+		{
+			for (let path of checkpointPaths)
+				for (let node of path.nodes)
+					node.pathLayer = null
+
+			const calculateGroupLayers = (group, layer) =>
+			{
+				group.layer = layer
+				if (layer > this.maxLayer)
+					this.maxLayer = layer
+				if (checkpointPaths.length > 1)
+				{
+					for (let next of group.next)
+						if (!('layer' in next) || next.layer == null)
+							calculateGroupLayers(next, layer + 1)
+					for (let prev of group.prev)
+						if (!('layer' in prev) || prev.layer == null)
+							calculateGroupLayers(prev, layer - 1)
+				}
+			}
+		
+			this.maxLayer = 1
+			calculateGroupLayers(checkpointPaths[0], 1)
+		
+			for (let path of checkpointPaths)
+				for (let node of path.nodes)
+				{
+					node.pathLen = path.nodes.length
+					node.pathLayer = path.layer
+				}
 		}
 		
 		if (asBattle)

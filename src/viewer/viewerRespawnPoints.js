@@ -43,6 +43,11 @@ class ViewerRespawnPoints
 			.addCone(-150, -150, 600, 150, 150, 1500, 8, new Vec3(0, 0.01, 1).normalize())
 			.calculateNormals()
 			.makeModel(viewer.gl)
+		
+		this.modelPlayerPos = new ModelBuilder()
+			.addCone(-250, -250, -250, 250, 250, 250, 8, new Vec3(1, 0, 0))
+			.calculateNormals()
+			.makeModel(viewer.gl)
 			
 		this.renderers = []
 	}
@@ -70,6 +75,7 @@ class ViewerRespawnPoints
 		this.panel = panel
 	
 		panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
+		panel.addCheckbox(null, "Draw player respawn positions", this.viewer.cfg.respawnsEnablePlayerSlots, (x) => this.viewer.cfg.respawnsEnablePlayerSlots = x)
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Duplicate Point")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
@@ -142,6 +148,19 @@ class ViewerRespawnPoints
 			this.renderers.push(point.rendererDirection)
 			this.renderers.push(point.rendererDirectionArrow)
 			this.renderers.push(point.rendererDirectionUp)
+
+			point.rendererPlayerPositions = []
+
+			for (let i = 0; i < 12; i++)
+			{
+				let rPlayerPos = new GfxNodeRendererTransform()
+					.attach(this.scene.root)
+					.setModel(this.modelPlayerPos)
+					.setMaterial(this.viewer.material)
+				
+				point.rendererPlayerPositions.push(rPlayerPos)
+				this.renderers.push(rPlayerPos)
+			}
 		}
 		
 		this.refreshPanels()
@@ -386,28 +405,42 @@ class ViewerRespawnPoints
 			point.rendererSelectedCore
 				.setDiffuseColor([0.55, 0.55, 0, 1])
 				
-			let matrixDirection =
-				Mat4.scale(scale, scale / 1.5, scale / 1.5)
-				.mul(Mat4.rotation(new Vec3(0, 0, 1), 90 * Math.PI / 180))
-				.mul(Mat4.rotation(new Vec3(1, 0, 0), point.rotation.x * Math.PI / 180))
-				.mul(Mat4.rotation(new Vec3(0, 0, 1), -point.rotation.y * Math.PI / 180))
-				.mul(Mat4.rotation(new Vec3(0, 1, 0), -point.rotation.z * Math.PI / 180))
-				.mul(Mat4.translation(point.pos.x, point.pos.y, point.pos.z))
+			const customMatrix = (x, y, z, s=scale) =>
+			{
+				return Mat4.scale(s, s / 1.5, s / 1.5)
+					.mul(Mat4.translation(x, y, -z))
+					.mul(Mat4.rotation(new Vec3(0, 0, 1), 90 * Math.PI / 180))
+					.mul(Mat4.rotation(new Vec3(1, 0, 0), point.rotation.x * Math.PI / 180))
+					.mul(Mat4.rotation(new Vec3(0, 0, 1), -point.rotation.y * Math.PI / 180))
+					.mul(Mat4.rotation(new Vec3(0, 1, 0), -point.rotation.z * Math.PI / 180))
+					.mul(Mat4.translation(point.pos.x, point.pos.y, point.pos.z))
+			}
 				
 			point.rendererDirection
-				.setCustomMatrix(matrixDirection)
+				.setCustomMatrix(customMatrix(0, 0, 0))
 				.setDiffuseColor([0.85, 0.85, 0, 1])
 				.setEnabled(this.viewer.cfg.enableRotationRender)
 				
 			point.rendererDirectionArrow
-				.setCustomMatrix(matrixDirection)
+				.setCustomMatrix(customMatrix(0, 0, 0))
 				.setDiffuseColor([0.75, 0.75, 0, 1])
 				.setEnabled(this.viewer.cfg.enableRotationRender)
 				
 			point.rendererDirectionUp
-				.setCustomMatrix(matrixDirection)
+				.setCustomMatrix(customMatrix(0, 0, 0))
 				.setDiffuseColor([0.5, 0.5, 0, 1])
 				.setEnabled(this.viewer.cfg.enableRotationRender)
+			
+			let k = 0
+			for (let i = -600; i <= 0; i += 300)
+				for (let j = -450; j <= 450; j += 300)
+				{
+					point.rendererPlayerPositions[k]
+						.setCustomMatrix(customMatrix(i, j, 400, 0.5))
+						.setDiffuseColor([0.75, 0.75, 0, 1])
+						.setEnabled(this.viewer.cfg.respawnsEnablePlayerSlots)
+					k++
+				}
 		}
 		
 		this.scene.render(this.viewer.gl, this.viewer.getCurrentCamera())
