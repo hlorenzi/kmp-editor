@@ -393,7 +393,7 @@ class ViewerRoutes
 		
 		if (hoveringOverElem != null)
 		{
-			if (ev.altKey)
+			if (ev.altKey && hoveringOverElem.next.length == 0)
 			{
 				let newPoint = route.points.addNode()
 				newPoint.pos = hoveringOverElem.pos
@@ -515,6 +515,14 @@ class ViewerRoutes
 				if (pointBeingLinkedTo != null)
 				{
 					route.points.removeNode(pointBeingLinked)
+
+					if (pointBeingLinkedTo.prev.length >= 1)
+					{
+						alert("Node link error!\n\nMax incoming connections to a point surpassed (maximum 1)")
+						this.refresh()
+						return
+					}
+
 					route.points.linkNodes(pointBeingLinked.prev[0].node, pointBeingLinkedTo)
 					this.refresh()
 					this.window.setNotSaved()

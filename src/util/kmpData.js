@@ -1325,7 +1325,7 @@ class NodeGraph
 	{
 		if (node1 == node2)
 			return
-			
+
 		let node1NextIndex = node1.next.findIndex(n => n.node == node2)
 		if (node1NextIndex >= 0)
 			node1.next[node1NextIndex].count += 1

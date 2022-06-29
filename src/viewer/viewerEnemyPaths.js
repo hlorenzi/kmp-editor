@@ -375,6 +375,12 @@ class ViewerEnemyPaths
 		{
 			if (ev.altKey)
 			{
+				if (hoveringOverElem.next.length >= this.data.enemyPoints.maxNextNodes)
+				{
+					alert("Node link error!\n\nMax outgoing connections to a point surpassed (maximum " + this.data.enemyPoints.maxNextNodes + ")")
+					return
+				}
+
 				let newPoint = this.data.enemyPoints.addNode()
 				newPoint.pos = hoveringOverElem.pos
 				newPoint.size = hoveringOverElem.size
@@ -483,6 +489,14 @@ class ViewerEnemyPaths
 				if (pointBeingLinkedTo != null)
 				{
 					this.data.enemyPoints.removeNode(pointBeingLinked)
+
+					if (pointBeingLinkedTo.prev.length >= this.data.enemyPoints.maxPrevNodes)
+					{
+						alert("Node link error!\n\nMax incoming connections to a point surpassed (maximum " + this.data.enemyPoints.maxPrevNodes + ")")
+						this.refresh()
+						return
+					}
+
 					this.data.enemyPoints.linkNodes(pointBeingLinked.prev[0].node, pointBeingLinkedTo)
 					this.refresh()
 					this.window.setNotSaved()

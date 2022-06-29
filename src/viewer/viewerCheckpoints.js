@@ -538,6 +538,12 @@ class ViewerCheckpoints
 		{
 			if (ev.altKey)
 			{
+				if (hoveringOverElem.point.next.length >= this.data.checkpointPoints.maxNextNodes)
+				{
+					alert("Node link error!\n\nMax outgoing connections to a point surpassed (maximum " + this.data.checkpointPoints.maxNextNodes + ")")
+					return
+				}
+
 				let newPoint = this.data.checkpointPoints.addNode()
 				newPoint.pos = [hoveringOverElem.point.pos[0], hoveringOverElem.point.pos[1]]
 				
@@ -663,6 +669,14 @@ class ViewerCheckpoints
 				if (pointBeingLinkedTo != null)
 				{
 					this.data.checkpointPoints.removeNode(pointBeingLinked)
+
+					if (pointBeingLinkedTo.prev.length >= this.data.checkpointPoints.maxPrevNodes)
+					{
+						alert("Node link error!\n\nMax incoming connections to a point surpassed (maximum " + this.data.checkpointPoints.maxPrevNodes + ")")
+						this.refresh()
+						return
+					}
+
 					this.data.checkpointPoints.linkNodes(pointBeingLinked.prev[0].node, pointBeingLinkedTo)
 
 					if (pointBeingLinkedTo.pointIndex != 0 && pointBeingLinkedTo.prev.length == 1 && pointBeingLinkedTo.prev[0].node.next.length == 1)

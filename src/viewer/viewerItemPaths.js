@@ -372,10 +372,16 @@ class ViewerItemPaths
 		{
 			if (ev.altKey)
 			{
+				if (hoveringOverElem.next.length >= this.data.itemPoints.maxNextNodes)
+				{
+					alert("Node link error!\n\nMax outgoing connections to a point surpassed (maximum " + this.data.itemPoints.maxNextNodes + ")")
+					return
+				}
+
 				let newPoint = this.data.itemPoints.addNode()
 				newPoint.pos = hoveringOverElem.pos
 				newPoint.size = hoveringOverElem.size
-				
+
 				this.data.itemPoints.linkNodes(hoveringOverElem, newPoint)
 				
 				this.refresh()
@@ -480,7 +486,16 @@ class ViewerItemPaths
 				if (pointBeingLinkedTo != null)
 				{
 					this.data.itemPoints.removeNode(pointBeingLinked)
+
+					if (pointBeingLinkedTo.prev.length >= this.data.itemPoints.maxPrevNodes)
+					{
+						alert("Node link error!\n\nMax incoming connections to a point surpassed (maximum " + this.data.itemPoints.maxPrevNodes + ")")
+						this.refresh()
+						return
+					}
+
 					this.data.itemPoints.linkNodes(pointBeingLinked.prev[0].node, pointBeingLinkedTo)
+
 					this.refresh()
 					this.window.setNotSaved()
 				}

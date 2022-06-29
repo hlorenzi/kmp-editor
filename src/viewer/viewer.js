@@ -93,8 +93,10 @@ class Viewer
 			
 		this.cachedCamera = new GfxCamera()
 		this.cachedCameraPos = new Vec3(0, 0, 0)
+
 			
-			
+		this.enableDebugRaycast = false
+
 		let debugRaycastBuilder = new ModelBuilder()
 			.addSphere(-100, -100, -100, 100, 100, 100)
 			.calculateNormals()
@@ -103,8 +105,8 @@ class Viewer
 			.attach(this.scene.root)
 			.setModel(debugRaycastBuilder.makeModel(this.gl))
 			.setMaterial(this.material)
-			.setDiffuseColor([1, 0, 0, 1])
-			.setEnabled(false)
+			.setDiffuseColor([1, 0, 1, 1])
+			.setEnabled(this.enableDebugRaycast)
 			
 			
 		this.subviewers =
@@ -465,8 +467,8 @@ class Viewer
 		
 		else
 		{
-			//if (hit != null)
-			//	  this.debugRaycastRenderer.setTranslation(hit.position)
+			if (hit != null && this.enableDebugRaycast)
+				  this.debugRaycastRenderer.setTranslation(hit.position)
 			
 			if (this.currentSubviewer != null)
 				this.currentSubviewer.onMouseMove(ev, mouse.x, mouse.y, cameraPos, ray, hit, distToHit)
