@@ -98,7 +98,7 @@ class ViewerRoutes
 			{ str: "Straight Edges", value: 0 },
 			{ str: "Curved Edges", value: 1 },
 		]
-		panel.addSelectionDropdown(null, "Setting 1", route.setting1, setting1Options, true, false, (x, i) => { this.window.setNotSaved(); route.setting1 = x })
+		panel.addSelectionDropdown(null, "Setting 1", route.setting1, setting1Options, true, false, (x, i) => { this.window.setNotSaved(); route.setting1 = x; this.refresh() })
 		
 		let setting2Options =
 		[
@@ -107,6 +107,9 @@ class ViewerRoutes
 		]
 		panel.addSelectionDropdown(null, "Setting 2", route.setting2, setting2Options, true, false, (x, i) => { this.window.setNotSaved(); route.setting2 = x })
 		
+		if (route.points.nodes.length < 2 || route.setting1 && route.points.nodes.length < 3)
+			panel.addText(null, "⚠️ <strong>WARNING! Less than " + (2 + route.setting1) + " points may cause a crash!</strong>")
+
 		let selectedPoints = route.points.nodes.filter(p => p.selected)
 		
 		let selectionGroup = panel.addGroup(null, "Selection:")
