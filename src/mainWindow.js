@@ -91,7 +91,7 @@ class MainWindow
 			checkpointsEnableRespawnPointLinks: true,
 			enableRotationRender: true,
 			cannonsEnableDirectionRender: true,
-			respawnsEnablePlayerSlots: false,
+			respawnsEnablePlayerSlots: true,
 			startPointsEnableZoneRender: true
 		}
 		
@@ -765,7 +765,7 @@ class Panel
 		let input = document.createElement("input")
 		input.className = "panelNumericInput"
 		input.type = "input"
-		input.value = (!enabled || multiedit ? "" : values[0])
+		input.value = (enabled && values.every(v => v === values[0]) ? values[0] : "")
 		input.disabled = !enabled
 		
 		let inFocus = false
@@ -910,11 +910,11 @@ class Panel
 			selectOption.value = option.value
 			select.appendChild(selectOption)
 		}
-		
-		if (!enabled || multiedit)
-			select.selectedIndex = -1
-		else
+
+		if (enabled && values.every(v => v === values[0]))
 			select.selectedIndex = options.findIndex(op => op.value == values[0])
+		else
+			select.selectedIndex = -1
 		
 		select.onchange = () =>
 		{

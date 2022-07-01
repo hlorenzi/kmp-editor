@@ -5,10 +5,7 @@ const { Vec3 } = require("../math/vec3.js")
 
 let unhandledSections =
 [
-	{ id: "AREA", entryLen: 0x30 },
 	{ id: "CAME", entryLen: 0x48 },
-	{ id: "CNPT", entryLen: 0x1c },
-	{ id: "MSPT", entryLen: 0x1c },
 ]
 
 
@@ -63,6 +60,7 @@ class KmpData
 		let checkpointPaths = []
 		let objects = []
 		let routes = []
+		let areas = []
 		let respawnPoints = []
 		let cannonPoints = []
 		let trackInfo = {}
@@ -231,6 +229,28 @@ class KmpData
 					}
 					break
 				}
+
+				case "AREA":
+				{
+					for (let i = 0; i < entryNum; i++)
+					{
+						let shape = parser.readByte()
+						let type = parser.readByte()
+						let cameraIndex = parser.readByte()
+						let priority = parser.readByte()
+						let pos = parser.readVec3()
+						let rotation = parser.readVec3()
+						let scale = parser.readVec3()
+						let setting1 = parser.readUInt16()
+						let setting2 = parser.readUInt16()
+						let routeIndex = parser.readByte()
+						let enemyIndex = parser.readByte()
+						parser.readUInt16()
+						
+						areas.push({ shape, type, cameraIndex, priority, pos, rotation, scale, setting1, setting2, routeIndex, enemyIndex })
+					}
+					break
+				}
 				
 				case "JGPT":
 				{
@@ -310,7 +330,7 @@ class KmpData
 			enemyPoints, enemyPaths,
 			itemPoints, itemPaths,
 			checkpointPoints, checkpointPaths,
-			objects, routes, cannonPoints,
+			objects, routes, areas, cannonPoints,
 			trackInfo,
 			respawnPoints
 		}
@@ -519,6 +539,27 @@ class KmpData
 			if (respawnIndex >= 0 && respawnIndex < kmp.respawnPoints.nodes.length)
 				kmp.checkpointPoints.nodes[i].respawnNode = kmp.respawnPoints.nodes[respawnIndex]
 		}
+		
+		for (let i = 0; i < kmpData.areas.length; i++)
+		{
+			let kmpArea = kmpData.areas[i]
+			
+			let node = kmp.areaPoints.addNode()
+			node.pos = new Vec3(kmpArea.pos.x, -kmpArea.pos.z, -kmpArea.pos.y)
+			node.rotation = new Vec3(kmpArea.rotation.x, kmpArea.rotation.y, kmpArea.rotation.z)
+			node.scale = new Vec3(kmpArea.scale.x, kmpArea.scale.z, kmpArea.scale.y)
+			node.shape = kmpArea.shape
+			node.type = kmpArea.type
+			node.priority = kmpArea.priority
+			node.setting1 = kmpArea.setting1
+			node.setting2 = kmpArea.setting2
+			node.camera = null
+			node.cameraIndex = kmpArea.cameraIndex
+			node.route = null
+			node.routeIndex = kmpArea.routeIndex
+			node.enemyIndex = kmpArea.enemyIndex
+		}
+		
 
 		kmp.isBattleTrack = kmpData.itemPaths.length == 0 && kmpData.checkpointPaths.length == 0 && kmpData.finishPoints.length > 0
 		
@@ -912,7 +953,38 @@ class KmpData
 		}
 		
 		// Write AREA
-		writeUnhandledSection("AREA")
+		let sectionAreaAddr = w.head
+		let sectionAreaOrder = sectionOrder.findIndex(s => s == "AREA")
+		w.seek(sectionOffsetsAddr + sectionAreaOrder * 4)
+		w.writeUInt32(sectionAreaAddr - headerEndAddr)
+		
+		w.seek(sectionAreaAddr)
+		w.writeAscii("AREA")
+		w.writeUInt16(this.areaPoints.nodes.length)
+		w.writeUInt16(0)
+		for (let i = 0; i < this.areaPoints.nodes.length; i++)
+		{
+			let area = this.areaPoints.nodes[i]
+			
+			w.writeByte(area.shape)
+			w.writeByte(area.type)
+			w.writeByte(area.type == 0 ? area.cameraIndex : 0xff)
+			w.writeByte(area.priority)
+			w.writeFloat32(area.pos.x)
+			w.writeFloat32(-area.pos.z)
+			w.writeFloat32(-area.pos.y)
+			w.writeFloat32(area.rotation.x)
+			w.writeFloat32(area.rotation.y)
+			w.writeFloat32(area.rotation.z)
+			w.writeFloat32(area.scale.x)
+			w.writeFloat32(area.scale.z)
+			w.writeFloat32(area.scale.y)
+			w.writeUInt16(area.setting1)
+			w.writeUInt16(area.setting2)
+			w.writeByte(area.routeIndex)
+			w.writeByte(area.type == 4 ? area.enemyIndex : 0xff)
+			w.writeUInt16(0)
+		}
 		
 		// Write CAME
 		writeUnhandledSection("CAME")
@@ -1166,6 +1238,43 @@ class KmpData
 			newNode.id = oldNode.id
 			newNode.unknown = oldNode.unknown
 		}
+
+		this.areaPoints = new NodeGraph()
+		this.areaPoints.enableCOOB = false
+		this.areaPoints.onAddNode = (node) =>
+		{
+			node.pos = new Vec3(0, 0, 0)
+			node.rotation = new Vec3(0, 0, 0)
+			node.scale = new Vec3(1, 1, 1)
+			node.shape = 0
+			node.type = 0
+			node.priority = 0
+			node.setting1 = 0
+			node.setting2 = 0
+			node.camera = null
+			node.cameraIndex = 0xff
+			node.route = null
+			node.routeIndex = 0xff
+			node.enemyIndex = 0xff
+			node.render = false
+		}
+		this.areaPoints.onCloneNode = (newNode, oldNode) =>
+		{
+			newNode.pos = oldNode.pos
+			newNode.rotation = oldNode.rotation
+			newNode.scale = oldNode.scale
+			newNode.shape = oldNode.shape
+			newNode.type = oldNode.type
+			newNode.priority = oldNode.priority
+			newNode.setting1 = oldNode.setting1
+			newNode.setting2 = oldNode.setting2
+			newNode.camera = oldNode.camera
+			newNode.cameraIndex = oldNode.cameraIndex
+			newNode.route = oldNode.route
+			newNode.routeIndex = oldNode.routeIndex
+			newNode.enemyIndex = oldNode.enemyIndex
+			newNode.render = oldNode.render
+		}
 		
 		this.trackInfo = {}
 		this.trackInfo.lapCount = 3
@@ -1250,6 +1359,7 @@ class KmpData
 		cloned.objects = this.objects.clone()
 		cloned.respawnPoints = this.respawnPoints.clone()
 		cloned.cannonPoints = this.cannonPoints.clone()
+		cloned.areaPoints = this.areaPoints.clone()
 		
 		for (let route of this.routes)
 		{
