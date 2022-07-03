@@ -45,23 +45,21 @@ class ViewerTrackInformation
 			return view.getFloat32(0)
 		}
 		let speedModInput = panel.addSelectionNumericInput(null, "Speed Mod.", 0, 99999, this.data.trackInfo.speedMod, null, 0.1, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.speedMod = convertFloat32MSB2(x) })
-		speedModInput.refreshDisplay = () => { speedModInput.value = this.data.trackInfo.speedMod } //convertFloat32MSB2(parseFloat(speedModInput.lastValue)) }
+		speedModInput.refreshDisplay = () => { speedModInput.value = this.data.trackInfo.speedMod }
 
+		let flareGroup = panel.addGroup(null, "Lens Flare:")
+	
+		panel.addSelectionNumericInput(flareGroup, "Red", 0, 255, this.data.trackInfo.flareColor[0], 1.0, 1.0, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.flareColor[0] = x })
+		panel.addSelectionNumericInput(flareGroup, "Green", 0, 255, this.data.trackInfo.flareColor[1], 1.0, 1.0, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.flareColor[1] = x })
+		panel.addSelectionNumericInput(flareGroup, "Blue", 0, 255, this.data.trackInfo.flareColor[2], 1.0, 1.0, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.flareColor[2] = x })
+		panel.addSelectionNumericInput(flareGroup, "Alpha", 0, 255, this.data.trackInfo.flareColor[3], 1.0, 1.0, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.flareColor[3] = x })
+		
 		let lensFlareOptions =
 		[
 			{ str: "Disabled", value: 0 },
 			{ str: "Enabled", value: 1 }
 		]
-		panel.addSelectionDropdown(null, "Lens Flare", this.data.trackInfo.lensFlareFlash, lensFlareOptions, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.lensFlareFlash = x; this.refreshPanels() })
-
-		if (this.data.trackInfo.lensFlareFlash)
-		{
-			let colorGroup = panel.addGroup(null, "Flare Color:")
-			panel.addSelectionNumericInput(colorGroup, "Red", 0, 255, this.data.trackInfo.flareColor[0], 1.0, 1.0, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.flareColor[0] = x })
-			panel.addSelectionNumericInput(colorGroup, "Green", 0, 255, this.data.trackInfo.flareColor[1], 1.0, 1.0, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.flareColor[1] = x })
-			panel.addSelectionNumericInput(colorGroup, "Blue", 0, 255, this.data.trackInfo.flareColor[2], 1.0, 1.0, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.flareColor[2] = x })
-			panel.addSelectionNumericInput(colorGroup, "Alpha", 0, 255, this.data.trackInfo.flareColor[3], 1.0, 1.0, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.flareColor[3] = x })
-		}
+		panel.addSelectionDropdown(flareGroup, "Flashing", this.data.trackInfo.lensFlareFlash, lensFlareOptions, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.lensFlareFlash = x; this.refreshPanels() })
 	}
 	
 	
