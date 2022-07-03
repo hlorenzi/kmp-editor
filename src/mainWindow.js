@@ -566,7 +566,8 @@ class Panel
 		
 		this.onDestroy = []
 		
-		this.parentDiv.removeChild(this.panelDiv)
+		if (this.panelDiv)
+			this.parentDiv.removeChild(this.panelDiv)
 	}
 	
 	
@@ -767,10 +768,13 @@ class Panel
 		input.type = "input"
 		input.value = (enabled && values.every(v => v === values[0]) ? values[0] : "")
 		input.disabled = !enabled
+
+		input.lastInput = input.value
+		input.refreshDisplay = () => { input.value = input.lastInput }
 		
 		let inFocus = false
 		input.onfocus = () => { inFocus = true; this.window.setUndoPoint() }
-		input.onblur = () => { inFocus = false; this.window.setUndoPoint(); this.window.viewer.canvas.focus(); this.window.viewer.currentSubviewer.refreshPanels() }
+		input.onblur = () => { inFocus = false; this.window.setUndoPoint(); this.window.viewer.canvas.focus(); input.refreshDisplay() }
 		input.onkeydown = (ev) => { if (inFocus) ev.stopPropagation() }
 		
 		let safeParseFloat = (s) =>
@@ -804,6 +808,8 @@ class Panel
 			for (let i = 0; i < values.length; i++)
 				onchange(input.value != "" ? clampValue(safeParseFloat(input.value)) : values[i], i)
 			
+			input.lastInput = (input.value != "" ? clampValue(safeParseFloat(input.value)) : lastInput)
+
 			this.onRefreshView()
 		}
 		
