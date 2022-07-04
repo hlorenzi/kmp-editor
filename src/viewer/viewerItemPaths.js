@@ -134,6 +134,8 @@ class ViewerItemPaths
 			{ str: "B.Bill can't stop & Low-priority route", value: 0xb },
 		]
 		panel.addSelectionDropdown(selectionGroup, "Setting 2", selectedPoints.map(p => p.setting2), setting2Options, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
+
+		panel.addButton(selectionGroup, "Set as Default Bill Route", () => this.setDefaultBillRoute())
 	}
 	
 	
@@ -350,6 +352,23 @@ class ViewerItemPaths
 			this.data.itemPoints.nodes.splice(p, 1)
 			this.data.itemPoints.nodes.unshift(point)
 		}
+		
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
+	}
+
+
+	setDefaultBillRoute()
+	{
+		for (let point of this.data.itemPoints.nodes)
+			if (point.selected)
+				for (let prev of point.prev)
+				{
+					let i = prev.node.next.findIndex(p => p.node == point)
+					let prevLink = prev.node.next.splice(i, 1)[0]
+					prev.node.next.unshift(prevLink)
+				}
 		
 		this.refresh()
 		this.window.setNotSaved()
