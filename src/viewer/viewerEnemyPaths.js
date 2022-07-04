@@ -72,6 +72,10 @@ class ViewerEnemyPaths
 	
 		panel.addCheckbox(null, "Treat as Battle Track", this.viewer.cfg.isBattleTrack, (x) => this.viewer.cfg.isBattleTrack = x)
 		panel.addCheckbox(null, "Show point sizes", this.viewer.cfg.enemyPathsEnableSizeRender, (x) => this.viewer.cfg.enemyPathsEnableSizeRender = x)
+
+		if (this.data.enemyPoints.nodes.length == 0 && this.data.itemPoints.nodes.length > 0)
+			panel.addButton(null, "Copy From Item Paths", () => this.copyFromItemPaths())
+
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Extend Path")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
@@ -341,6 +345,41 @@ class ViewerEnemyPaths
 			this.data.enemyPoints.nodes.unshift(point)
 		}
 		
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
+	}
+
+
+	copyFromItemPaths()
+	{
+		let newGraph = this.data.itemPoints.clone()
+		newGraph.onAddNode = (node) => 
+		{
+			node.pos = new Vec3(0, 0, 0)
+			node.size = 10
+			node.setting1 = 0
+			node.setting2 = 0
+			node.setting3 = 0
+		}
+		newGraph.onCloneNode = (newNode, oldNode) => 
+		{
+			newNode.pos = oldNode.pos.clone()
+			newNode.size = oldNode.size
+			newNode.setting1 = oldNode.setting1
+			newNode.setting2 = oldNode.setting2
+			newNode.setting3 = oldNode.setting3
+		}
+
+		for (let point of newGraph.nodes)
+		{
+			point.setting1 = 0
+			point.setting2 = 0
+			point.setting3 = 0
+		}
+
+		this.data.enemyPoints = newGraph
+
 		this.refresh()
 		this.window.setNotSaved()
 		this.window.setUndoPoint()

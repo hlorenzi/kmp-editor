@@ -76,6 +76,10 @@ class ViewerItemPaths
 		this.panel = panel
 		
 		panel.addCheckbox(null, "Show point sizes", this.viewer.cfg.enemyPathsEnableSizeRender, (x) => this.viewer.cfg.enemyPathsEnableSizeRender = x)
+		
+		if (this.data.itemPoints.nodes.length == 0 && this.data.enemyPoints.nodes.length > 0)
+			panel.addButton(null, "Copy From Enemy Paths", () => this.copyFromEnemyPaths())
+		
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Extend Path")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
@@ -370,6 +374,39 @@ class ViewerItemPaths
 					prev.node.next.unshift(prevLink)
 				}
 		
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
+	}
+
+
+	copyFromEnemyPaths()
+	{
+		let newGraph = this.data.enemyPoints.clone()
+		newGraph.onAddNode = (node) => 
+		{
+			node.pos = new Vec3(0, 0, 0)
+			node.size = 10
+			node.setting1 = 0
+			node.setting2 = 0
+		}
+		newGraph.onCloneNode = (newNode, oldNode) => 
+		{
+			newNode.pos = oldNode.pos.clone()
+			newNode.size = oldNode.size
+			newNode.setting1 = oldNode.setting1
+			newNode.setting2 = oldNode.setting2
+		}
+
+		for (let point of newGraph.nodes)
+		{
+			point.setting1 = 0
+			point.setting2 = 0
+			delete point.setting3
+		}
+
+		this.data.itemPoints = newGraph
+
 		this.refresh()
 		this.window.setNotSaved()
 		this.window.setUndoPoint()
