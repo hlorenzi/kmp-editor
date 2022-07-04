@@ -77,6 +77,7 @@ class ViewerEnemyPaths
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
+		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
 		panel.addButton(null, "(F) Set Selected as First Point", () => this.setSelectedAsFirstPoint())
 		
@@ -280,6 +281,24 @@ class ViewerEnemyPaths
 		this.window.setNotSaved()
 		this.window.setUndoPoint()
 	}
+
+
+	snapSelectedToY()
+	{
+		for (let point of this.data.enemyPoints.nodes)
+		{
+			if (point.selected)
+			{
+				let hit = this.viewer.collision.raycast(point.pos, new Vec3(0, 0, 1))
+				if (hit != null)
+					point.pos = hit.position
+			}
+		}
+		
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
+	}
 	
 	
 	unlinkSelectedPoints()
@@ -342,6 +361,11 @@ class ViewerEnemyPaths
 			case "X":
 			case "x":
 				this.deleteSelectedPoints()
+				return true
+
+			case "Y":
+			case "y":
+				this.snapSelectedToY()
 				return true
 				
 			case "U":

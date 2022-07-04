@@ -1256,7 +1256,7 @@ class KmpData
 			node.route = null
 			node.routeIndex = 0xff
 			node.enemyIndex = 0xff
-			node.render = false
+			node.render = true
 		}
 		this.areaPoints.onCloneNode = (newNode, oldNode) =>
 		{

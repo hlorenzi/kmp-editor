@@ -86,6 +86,7 @@ class ViewerAreas
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(S) Select All With Same Type", () => this.toggleAllSelectionByType())
         panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
+		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
 
         let selectedPoints = this.data.areaPoints.nodes.filter(p => p.selected)
 		
@@ -344,6 +345,24 @@ class ViewerAreas
 	}
 
 
+	snapSelectedToY()
+	{
+		for (let point of this.data.areaPoints.nodes)
+		{
+			if (point.selected)
+			{
+				let hit = this.viewer.collision.raycast(point.pos, new Vec3(0, 0, 1))
+				if (hit != null)
+					point.pos = hit.position
+			}
+		}
+		
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
+	}
+
+
     onKeyDown(ev)
 	{
 		switch (ev.key)
@@ -358,6 +377,11 @@ class ViewerAreas
 			case "X":
 			case "x":
 				this.deleteSelectedPoints()
+				return true
+
+			case "Y":
+			case "y":
+				this.snapSelectedToY()
 				return true
 		}
 		

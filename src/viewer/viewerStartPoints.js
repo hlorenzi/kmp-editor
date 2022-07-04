@@ -88,6 +88,7 @@ class ViewerStartPoints
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
+		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
 
 		let polePosOptions =
 		[
@@ -260,6 +261,24 @@ class ViewerStartPoints
 		this.window.setNotSaved()
 		this.window.setUndoPoint()
 	}
+
+
+	snapSelectedToY()
+	{
+		for (let point of this.data.startPoints.nodes)
+		{
+			if (point.selected)
+			{
+				let hit = this.viewer.collision.raycast(point.pos, new Vec3(0, 0, 1))
+				if (hit != null)
+					point.pos = hit.position
+			}
+		}
+		
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
+	}
 	
 	
 	onKeyDown(ev)
@@ -276,6 +295,11 @@ class ViewerStartPoints
 			case "X":
 			case "x":
 				this.deleteSelectedPoints()
+				return true
+
+			case "Y":
+			case "y":
+				this.snapSelectedToY()
 				return true
 		}
 		
