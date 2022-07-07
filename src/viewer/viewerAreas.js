@@ -448,6 +448,7 @@ class ViewerAreas
 		{
 			let newPoint = this.data.areaPoints.addNode()
 			newPoint.pos = mouse3DPos
+			newPoint.render = true
 			
 			this.refresh()
 			newPoint.selected = true
