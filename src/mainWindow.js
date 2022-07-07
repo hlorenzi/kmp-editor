@@ -83,16 +83,19 @@ class MainWindow
 			shadingFactor: 0.3,
 			fogFactor: 0.0000025,
 			kclEnableColors: true,
+			kclEnableWalls: true,
 			kclEnableDeathBarriers: true,
 			kclEnableInvisible: true,
 			kclEnableEffects: false,
+			kclHighlightHWs: false,
+			kclHighlightBarrelRoll: false,
 			enemyPathsEnableSizeRender: true,
 			checkpointsEnableVerticalPanels: true,
 			checkpointsEnableRespawnPointLinks: true,
 			enableRotationRender: true,
 			cannonsEnableDirectionRender: true,
 			respawnsEnablePlayerSlots: true,
-			startPointsEnableZoneRender: true
+			startPointsEnableZoneRender: true,
 		}
 		
 		this.currentKmpFilename = null
@@ -176,9 +179,12 @@ class MainWindow
 		panel.addSlider(null, "Point Scale", 0.1, 5, this.cfg.pointScale, 0.1, (x) => this.cfg.pointScale = x)
 		let kclGroup = panel.addGroup(null, "Collision data:")
 		panel.addCheckbox(kclGroup, "Use colors", this.cfg.kclEnableColors, (x) => { this.cfg.kclEnableColors = x; this.openKcl(this.currentKclFilename) })
+		panel.addCheckbox(kclGroup, "Show walls", this.cfg.kclEnableWalls, (x) => { this.cfg.kclEnableWalls = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show death barriers", this.cfg.kclEnableDeathBarriers, (x) => { this.cfg.kclEnableDeathBarriers = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show invisible walls", this.cfg.kclEnableInvisible, (x) => { this.cfg.kclEnableInvisible = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show effects/triggers", this.cfg.kclEnableEffects, (x) => { this.cfg.kclEnableEffects = x; this.openKcl(this.currentKclFilename) })
+		panel.addCheckbox(kclGroup, "Highlight horizontal walls", this.cfg.kclHighlightHWs, (x) => { this.cfg.kclHighlightHWs = x; this.openKcl(this.currentKclFilename) })
+		panel.addCheckbox(kclGroup, "Highlight barrel roll wall", this.cfg.kclHighlightBarrelRoll, (x) => { this.cfg.kclHighlightBarrelRoll = x; this.openKcl(this.currentKclFilename) })
 		
 		this.refreshTitle()
 		this.viewer.refreshPanels()

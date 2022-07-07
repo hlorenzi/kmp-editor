@@ -111,6 +111,9 @@ class KclLoader
 			
 			let data = collisionTypeData[flagBasicType]
 
+			if (cfg && data.isWall && cfg.kclEnableWalls !== undefined && !cfg.kclEnableWalls)
+				continue
+
 			if (cfg && data.isDeath && cfg.kclEnableDeathBarriers !== undefined && !cfg.kclEnableDeathBarriers)
 				continue
 			
@@ -123,6 +126,15 @@ class KclLoader
 			let color = data.c
 			if (cfg && cfg.kclEnableColors !== undefined && !cfg.kclEnableColors)
 				color = [1, 1, 1, 1]
+			
+			if (cfg && data.isWall && cfg.kclHighlightBarrelRoll !== undefined && cfg.kclHighlightBarrelRoll && collisionFlags & 0x8000)
+				color = [1.0, 1.0, 0.0, 1.0]
+			
+			let v1to2 = v2.sub(v1)
+			let v1to3 = v3.sub(v1)
+			let normal = v1to2.cross(v1to3).normalize()
+			if (cfg && data.isWall && cfg.kclHighlightHWs !== undefined && cfg.kclHighlightHWs && normal.dot(new Vec3(0, 0, 1)) > 0.9)
+				color = [1.0, 1.0, 0.0, 1.0]
 			
 			model.addTri(v1, v2, v3, color, color, color)
 		}
