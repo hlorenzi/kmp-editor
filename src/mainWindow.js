@@ -160,6 +160,12 @@ class MainWindow
 			isReloading = false
 		}, 1)
 	}
+
+
+	openExternalLink(link)
+	{
+		shell.openExternal(link)
+	}
 	
 	
 	refreshPanels()

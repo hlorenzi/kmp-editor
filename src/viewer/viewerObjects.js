@@ -388,7 +388,7 @@ class ViewerObjects
 		this.panel = panel
 	
 		panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
-		panel.addButton(null, "Open Object Database", () => shell.openExternal("https://szs.wiimm.de/cgi/mkw/object"))
+		panel.addButton(null, "Open Object Database", () => this.window.openExternalLink("https://szs.wiimm.de/cgi/mkw/object"))
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Object")
 		panel.addText(null, "<strong>Hold Alt + Drag Object:</strong> Duplicate Object")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
