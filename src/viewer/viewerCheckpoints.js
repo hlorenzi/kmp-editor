@@ -152,7 +152,7 @@ class ViewerCheckpoints
 			
 			panel.addText(selectionGroup, "<strong>CKPH Index:</strong> " + formatNumHex(selectedPoints[0].pathIndex) + ", point #" + formatNum(selectedPoints[0].pathPointIndex))
 			panel.addText(selectionGroup, "<strong>CKPT Index:</strong> " + formatNumHex(selectedPoints[0].pointIndex))
-			panel.addText(selectionGroup, "<strong>Group Layer:</strong> " + formatNum(selectedPoints[0].pathLayer))
+			// panel.addText(selectionGroup, "<strong>Group Layer:</strong> " + formatNum(selectedPoints[0].pathLayer))
 			panel.addText(selectionGroup, "<strong>Lap Completion:</strong> " + getCompletion())
 			panel.addCheckbox(selectionGroup, "Start new checkpoint group", selectedPoints[0].firstInPath, setPath)
 		}

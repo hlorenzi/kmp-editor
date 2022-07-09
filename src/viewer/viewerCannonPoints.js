@@ -94,7 +94,7 @@ class ViewerCannonPoints
 		if (selectedPoints.length == 1)
 		{
 			let selectedIndex = this.data.cannonPoints.nodes.findIndex(p => p === selectedPoints[0])
-			panel.addText(selectionGroup, "<strong>ID:</strong> " + selectedIndex + " (0x" + selectedIndex.toString(16) + ")")
+			panel.addText(selectionGroup, "<strong>CNPT Index:</strong> " + selectedIndex + " (0x" + selectedIndex.toString(16) + ")")
 		}
 		
 		panel.addSelectionNumericInput(selectionGroup, "Dest. X", -1000000, 1000000, selectedPoints.map(p =>  p.pos.x),       null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.x = x })

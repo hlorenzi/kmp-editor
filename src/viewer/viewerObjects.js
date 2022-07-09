@@ -402,6 +402,13 @@ class ViewerObjects
 		let selectionGroup = panel.addGroup(null, "Selection:")
 		let enabled = (selectedPoints.length > 0)
 		let multiedit = (selectedPoints.length > 1)
+
+		if (selectedPoints.length == 1)
+		{
+			let i = this.data.objects.nodes.findIndex(p => p === selectedPoints[0])
+			panel.addText(selectionGroup, "<strong>GOBJ Index:</strong> " + i.toString() + " (0x" + i.toString(16) + ")")
+		}
+		
 		let objName = panel.addText(selectionGroup, "<strong>Name:</strong> " + (selectedPoints.length > 0 ? objectNames[selectedPoints[0].id] : ""))
 		panel.addSelectionNumericInput(selectionGroup,      "ID",        0,  0xffff, selectedPoints.map(p =>  p.id),           1.0, 1.0, enabled, multiedit, (x, i) => {
 			this.window.setNotSaved()
@@ -419,8 +426,11 @@ class ViewerObjects
 		panel.addSelectionNumericInput(selectionGroup, "Scale Y", -1000000, 1000000, selectedPoints.map(p =>  p.scale.z),     null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].scale.z = x })
 		panel.addSelectionNumericInput(selectionGroup, "Scale Z", -1000000, 1000000, selectedPoints.map(p =>  p.scale.y),     null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].scale.y = x })
 		
-		panel.addSelectionNumericInput(selectionGroup,   "Route", 0, 0xffff, selectedPoints.map(p => p.routeIndex), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].routeIndex = x })
-	
+		let routeOptions = [{ str: "None", value: 0xffff }]
+		for (let i = 0; i < this.data.routes.length; i++)
+			routeOptions.push({ str: "Route " + i + " (0x" + i.toString(16) + ")", value: i })
+		panel.addSelectionDropdown(selectionGroup, "Route", selectedPoints.map(p => p.routeIndex), routeOptions, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].routeIndex = x })
+		
 		for (let s = 0; s < 8; s++)
 			panel.addSelectionNumericInput(selectionGroup, "Setting " + s, 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
 		

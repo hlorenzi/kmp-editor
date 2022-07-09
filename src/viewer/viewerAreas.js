@@ -93,6 +93,12 @@ class ViewerAreas
 		let selectionGroup = panel.addGroup(null, "Selection:")
 		let enabled = (selectedPoints.length > 0)
 		let multiedit = (selectedPoints.length > 1)
+
+		if (selectedPoints.length == 1)
+		{
+			let i = this.data.areaPoints.nodes.findIndex(p => p === selectedPoints[0])
+			panel.addText(selectionGroup, "<strong>AREA Index:</strong> " + i.toString() + " (0x" + i.toString(16) + ")")
+		}
 		
 		panel.addCheckbox(selectionGroup, "Render Area", (!enabled || multiedit ? selectedPoints.every(p => p.render) : selectedPoints[0].render), (x) => {
             for (let point of selectedPoints)
