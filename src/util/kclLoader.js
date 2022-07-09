@@ -26,7 +26,7 @@ class KclLoader
 		
 		let normals = []
 		parser.seek(section2Offset)
-		while (parser.head < section3Offset)
+		while (parser.head < section3Offset + 0x10)
 		{
 			let x = parser.readFloat32()
 			let y = parser.readFloat32()
