@@ -109,11 +109,11 @@ class ViewerAreas
 		[
 			{ str: "Camera", value: 0 },
 			{ str: "Env Effect", value: 1 },
-            { str: "Swap Fog Effect", value: 2 },
-            { str: "Moving Road", value: 3 },
+            { str: "Fog Effect", value: 2 },
+            { str: "Moving Water", value: 3 },
             { str: "Force Recalc", value: 4 },
             { str: "Minimap Control", value: 5 },
-            { str: "Swap Bloom Effect", value: 6 },
+            { str: "Bloom Effect", value: 6 },
             { str: "Enable Boos", value: 7 },
             { str: "Object Group", value: 8 },
             { str: "Object Unload", value: 9 },
@@ -173,7 +173,7 @@ class ViewerAreas
             
         if (selectionType == 6)
         {
-            panel.addSelectionNumericInput(selectionGroup, "BLMM File", 0, 65535, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
+            panel.addSelectionNumericInput(selectionGroup, "BBLM File", 0, 65535, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
             panel.addSelectionNumericInput(selectionGroup, "Fade Time", 0, 65535, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
         }
 

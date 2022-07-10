@@ -126,15 +126,31 @@ class KclLoader
 			let color = data.c
 			if (cfg && cfg.kclEnableColors !== undefined && !cfg.kclEnableColors)
 				color = [1, 1, 1, 1]
-			
-			if (cfg && data.isWall && cfg.kclHighlightBarrelRoll !== undefined && cfg.kclHighlightBarrelRoll && collisionFlags & 0x8000)
-				color = [1.0, 1.0, 0.0, 1.0]
-			
-			let v1to2 = v2.sub(v1)
-			let v1to3 = v3.sub(v1)
-			let normal = v1to2.cross(v1to3).normalize()
-			if (cfg && data.isWall && cfg.kclHighlightHWs !== undefined && cfg.kclHighlightHWs && normal.dot(new Vec3(0, 0, 1)) > 0.9)
-				color = [1.0, 1.0, 0.0, 1.0]
+
+			if (cfg && cfg.kclHighlighter !== undefined)
+			{
+				let highlighted = false
+				switch (cfg.kclHighlighter)
+				{
+					case 1:
+						highlighted = collisionFlags & 0x2000
+						break
+
+					case 2:
+						let v1to2 = v2.sub(v1)
+						let v1to3 = v3.sub(v1)
+						let normal = v1to2.cross(v1to3).normalize()
+						highlighted = data.isWall && normal.dot(new Vec3(0, 0, 1)) > 0.9
+						break
+
+					case 3:
+						highlighted = data.isWall && collisionFlags & 0x8000
+						break
+				}
+
+				if (highlighted)
+					color = [1.0, 1.0, 0.0, 1.0]
+			}
 			
 			model.addTri(v1, v2, v3, color, color, color)
 		}

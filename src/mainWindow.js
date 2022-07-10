@@ -87,8 +87,7 @@ class MainWindow
 			kclEnableDeathBarriers: true,
 			kclEnableInvisible: true,
 			kclEnableEffects: false,
-			kclHighlightHWs: false,
-			kclHighlightBarrelRoll: false,
+			kclHighlighter: 0,
 			enemyPathsEnableSizeRender: true,
 			checkpointsEnableVerticalPanels: true,
 			checkpointsEnableRespawnPointLinks: true,
@@ -189,9 +188,16 @@ class MainWindow
 		panel.addCheckbox(kclGroup, "Show death barriers", this.cfg.kclEnableDeathBarriers, (x) => { this.cfg.kclEnableDeathBarriers = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show invisible walls", this.cfg.kclEnableInvisible, (x) => { this.cfg.kclEnableInvisible = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show effects/triggers", this.cfg.kclEnableEffects, (x) => { this.cfg.kclEnableEffects = x; this.openKcl(this.currentKclFilename) })
-		panel.addCheckbox(kclGroup, "Highlight horizontal walls", this.cfg.kclHighlightHWs, (x) => { this.cfg.kclHighlightHWs = x; this.openKcl(this.currentKclFilename) })
-		panel.addCheckbox(kclGroup, "Highlight barrel roll walls", this.cfg.kclHighlightBarrelRoll, (x) => { this.cfg.kclHighlightBarrelRoll = x; this.openKcl(this.currentKclFilename) })
 		
+		let hlOptions =
+		[
+			{ str: "None", value: 0 },
+			{ str: "Trickable Road", value: 1 },
+			{ str: "Horizontal Walls", value: 2 },
+			{ str: "Barrel Roll Walls", value: 3 },
+		]
+		panel.addSelectionDropdown(kclGroup, "Highlight", this.cfg.kclHighlighter, hlOptions, true, false, (x) => { this.cfg.kclHighlighter = x; this.openKcl(this.currentKclFilename) })
+	
 		this.refreshTitle()
 		this.viewer.refreshPanels()
 	}
