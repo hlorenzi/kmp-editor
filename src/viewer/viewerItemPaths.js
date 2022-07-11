@@ -30,13 +30,8 @@ class ViewerItemPaths
 			.calculateNormals()
 			.makeModel(viewer.gl)
 			
-		this.modelPath1 = new ModelBuilder()
-			.addCylinder(-100, -100, 0, 100, 100, 0.5)
-			.calculateNormals()
-			.makeModel(viewer.gl)
-		
-		this.modelPath2 = new ModelBuilder()
-			.addCylinder(-100, -100, 0.5, 100, 100, 1)
+		this.modelPath = new ModelBuilder()
+			.addCylinder(-100, -100, 0, 100, 100, 1)
 			.calculateNormals()
 			.makeModel(viewer.gl)
 		
@@ -183,20 +178,14 @@ class ViewerItemPaths
 			this.renderers.push(point.rendererSelected)
 			this.renderers.push(point.rendererSizeCircle)
 				
-			point.rendererOutgoingPaths1 = []
-			point.rendererOutgoingPaths2 = []
+			point.rendererOutgoingPaths = []
 			point.rendererOutgoingPathArrows = []
 			
 			for (let next of point.next)
 			{
-				let rPath1 = new GfxNodeRendererTransform()
+				let rPath = new GfxNodeRendererTransform()
 					.attach(this.scene.root)
-					.setModel(this.modelPath1)
-					.setMaterial(this.viewer.material)
-				
-				let rPath2 = new GfxNodeRendererTransform()
-					.attach(this.scene.root)
-					.setModel(this.modelPath2)
+					.setModel(this.modelPath)
 					.setMaterial(this.viewer.material)
 					
 				let rArrow = new GfxNodeRendererTransform()
@@ -204,12 +193,10 @@ class ViewerItemPaths
 					.setModel(this.modelArrow)
 					.setMaterial(this.viewer.material)
 					
-				point.rendererOutgoingPaths1.push(rPath1)
-				point.rendererOutgoingPaths2.push(rPath2)
+				point.rendererOutgoingPaths.push(rPath)
 				point.rendererOutgoingPathArrows.push(rArrow)
 					
-				this.renderers.push(rPath1)
-				this.renderers.push(rPath2)
+				this.renderers.push(rPath)
 				this.renderers.push(rArrow)
 			}
 		}
@@ -636,11 +623,7 @@ class ViewerItemPaths
 				let matrixScaleArrow = Mat4.scale(scale2, scale2, scale2)
 				let matrixTranslateArrow = Mat4.translation(nextPos.x, nextPos.y, nextPos.z)
 				
-				point.rendererOutgoingPaths1[n]
-					.setCustomMatrix(matrixScale.mul(matrixAlign.mul(matrixTranslate)))
-					.setDiffuseColor(bbillCantStop ? [0.5, 0.5, 0.5, 1] : lowPriority ? [0.5, 1, 0.8, 1] : n != 0 ? [0.8, 1, 0.5, 1] : [0.5, 1, 0, 1])
-
-				point.rendererOutgoingPaths2[n]
+				point.rendererOutgoingPaths[n]
 					.setCustomMatrix(matrixScale.mul(matrixAlign.mul(matrixTranslate)))
 					.setDiffuseColor(nextBbillCantStop ? [0.5, 0.5, 0.5, 1] : lowPriority ? [0.5, 1, 0.8, 1] : n != 0 ? [0.8, 1, 0.5, 1] : [0.5, 1, 0, 1])
 					
