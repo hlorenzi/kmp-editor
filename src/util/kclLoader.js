@@ -5,7 +5,7 @@ const { Vec3 } = require("../math/vec3.js")
 
 class KclLoader
 {
-	static load(bytes, cfg)
+	static load(bytes, cfg, highlightFlag = null)
 	{
 		let parser = new BinaryParser(bytes)
 		
@@ -110,6 +110,13 @@ class KclLoader
 				continue
 			
 			let data = collisionTypeData[flagBasicType]
+
+			if (highlightFlag != null && collisionFlags == highlightFlag)
+			{
+				let color = [1, 1, 0, 1]
+				model.addTri(v1, v2, v3, color, color, color)
+				continue
+			}
 
 			if (cfg && data.isWall && cfg.kclEnableWalls !== undefined && !cfg.kclEnableWalls)
 				continue

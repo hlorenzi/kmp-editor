@@ -92,7 +92,8 @@ class MainWindow
 			checkpointsEnableVerticalPanels: true,
 			checkpointsEnableRespawnPointLinks: true,
 			enableRotationRender: true,
-			cannonsEnableDirectionRender: true,
+			cannonsEnableDirectionRender: false,
+			cannonsEnableKclHighlight: true,
 			respawnsEnablePlayerSlots: true,
 			startPointsEnableZoneRender: true,
 		}
@@ -525,13 +526,13 @@ class MainWindow
 	}
 	
 	
-	openKcl(filename)
+	openKcl(filename, highlightFlag = null)
 	{
 		if (filename == null)
 			return
 		
 		let kclData = fs.readFileSync(filename)
-		let modelBuilder = require("./util/kclLoader.js").KclLoader.load(kclData, this.cfg)
+		let modelBuilder = require("./util/kclLoader.js").KclLoader.load(kclData, this.cfg, highlightFlag)
 		this.viewer.setModel(modelBuilder)
 		this.currentKclFilename = filename
 		

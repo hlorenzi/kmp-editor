@@ -18,6 +18,7 @@ class ViewerCannonPoints
 		
 		this.hoveringOverPoint = null
 		this.linkingPoints = false
+		this.highlighting = false
 		
 		this.modelPoint = new ModelBuilder()
 			.addSphere(-150, -150, -150, 150, 150, 150)
@@ -75,17 +76,26 @@ class ViewerCannonPoints
 	{
 		let panel = this.window.addPanel("Cannon Points", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
+
+		let selectedPoints = this.data.cannonPoints.nodes.filter(p => p.selected)
 	
 		panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
+		panel.addCheckbox(null, "Highlight selected trigger KCL", this.viewer.cfg.cannonsEnableKclHighlight, (x) => { 
+			this.viewer.cfg.cannonsEnableKclHighlight = x
+			if (selectedPoints.length == 1)
+			{
+				let selectedIndex = this.data.cannonPoints.nodes.findIndex(p => p === selectedPoints[0])
+				this.window.openKcl(this.window.currentKclFilename, x ? (selectedIndex << 5) | 0x11 : null)
+			}
+		})
 		panel.addCheckbox(null, "Draw backwards Y rotation guides", this.viewer.cfg.cannonsEnableDirectionRender, (x) => this.viewer.cfg.cannonsEnableDirectionRender = x)
+		
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Duplicate Point")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
-		
-		let selectedPoints = this.data.cannonPoints.nodes.filter(p => p.selected)
 		
 		let selectionGroup = panel.addGroup(null, "Selection:")
 		let enabled = (selectedPoints.length > 0)
@@ -95,6 +105,17 @@ class ViewerCannonPoints
 		{
 			let selectedIndex = this.data.cannonPoints.nodes.findIndex(p => p === selectedPoints[0])
 			panel.addText(selectionGroup, "<strong>CNPT Index:</strong> " + selectedIndex + " (0x" + selectedIndex.toString(16) + ")")
+
+			if (this.viewer.cfg.cannonsEnableKclHighlight)
+			{
+				this.window.openKcl(this.window.currentKclFilename, (selectedIndex << 5) | 0x11)
+				this.highlighting = true
+			}
+		}
+		else if (this.highlighting)
+		{
+			this.window.openKcl(this.window.currentKclFilename)
+			this.highlighting = false
 		}
 		
 		panel.addSelectionNumericInput(selectionGroup, "Dest. X", -1000000, 1000000, selectedPoints.map(p =>  p.pos.x),       null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.x = x })
