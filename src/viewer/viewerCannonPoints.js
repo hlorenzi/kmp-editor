@@ -85,7 +85,11 @@ class ViewerCannonPoints
 			if (selectedPoints.length == 1)
 			{
 				let selectedIndex = this.data.cannonPoints.nodes.findIndex(p => p === selectedPoints[0])
-				this.window.openKcl(this.window.currentKclFilename, x ? (selectedIndex << 5) | 0x11 : null)
+				this.window.hl.reset()
+				this.window.hl.baseType = x ? 0x11 : -1
+				this.window.hl.basicEffect = x ? selectedIndex : -1
+				this.window.openKcl(this.window.currentKclFilename)
+				this.highlighting = true
 			}
 		})
 		panel.addCheckbox(null, "Draw backwards Y rotation guides", this.viewer.cfg.cannonsEnableDirectionRender, (x) => this.viewer.cfg.cannonsEnableDirectionRender = x)
@@ -108,12 +112,16 @@ class ViewerCannonPoints
 
 			if (this.viewer.cfg.cannonsEnableKclHighlight)
 			{
-				this.window.openKcl(this.window.currentKclFilename, (selectedIndex << 5) | 0x11)
+				this.window.hl.reset()
+				this.window.hl.baseType = 0x11
+				this.window.hl.basicEffect = selectedIndex
+				this.window.openKcl(this.window.currentKclFilename)
 				this.highlighting = true
 			}
 		}
 		else if (this.highlighting)
 		{
+			this.window.hl.reset()
 			this.window.openKcl(this.window.currentKclFilename)
 			this.highlighting = false
 		}

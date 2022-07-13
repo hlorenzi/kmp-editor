@@ -97,6 +97,27 @@ class MainWindow
 			respawnsEnablePlayerSlots: true,
 			startPointsEnableZoneRender: true,
 		}
+
+		this.hl = 
+		{
+			baseType: -1,
+			basicEffect: -1,
+			blightEffect: -1,
+			intensity: -1,
+			collisionEffect: -1
+		}
+		this.hl.reset = () =>
+		{
+			this.hl.baseType = -1,
+			this.hl.basicEffect = -1,
+			this.hl.blightEffect = -1,
+			this.hl.intensity = -1,
+			this.hl.collisionEffect = -1
+		}
+		this.hl.enabled = () =>
+		{
+			return !(this.hl.baseType < 0 && this.hl.basicEffect < 0 && this.hl.blightEffect < 0 && this.hl.intensity < 0 && this.hl.collisionEffect < 0)
+		}
 		
 		this.currentKmpFilename = null
 		this.currentKclFilename = null
@@ -196,9 +217,19 @@ class MainWindow
 			{ str: "Trickable Road", value: 1 },
 			{ str: "Horizontal Walls", value: 2 },
 			{ str: "Barrel Roll Walls", value: 3 },
+			{ str: "Custom", value: 4 },
 		]
-		panel.addSelectionDropdown(kclGroup, "Highlight", this.cfg.kclHighlighter, hlOptions, true, false, (x) => { this.cfg.kclHighlighter = x; this.openKcl(this.currentKclFilename) })
+		panel.addSelectionDropdown(kclGroup, "Highlight", this.cfg.kclHighlighter, hlOptions, true, false, (x) => { this.cfg.kclHighlighter = x; this.openKcl(this.currentKclFilename); this.refreshPanels() })
 	
+		if (this.cfg.kclHighlighter == 4)
+		{
+			panel.addSelectionNumericInput(kclGroup, "Base Type", 		 -1, 0x1f, this.hl.baseType, 		1.0, 0.0, true, false, (x) => { this.hl.baseType = x; 		 this.openKcl(this.currentKclFilename) })
+			panel.addSelectionNumericInput(kclGroup, "Variant", 	 	 -1, 0x7,  this.hl.basicEffect, 	1.0, 0.0, true, false, (x) => { this.hl.basicEffect = x; 	 this.openKcl(this.currentKclFilename) })
+			panel.addSelectionNumericInput(kclGroup, "BLIGHT Index", 	 -1, 0x7,  this.hl.blightEffect, 	1.0, 0.0, true, false, (x) => { this.hl.blightEffect = x; 	 this.openKcl(this.currentKclFilename) })
+			panel.addSelectionNumericInput(kclGroup, "Intensity(?)", 	 -1, 0x3,  this.hl.intensity, 		1.0, 0.0, true, false, (x) => { this.hl.intensity = x; 		 this.openKcl(this.currentKclFilename) })
+			panel.addSelectionNumericInput(kclGroup, "Collision Effect", -1, 0x7,  this.hl.collisionEffect, 1.0, 0.0, true, false, (x) => { this.hl.collisionEffect = x; this.openKcl(this.currentKclFilename) })
+		}
+		
 		this.refreshTitle()
 		this.viewer.refreshPanels()
 	}
@@ -526,13 +557,13 @@ class MainWindow
 	}
 	
 	
-	openKcl(filename, highlightFlag = null)
+	openKcl(filename)
 	{
 		if (filename == null)
 			return
 		
 		let kclData = fs.readFileSync(filename)
-		let modelBuilder = require("./util/kclLoader.js").KclLoader.load(kclData, this.cfg, highlightFlag)
+		let modelBuilder = require("./util/kclLoader.js").KclLoader.load(kclData, this.cfg, this.hl)
 		this.viewer.setModel(modelBuilder)
 		this.currentKclFilename = filename
 		
@@ -798,7 +829,12 @@ class Panel
 		
 		let safeParseFloat = (s) =>
 		{
-			let x = parseFloat(s)
+			let x = 0
+			if (s.substring(0, 2) == '0x')
+				x = parseInt(s, 16)
+			else
+				x = parseFloat(s)
+
 			if (isNaN(x) || !isFinite(x))
 				return 0
 			

@@ -5,7 +5,7 @@ const { Vec3 } = require("../math/vec3.js")
 
 class KclLoader
 {
-	static load(bytes, cfg, highlightFlag = null)
+	static load(bytes, cfg, hl)
 	{
 		let parser = new BinaryParser(bytes)
 		
@@ -111,7 +111,12 @@ class KclLoader
 			
 			let data = collisionTypeData[flagBasicType]
 
-			if (highlightFlag != null && collisionFlags == highlightFlag)
+			if (hl.enabled() &&
+				(hl.baseType == -1 || flagBasicType == hl.baseType) &&
+				(hl.basicEffect == -1 || ((collisionFlags >>> 5) & 0x7) == hl.basicEffect) &&
+				(hl.blightEffect == -1 || ((collisionFlags >>> 8) & 0x7) == hl.blightEffect) &&
+				(hl.intensity == -1 || ((collisionFlags >>> 11) & 0x3) == hl.intensity) &&
+				(hl.collisionEffect == -1 || ((collisionFlags >>> 13) & 0x7) == hl.collisionEffect))
 			{
 				let color = [1, 1, 0, 1]
 				model.addTri(v1, v2, v3, color, color, color)
