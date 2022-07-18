@@ -141,63 +141,79 @@ class ViewerAreas
 		
         let selectionType = (enabled && selectedPoints.every(p => p.type == selectedPoints[0].type) ? selectedPoints[0].type : -1)
 
-        if (selectionType == 0)
-            panel.addSelectionNumericInput(selectionGroup, "Camera ID", 0, 255, selectedPoints.map(p => p.cameraIndex), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].cameraIndex = x })
-		
-		if (selectionType == 1)
-        {
-            let envOptions =
-			[
-				{ str: "EnvKareha", value: 0 },
-				{ str: "EnvKarehaUp", value: 1 },
-			]
-			panel.addSelectionDropdown(selectionGroup, "Object", selectedPoints.map(p => p.setting1), envOptions, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
+		switch (selectionType)
+		{
+			case 0:
+				panel.addSelectionNumericInput(selectionGroup, "Camera ID", 0, 255, selectedPoints.map(p => p.cameraIndex), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].cameraIndex = x })
+				break
+
+			case 1:
+				let envOptions =
+				[
+					{ str: "EnvKareha", value: 0 },
+					{ str: "EnvKarehaUp", value: 1 },
+				]
+				panel.addSelectionDropdown(selectionGroup, "Object", selectedPoints.map(p => p.setting1), envOptions, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
+				break
+
+			case 2:
+				panel.addSelectionNumericInput(selectionGroup, "BFG entry", 0, 65535, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
+				panel.addSelectionNumericInput(selectionGroup, "Setting 2", 0, 65535, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
+				break
+
+			case 3:
+				let routeOptions = []
+				for (let i = 0; i < this.data.routes.length; i++)
+					routeOptions.push({ str: "Route " + i + " (0x" + i.toString(16) + ")", value: i })
+				panel.addSelectionDropdown(selectionGroup, "Route", selectedPoints.map(p => p.routeIndex), routeOptions, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].routeIndex = x })
+			
+				panel.addSelectionNumericInput(selectionGroup, "Acceleration", 0, 65535, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
+				panel.addSelectionNumericInput(selectionGroup, "Route Speed", 0, 65535, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
+				break
+
+			case 4:
+				panel.addSelectionNumericInput(selectionGroup, "Enemy Point", 0, 255, selectedPoints.map(p => p.enemyIndex), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].enemyIndex = x })
+				break
+
+			case 5:
+				panel.addSelectionNumericInput(selectionGroup, "Setting 1", 0, 65535, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
+				panel.addSelectionNumericInput(selectionGroup, "Setting 2", 0, 65535, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
+				break
+
+			case 6:
+				panel.addSelectionNumericInput(selectionGroup, "BBLM File", 0, 65535, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
+				panel.addSelectionNumericInput(selectionGroup, "Fade Time", 0, 65535, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
+				break
+
+			case 7:
+				break
+
+			case 8:
+			case 9:
+				panel.addSelectionNumericInput(selectionGroup, "Group ID", 0, 65535, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
+				panel.addSelectionNumericInput(selectionGroup, "Setting 2", 0, 65535, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
+				break
+
+			case 10:
+				panel.addSelectionNumericInput(selectionGroup, "Setting 1", 0, 65535, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
+				panel.addSelectionNumericInput(selectionGroup, "Setting 2", 0, 65535, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
+				
+				panel.addCheckbox(selectionGroup, "Enable Conditional OOB (requires LE-CODE)", this.data.areaPoints.enableCOOB, (x) => { this.data.areaPoints.enableCOOB = x; this.refreshPanels() })
+				if (this.data.areaPoints.enableCOOB)
+				{
+					let coobPoints = this.data.areaPoints.nodes.filter(p => p.type === 10)
+					let modeOptions =
+					[
+						{ str: "Checkpoint Range", value: 0xff },
+						{ str: "KCP Region", value: 1 },
+					]
+					panel.addSelectionDropdown(selectionGroup, "Mode", coobPoints.map(p => p.routeIndex), modeOptions, enabled, multiedit, (x, i) => { coobPoints[i].routeIndex = x; this.refreshPanels() })
+					
+					panel.addSelectionNumericInput(selectionGroup, (coobPoints[0].routeIndex == 1 ? "Setting" : "Start Index"), 0, 65535, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
+					panel.addSelectionNumericInput(selectionGroup, (coobPoints[0].routeIndex == 1 ? "KCP Number" : "End Index"), 0, 65535, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
+				}
+				break
 		}
-
-        if (selectionType == 2)
-            panel.addSelectionNumericInput(selectionGroup, "BFG entry", 0, 65535, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
-		
-        if (selectionType == 3)
-        {
-            let routeOptions = []
-            for (let i = 0; i < this.data.routes.length; i++)
-                routeOptions.push({ str: "Route " + i + " (0x" + i.toString(16) + ")", value: i })
-            panel.addSelectionDropdown(selectionGroup, "Route", selectedPoints.map(p => p.routeIndex), routeOptions, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].routeIndex = x })
-		
-            panel.addSelectionNumericInput(selectionGroup, "Acceleration", 0, 65535, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
-            panel.addSelectionNumericInput(selectionGroup, "Route Speed", 0, 65535, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
-        }
-
-        if (selectionType == 4)
-            panel.addSelectionNumericInput(selectionGroup, "Enemy Point", 0, 255, selectedPoints.map(p => p.enemyIndex), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].enemyIndex = x })
-            
-        if (selectionType == 6)
-        {
-            panel.addSelectionNumericInput(selectionGroup, "BBLM File", 0, 65535, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
-            panel.addSelectionNumericInput(selectionGroup, "Fade Time", 0, 65535, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
-        }
-
-        if (selectionType == 8 || selectionType == 9)
-            panel.addSelectionNumericInput(selectionGroup, "Group ID", 0, 65535, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
-		
-        if (selectionType == 10)
-        {
-            panel.addCheckbox(selectionGroup, "Enable Conditional OOB (requires LE-CODE)", this.data.areaPoints.enableCOOB, (x) => { this.data.areaPoints.enableCOOB = x; this.refreshPanels() })
-
-            if (this.data.areaPoints.enableCOOB)
-            {
-                let coobPoints = this.data.areaPoints.nodes.filter(p => p.type === 10)
-                let modeOptions =
-                [
-                    { str: "Checkpoint Range", value: 0xff },
-                    { str: "KCP Region", value: 1 },
-                ]
-                panel.addSelectionDropdown(selectionGroup, "Mode", coobPoints.map(p => p.routeIndex), modeOptions, enabled, multiedit, (x, i) => { coobPoints[i].routeIndex = x; this.refreshPanels() })
-                
-                panel.addSelectionNumericInput(selectionGroup, (coobPoints[0].routeIndex == 1 ? "Setting" : "Start Index"), 0, 65535, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
-                panel.addSelectionNumericInput(selectionGroup, (coobPoints[0].routeIndex == 1 ? "KCP Number" : "End Index"), 0, 65535, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
-            }
-        }
     }
 
 
@@ -435,6 +451,7 @@ class ViewerAreas
 				newPoint.route = hoveringOverElem.route
 				newPoint.routeIndex = hoveringOverElem.routeIndex
 				newPoint.enemyIndex = hoveringOverElem.enemyIndex
+				newPoint.render = true
 				
 				this.refresh()
 				

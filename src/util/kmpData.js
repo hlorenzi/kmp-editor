@@ -529,7 +529,7 @@ class KmpData
 			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
 			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
 			node.id = kmpPoint.id
-			node.effect = kmpPoint.effect
+			node.effect = kmpPoint.effect == 0xffff ? 0 : kmpPoint.effect
 		}
 		
 		for (let i = 0; i < kmpData.checkpointPoints.length; i++)

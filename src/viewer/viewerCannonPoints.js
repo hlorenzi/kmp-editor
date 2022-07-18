@@ -136,10 +136,9 @@ class ViewerCannonPoints
 		
 		let effectOptions =
 		[
-			{ str: "Fast, Straight Line", value: 0xffff },
+			{ str: "Fast, Straight Line", value: 0 },
 			{ str: "Curved", value: 1 },
 			{ str: "Curved (and Slow?)", value: 2 },
-			{ str: "Slow", value: 3 },
 		]
 		panel.addSelectionDropdown(selectionGroup, "Effect", selectedPoints.map(p => p.effect), effectOptions, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].effect = x })
 	}

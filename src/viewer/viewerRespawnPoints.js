@@ -467,7 +467,7 @@ class ViewerRespawnPoints
 				for (let j = -450; j <= 450; j += 300)
 				{
 					point.rendererPlayerPositions[k]
-						.setCustomMatrix(customMatrix(i, j, 400, 0.5))
+						.setCustomMatrix(customMatrix(i, j, 550, 0.5))
 						.setDiffuseColor([0.75, 0.75, 0, 1])
 						.setEnabled(this.viewer.cfg.respawnsEnablePlayerSlots)
 					k++
