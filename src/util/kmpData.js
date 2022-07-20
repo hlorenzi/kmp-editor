@@ -1208,6 +1208,7 @@ class KmpData
 		}
 		
 		this.cannonPoints = new NodeGraph()
+		this.cannonPoints.maxNodes = 8
 		this.cannonPoints.onAddNode = (node) =>
 		{
 			node.pos = new Vec3(0, 0, 0)
@@ -1388,6 +1389,7 @@ class NodeGraph
 	constructor()
 	{
 		this.nodes = []
+		this.maxNodes = 255
 		this.maxNextNodes = 1
 		this.maxPrevNodes = 1
 		this.onAddNode = () => { }
@@ -1398,6 +1400,12 @@ class NodeGraph
 	
 	addNode()
 	{
+		if (this.nodes.length >= this.maxNodes)
+		{
+			alert("KMP error!\n\nMaximum number of points surpassed (" + this.maxNodes + ")")
+			return
+		}
+
 		let node =
 		{
 			next: [],
