@@ -911,6 +911,7 @@ class Panel
 				}
 				else
 				{
+					input.value = values.every(v => v === values[0]) ? clampValue(values[0] + valueDelta) : ""
 					for (let i = 0; i < values.length; i++)
 						onchange(clampValue(values[i] + valueDelta), i)
 				}
