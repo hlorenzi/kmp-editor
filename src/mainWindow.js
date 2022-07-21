@@ -82,6 +82,7 @@ class MainWindow
 			pointScale: 1,
 			shadingFactor: 0.3,
 			fogFactor: 0.0000025,
+			kclEnableModel: true,
 			kclEnableColors: true,
 			kclEnableWalls: true,
 			kclEnableDeathBarriers: true,
@@ -205,6 +206,7 @@ class MainWindow
 		panel.addSlider(null, "Fog", 0.0000001, 0.0002, this.cfg.fogFactor, 0.0000001, (x) => this.cfg.fogFactor = x)
 		panel.addSlider(null, "Point Scale", 0.1, 5, this.cfg.pointScale, 0.1, (x) => this.cfg.pointScale = x)
 		let kclGroup = panel.addGroup(null, "Collision data:")
+		//panel.addCheckbox(kclGroup, "Enable model", this.cfg.kclEnableModel, (x) => { this.cfg.kclEnableModel = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Use colors", this.cfg.kclEnableColors, (x) => { this.cfg.kclEnableColors = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show walls", this.cfg.kclEnableWalls, (x) => { this.cfg.kclEnableWalls = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show death barriers", this.cfg.kclEnableDeathBarriers, (x) => { this.cfg.kclEnableDeathBarriers = x; this.openKcl(this.currentKclFilename) })

@@ -20,6 +20,7 @@ class ViewerCheckpoints
 		
 		this.hoveringOverPoint = null
 		this.linkingPoints = false
+		this.multiSelect = false
 		
 		this.zTop = 0
 		this.zBottom = 0
@@ -533,6 +534,9 @@ class ViewerCheckpoints
 		
 		if (ev.altKey || (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.point.selected[hoveringOverElem.which])))
 			this.unselectAll()
+
+		if (ev.ctrlKey)
+			this.multiSelect = true
 		
 		if (hoveringOverElem != null)
 		{
@@ -611,46 +615,64 @@ class ViewerCheckpoints
 			else if (lastHover != null)
 				this.viewer.render()
 		}
-		else
+		else if (ev.ctrlKey)
 		{
-			if (this.viewer.mouseAction == "move")
+			let lastHover = this.hoveringOverPoint
+			this.hoveringOverPoint = this.getHoveringOverElement(cameraPos, ray, distToHit)
+			
+			if (this.hoveringOverPoint != null)
 			{
-				let linkToPoint = this.getHoveringOverElement(cameraPos, ray, distToHit, false)
-				
-				for (let point of this.data.checkpointPoints.nodes)
+				this.viewer.setCursor("-webkit-grab")
+				this.hoveringOverPoint.point.selected[this.hoveringOverPoint.which] = true
+				this.refreshPanels()
+
+				if (lastHover == null ||
+					this.hoveringOverPoint.point != lastHover.point ||
+					this.hoveringOverPoint.which != lastHover.which)
+					this.viewer.render()
+			}
+			else if (lastHover != null)
+				this.viewer.render()
+		}
+		else if (!this.multiSelect && this.viewer.mouseAction == "move")
+		{
+			let linkToPoint = this.getHoveringOverElement(cameraPos, ray, distToHit, false)
+			
+			for (let point of this.data.checkpointPoints.nodes)
+			{
+				for (let which = 0; which < 2; which++)
 				{
-					for (let which = 0; which < 2; which++)
-					{
-						if (!point.selected[which])
-							continue
-						
-						this.window.setNotSaved()
-						this.viewer.setCursor("-webkit-grabbing")
+					if (!point.selected[which])
+						continue
 					
-						if (this.linkingPoints && linkToPoint != null)
-						{
-							point.pos[which] = linkToPoint.point.pos[which]
-						}
-						else
-						{
-							let screenPosMoved = this.viewer.pointToScreen(point.moveOrigin[which])
-							screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
-							screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y
-							let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
-							
-							point.pos[which] = Geometry.lineZPlaneIntersection(pointRayMoved.origin, pointRayMoved.direction, this.zTop)
-						}
+					this.window.setNotSaved()
+					this.viewer.setCursor("-webkit-grabbing")
+				
+					if (this.linkingPoints && linkToPoint != null)
+					{
+						point.pos[which] = linkToPoint.point.pos[which]
+					}
+					else
+					{
+						let screenPosMoved = this.viewer.pointToScreen(point.moveOrigin[which])
+						screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
+						screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y
+						let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
+						
+						point.pos[which] = Geometry.lineZPlaneIntersection(pointRayMoved.origin, pointRayMoved.direction, this.zTop)
 					}
 				}
-				
-				this.refreshPanels()
 			}
+			
+			this.refreshPanels()
 		}
 	}
 	
 	
 	onMouseUp(ev, x, y)
 	{
+		this.multiSelect = false
+
 		if (this.viewer.mouseAction == "move")
 		{
 			if (this.linkingPoints)

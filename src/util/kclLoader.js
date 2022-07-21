@@ -35,6 +35,9 @@ class KclLoader
 		}
 		
 		let model = new ModelBuilder()
+
+		if (!cfg.kclEnableModel)
+			return model
 		
 		let collisionTypeData =
 		[

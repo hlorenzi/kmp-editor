@@ -19,6 +19,7 @@ class PointViewer
 		
 		this.hoveringOverPoint = null
 		this.linkingPoints = false
+		this.multiSelect = false
 		
 		this.modelPoint = new ModelBuilder()
 			.addSphere(-150, -150, -150, 150, 150, 150)
@@ -247,6 +248,9 @@ class PointViewer
 		
 		if (ev.altKey || (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.selected)))
 			this.unselectAll()
+
+		if (ev.ctrlKey)
+			this.multiSelect = true
 		
 		if (hoveringOverElem != null)
 		{
@@ -296,54 +300,66 @@ class PointViewer
 			if (this.hoveringOverPoint != lastHover)
 				this.viewer.render()
 		}
-		else
+		else if (ev.ctrlKey)
 		{
-			if (this.viewer.mouseAction == "move")
+			let lastHover = this.hoveringOverPoint
+			this.hoveringOverPoint = this.getHoveringOverElement(cameraPos, ray, distToHit)
+			
+			if (this.hoveringOverPoint != null)
 			{
-				let linkToPoint = this.getHoveringOverElement(cameraPos, ray, distToHit, false)
-				
-				for (let point of this.points().nodes)
-				{
-					if (!point.selected)
-						continue
-					
-					this.window.setNotSaved()
-					this.viewer.setCursor("-webkit-grabbing")
-					
-					if (this.linkingPoints && linkToPoint != null)
-					{
-						point.pos = linkToPoint.pos
-					}
-					else
-					{					
-						let screenPosMoved = this.viewer.pointToScreen(point.moveOrigin)
-						screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
-						screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y
-						let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
-						
-						let hit = this.viewer.collision.raycast(pointRayMoved.origin, pointRayMoved.direction)
-						if (hit != null)
-							point.pos = hit.position
-						else
-						{
-							let screenPos = this.viewer.pointToScreen(point.moveOrigin)
-							let pointRay = this.viewer.getScreenRay(screenPos.x, screenPos.y)
-							let origDistToScreen = point.moveOrigin.sub(pointRay.origin).magn()
-							
-							point.pos = pointRayMoved.origin.add(pointRayMoved.direction.scale(origDistToScreen))
-						}
-					}
-				}
-				
+				this.viewer.setCursor("-webkit-grab")
+				this.hoveringOverPoint.selected = true
 				this.refreshPanels()
 			}
+
+			if (this.hoveringOverPoint != lastHover)
+				this.viewer.render()
+		}
+		else if (!this.multiSelect && this.viewer.mouseAction == "move")
+		{
+			let linkToPoint = this.getHoveringOverElement(cameraPos, ray, distToHit, false)
+			
+			for (let point of this.points().nodes)
+			{
+				if (!point.selected)
+					continue
+				
+				this.window.setNotSaved()
+				this.viewer.setCursor("-webkit-grabbing")
+				
+				if (this.linkingPoints && linkToPoint != null)
+				{
+					point.pos = linkToPoint.pos
+				}
+				else
+				{					
+					let screenPosMoved = this.viewer.pointToScreen(point.moveOrigin)
+					screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
+					screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y
+					let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
+					
+					let hit = this.viewer.collision.raycast(pointRayMoved.origin, pointRayMoved.direction)
+					if (hit != null)
+						point.pos = hit.position
+					else
+					{
+						let screenPos = this.viewer.pointToScreen(point.moveOrigin)
+						let pointRay = this.viewer.getScreenRay(screenPos.x, screenPos.y)
+						let origDistToScreen = point.moveOrigin.sub(pointRay.origin).magn()
+						
+						point.pos = pointRayMoved.origin.add(pointRayMoved.direction.scale(origDistToScreen))
+					}
+				}
+			}
+			
+			this.refreshPanels()
 		}
 	}
 
 
     onMouseUp(ev, x, y)
 	{
-		
+		this.multiSelect = false
 	}
 }
 
