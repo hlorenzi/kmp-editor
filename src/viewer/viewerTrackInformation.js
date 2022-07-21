@@ -1,8 +1,3 @@
-const { GfxScene, GfxCamera, GfxMaterial, GfxModel, GfxNodeRenderer, GfxNodeRendererTransform } = require("../gl/scene.js")
-const { ModelBuilder } = require("../util/modelBuilder.js")
-const { Vec3 } = require("../math/vec3.js")
-const { Mat4 } = require("../math/mat4.js")
-const { Geometry } = require("../math/geometry.js")
 
 
 class ViewerTrackInformation
@@ -44,8 +39,7 @@ class ViewerTrackInformation
 
 			return view.getFloat32(0)
 		}
-		let speedModInput = panel.addSelectionNumericInput(null, "Speed Mod.", 0, 99999, this.data.trackInfo.speedMod, null, 0.1, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.speedMod = convertFloat32MSB2(x) })
-		speedModInput.refreshDisplay = () => { speedModInput.value = this.data.trackInfo.speedMod }
+		panel.addSelectionNumericInput(null, "Speed Mod.", 0, 99999, this.data.trackInfo.speedMod, null, 0.1, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.speedMod = convertFloat32MSB2(x) }, convertFloat32MSB2)
 
 		let flareGroup = panel.addGroup(null, "Lens Flare:")
 	

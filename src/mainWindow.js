@@ -799,7 +799,7 @@ class Panel
 	}
 	
 	
-	addSelectionNumericInput(group, str, min = 0, max = 1, values = 0, step = 0.1, dragStep = 0.1, enabled = true, multiedit = false, onchange = null)
+	addSelectionNumericInput(group, str, min = 0, max = 1, values = 0, step = 0.1, dragStep = 0.1, enabled = true, multiedit = false, onchange = null, modify = null)
 	{
 		let div = document.createElement("div")
 		div.className = "panelRowElement"
@@ -813,6 +813,9 @@ class Panel
 		if (onchange == null)
 			onchange = (x, i) => { }
 		
+		if (modify == null)
+			modify = (x) => { return x }
+		
 		let input = document.createElement("input")
 		input.className = "panelNumericInput"
 		input.type = "input"
@@ -820,11 +823,10 @@ class Panel
 		input.disabled = !enabled
 
 		input.lastInput = input.value
-		input.refreshDisplay = () => { input.value = input.lastInput }
 		
 		let inFocus = false
 		input.onfocus = () => { inFocus = true; this.window.setUndoPoint() }
-		input.onblur = () => { inFocus = false; this.window.setUndoPoint(); this.window.viewer.canvas.focus(); input.refreshDisplay() }
+		input.onblur = () => { inFocus = false; this.window.setUndoPoint(); this.window.viewer.canvas.focus(); input.value = modify(input.lastInput) }
 		input.onkeydown = (ev) => { if (inFocus) ev.stopPropagation() }
 		
 		let safeParseFloat = (s) =>
@@ -905,18 +907,19 @@ class Panel
 				
 				if (!multiedit)
 				{
-					input.value = value.toFixed(5)
+					input.value = modify(value.toFixed(5))
 					for (let i = 0; i < values.length; i++)
 						onchange(value, i)
 				}
 				else
 				{
-					input.value = values.every(v => v === values[0]) ? clampValue(values[0] + valueDelta) : ""
+					input.value = values.every(v => v === values[0]) ? modify(clampValue(values[0] + valueDelta)) : ""
 					for (let i = 0; i < values.length; i++)
 						onchange(clampValue(values[i] + valueDelta), i)
 				}
 				
 				lastEv = ev
+				input.lastInput = input.value
 				
 				this.onRefreshView()
 				
