@@ -78,7 +78,9 @@ class ViewerStartPoints extends PointViewer
 		panel.addSelectionNumericInput(selectionGroup, "Rot. X", -1000000, 1000000, selectedPoints.map(p =>  p.rotation.x),  null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].rotation.x = x % 360 }, x => { return x % 360 })
 		panel.addSelectionNumericInput(selectionGroup, "Rot. Y", -1000000, 1000000, selectedPoints.map(p =>  p.rotation.y),  null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].rotation.y = x % 360 }, x => { return x % 360 })
 		panel.addSelectionNumericInput(selectionGroup, "Rot. Z", -1000000, 1000000, selectedPoints.map(p =>  p.rotation.z),  null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].rotation.z = x % 360 }, x => { return x % 360 })
-		panel.addSelectionNumericInput(selectionGroup, "Player Index",  0,  0xffff, selectedPoints.map(p =>  p.playerIndex),  1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].playerIndex = x })
+		
+		if (this.viewer.cfg.isBattleTrack)
+			panel.addSelectionNumericInput(selectionGroup, "Player Index",  0,  12, selectedPoints.map(p =>  p.playerIndex),  1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].playerIndex = x })
 	}
 	
 	

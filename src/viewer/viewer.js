@@ -357,7 +357,7 @@ class Viewer
 	
 	onMouseDown(ev)
 	{
-		ev.preventDefault()
+		//ev.preventDefault()
 		this.window.setUndoPoint()
 		
 		let mouse = this.getMousePosFromEvent(ev)
@@ -382,6 +382,8 @@ class Viewer
 		
 		if (ev.button == 2 || ev.button == 1)
 		{
+			ev.preventDefault()
+			
 			if (doubleClick)
 			{
 				let ray = this.getScreenRay(mouse.x, mouse.y)

@@ -25,7 +25,6 @@ class ViewerEnemyPaths extends PathViewer
 		let panel = this.window.addPanel("Enemy Paths", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
 	
-		panel.addCheckbox(null, "Treat as Battle Track", this.viewer.cfg.isBattleTrack, (x) => this.viewer.cfg.isBattleTrack = x)
 		panel.addCheckbox(null, "Show point sizes", this.viewer.cfg.enemyPathsEnableSizeRender, (x) => this.viewer.cfg.enemyPathsEnableSizeRender = x)
 
 		if (this.data.enemyPoints.nodes.length == 0 && this.data.itemPoints.nodes.length > 0)

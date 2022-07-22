@@ -107,7 +107,7 @@ class KclLoader
 			
 			if (!v1.isFinite() || !v2.isFinite() || !v3.isFinite())
 				continue
-			
+
 			let flagBasicType = collisionFlags & 0x1f
 			if (flagBasicType >= collisionTypeData.length)
 				continue

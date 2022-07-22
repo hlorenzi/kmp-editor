@@ -221,15 +221,26 @@ class MainWindow
 			{ str: "Barrel Roll Walls", value: 3 },
 			{ str: "Custom", value: 4 },
 		]
-		panel.addSelectionDropdown(kclGroup, "Highlight", this.cfg.kclHighlighter, hlOptions, true, false, (x) => { this.cfg.kclHighlighter = x; this.openKcl(this.currentKclFilename); this.refreshPanels() })
+		panel.addSelectionDropdown(kclGroup, "Highlight", this.cfg.kclHighlighter, hlOptions, true, false, (x) => { this.cfg.kclHighlighter = x; this.refreshPanels() })
 	
 		if (this.cfg.kclHighlighter == 4)
 		{
-			panel.addSelectionNumericInput(kclGroup, "Base Type", 		 -1, 0x1f, this.hl.baseType, 		1.0, 0.0, true, false, (x) => { this.hl.baseType = x; 		 this.openKcl(this.currentKclFilename) })
-			panel.addSelectionNumericInput(kclGroup, "Variant", 	 	 -1, 0x7,  this.hl.basicEffect, 	1.0, 0.0, true, false, (x) => { this.hl.basicEffect = x; 	 this.openKcl(this.currentKclFilename) })
-			panel.addSelectionNumericInput(kclGroup, "BLIGHT Index", 	 -1, 0x7,  this.hl.blightEffect, 	1.0, 0.0, true, false, (x) => { this.hl.blightEffect = x; 	 this.openKcl(this.currentKclFilename) })
-			panel.addSelectionNumericInput(kclGroup, "Intensity(?)", 	 -1, 0x3,  this.hl.intensity, 		1.0, 0.0, true, false, (x) => { this.hl.intensity = x; 		 this.openKcl(this.currentKclFilename) })
-			panel.addSelectionNumericInput(kclGroup, "Collision Effect", -1, 0x7,  this.hl.collisionEffect, 1.0, 0.0, true, false, (x) => { this.hl.collisionEffect = x; this.openKcl(this.currentKclFilename) })
+			const onBlur = (x) =>
+			{
+				this.openKcl(this.currentKclFilename)
+				this.viewer.render()
+				return x
+			}
+			panel.addSelectionNumericInput(kclGroup, "Base Type", 		 -1, 0x1f, this.hl.baseType, 		1.0, 0.0, true, false, (x) => { this.hl.baseType = x 		}, onBlur)
+			panel.addSelectionNumericInput(kclGroup, "Variant", 	 	 -1, 0x7,  this.hl.basicEffect, 	1.0, 0.0, true, false, (x) => { this.hl.basicEffect = x 	}, onBlur)
+			panel.addSelectionNumericInput(kclGroup, "BLIGHT Index", 	 -1, 0x7,  this.hl.blightEffect, 	1.0, 0.0, true, false, (x) => { this.hl.blightEffect = x 	}, onBlur)
+			panel.addSelectionNumericInput(kclGroup, "Intensity(?)", 	 -1, 0x3,  this.hl.intensity, 		1.0, 0.0, true, false, (x) => { this.hl.intensity = x	 	}, onBlur)
+			panel.addSelectionNumericInput(kclGroup, "Collision Effect", -1, 0x7,  this.hl.collisionEffect, 1.0, 0.0, true, false, (x) => { this.hl.collisionEffect = x }, onBlur)
+		}
+		else
+		{
+			this.hl.reset()
+			this.openKcl(this.currentKclFilename)
 		}
 		
 		this.refreshTitle()
@@ -898,7 +909,7 @@ class Panel
 		
 		let onMouseMove = (ev) =>
 		{
-			if (mouseDown)
+			if (mouseDown && dragStep > 0)
 			{
 				let dy = lastEv.screenY - ev.screenY
 				let value = safeParseFloat(input.value)

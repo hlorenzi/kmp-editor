@@ -28,6 +28,13 @@ class ViewerTrackInformation
 		let panel = this.window.addPanel("Track Info", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
 	
+		let trackModeOptions =
+		[
+			{ str: "Race", value: false },
+			{ str: "Battle", value: true }
+		]
+		panel.addSelectionDropdown(null, "Course Type", this.viewer.cfg.isBattleTrack, trackModeOptions, true, false, (x) => { this.window.setNotSaved(); this.viewer.cfg.isBattleTrack = x; this.viewer.refreshPanels() })
+		
 		panel.addSelectionNumericInput(null, "Lap Count", 1, 9, this.data.trackInfo.lapCount, 1.0, 1.0, true, false, (x) => { this.window.setNotSaved(); this.data.trackInfo.lapCount = x })
 
 		const convertFloat32MSB2 = (x) =>

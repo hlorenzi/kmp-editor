@@ -1089,6 +1089,7 @@ class KmpData
 		this.unhandledSectionData = []
 		
 		this.startPoints = new NodeGraph()
+		this.startPoints.maxNodes = 12
 		this.startPoints.onAddNode = (node) =>
 		{
 			node.pos = new Vec3(0, 0, 0)

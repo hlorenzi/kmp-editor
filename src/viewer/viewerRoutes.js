@@ -110,6 +110,37 @@ class ViewerRoutes extends PathViewer
 		this.window.setNotSaved()
 		this.window.setUndoPoint()
 	}
+
+
+	onKeyDown(ev)
+	{
+		switch (ev.key)
+		{
+			case "A":
+			case "a":
+				this.toggleAllSelection()
+				return true
+			
+			case "Backspace":
+			case "Delete":
+			case "X":
+			case "x":
+				this.deleteSelectedPoints()
+				return true
+
+			case "Y":
+			case "y":
+				this.snapSelectedToY()
+				return true
+				
+			case "U":
+			case "u":
+				this.unlinkSelectedPoints()
+				return true
+		}
+		
+		return false
+	}
 	
 	
 	drawAfterModel()
