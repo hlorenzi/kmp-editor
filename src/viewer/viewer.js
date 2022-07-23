@@ -290,7 +290,7 @@ class Viewer
 		near = new Vec3(near[0], near[1], near[2]).scale(1 / near[3])
 		far = new Vec3(far[0], far[1], far[2]).scale(1 / far[3])
 		
-		return { origin: near, direction: far.sub(near).normalize() }
+		return { origin: near, direction: far.sub(near).normalize() } //.add(far.normalize().scale(1000))
 	}
 	
 	
@@ -383,7 +383,7 @@ class Viewer
 		if (ev.button == 2 || ev.button == 1)
 		{
 			ev.preventDefault()
-			
+
 			if (doubleClick)
 			{
 				let ray = this.getScreenRay(mouse.x, mouse.y)
@@ -504,9 +504,19 @@ class Viewer
 	{
 		if (ev.deltaY > 0)
 			this.cameraDist = Math.min(500000, this.cameraDist * 1.25)
+
 		else if (ev.deltaY < 0)
-			this.cameraDist = Math.max(1000, this.cameraDist / 1.25)
-		
+		{
+			if (this.cameraDist <= 1000)
+			{
+				let matrix = this.getCurrentCamera().view
+				let delta = matrix.mulDirection(new Vec3(0, 0, ev.deltaY * 2))
+				
+				this.cameraFocus = this.cameraFocus.add(delta)
+			}
+			else
+				this.cameraDist = Math.max(1000, this.cameraDist / 1.25)
+		}
 		this.render()
 	}
 }
