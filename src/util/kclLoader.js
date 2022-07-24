@@ -114,7 +114,7 @@ class KclLoader
 			
 			let data = collisionTypeData[flagBasicType]
 
-			if (hl.enabled() &&
+			if (!(hl.baseType < 0 && hl.basicEffect < 0 && hl.blightEffect < 0 && hl.intensity < 0 && hl.collisionEffect < 0) &&
 				(hl.baseType == -1 || flagBasicType == hl.baseType) &&
 				(hl.basicEffect == -1 || ((collisionFlags >>> 5) & 0x7) == hl.basicEffect) &&
 				(hl.blightEffect == -1 || ((collisionFlags >>> 8) & 0x7) == hl.blightEffect) &&

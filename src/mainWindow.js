@@ -115,10 +115,7 @@ class MainWindow
 			this.hl.intensity = -1,
 			this.hl.collisionEffect = -1
 		}
-		this.hl.enabled = () =>
-		{
-			return !(this.hl.baseType < 0 && this.hl.basicEffect < 0 && this.hl.blightEffect < 0 && this.hl.intensity < 0 && this.hl.collisionEffect < 0)
-		}
+
 		
 		this.currentKmpFilename = null
 		this.currentKclFilename = null
@@ -840,7 +837,15 @@ class Panel
 		let inFocus = false
 		input.onfocus = () => { inFocus = true; this.window.setUndoPoint() }
 		input.onblur = () => { inFocus = false; this.window.setUndoPoint(); this.window.viewer.canvas.focus(); input.value = modify(input.lastInput) }
-		input.onkeydown = (ev) => { if (inFocus) ev.stopPropagation() }
+		input.onkeydown = (ev) => {
+			if (inFocus)
+			{
+				if (ev.key === "Enter")
+					input.value = modify(input.lastInput)
+				else
+					ev.stopPropagation()
+			}
+		}
 		
 		let safeParseFloat = (s) =>
 		{
