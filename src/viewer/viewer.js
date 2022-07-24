@@ -6,6 +6,7 @@ const { ViewerItemPaths } = require("./viewerItemPaths.js")
 const { ViewerCheckpoints } = require("./viewerCheckpoints.js")
 const { ViewerObjects } = require("./viewerObjects.js")
 const { ViewerRoutes } = require("./viewerRoutes.js")
+const { ViewerAreas } = require("./viewerAreas.js")
 const { ViewerRespawnPoints } = require("./viewerRespawnPoints.js")
 const { ViewerCannonPoints } = require("./viewerCannonPoints.js")
 const { ViewerFinishPoints } = require("./viewerFinishPoints.js")
@@ -93,8 +94,10 @@ class Viewer
 			
 		this.cachedCamera = new GfxCamera()
 		this.cachedCameraPos = new Vec3(0, 0, 0)
+
 			
-			
+		this.enableDebugRaycast = false
+
 		let debugRaycastBuilder = new ModelBuilder()
 			.addSphere(-100, -100, -100, 100, 100, 100)
 			.calculateNormals()
@@ -103,8 +106,8 @@ class Viewer
 			.attach(this.scene.root)
 			.setModel(debugRaycastBuilder.makeModel(this.gl))
 			.setMaterial(this.material)
-			.setDiffuseColor([1, 0, 0, 1])
-			.setEnabled(false)
+			.setDiffuseColor([1, 0, 1, 1])
+			.setEnabled(this.enableDebugRaycast)
 			
 			
 		this.subviewers =
@@ -117,6 +120,7 @@ class Viewer
 			new ViewerRespawnPoints(this.window, this, this.data),
 			new ViewerObjects(this.window, this, this.data),
 			new ViewerRoutes(this.window, this, this.data),
+			new ViewerAreas(this.window, this, this.data),
 			new ViewerCannonPoints(this.window, this, this.data),
 			new ViewerFinishPoints(this.window, this, this.data),
 		]
@@ -286,7 +290,7 @@ class Viewer
 		near = new Vec3(near[0], near[1], near[2]).scale(1 / near[3])
 		far = new Vec3(far[0], far[1], far[2]).scale(1 / far[3])
 		
-		return { origin: near, direction: far.sub(near).normalize() }
+		return { origin: near, direction: far.sub(near).normalize() } //.add(far.normalize().scale(1000))
 	}
 	
 	
@@ -353,7 +357,7 @@ class Viewer
 	
 	onMouseDown(ev)
 	{
-		ev.preventDefault()
+		//ev.preventDefault()
 		this.window.setUndoPoint()
 		
 		let mouse = this.getMousePosFromEvent(ev)
@@ -378,6 +382,8 @@ class Viewer
 		
 		if (ev.button == 2 || ev.button == 1)
 		{
+			ev.preventDefault()
+
 			if (doubleClick)
 			{
 				let ray = this.getScreenRay(mouse.x, mouse.y)
@@ -465,8 +471,8 @@ class Viewer
 		
 		else
 		{
-			//if (hit != null)
-			//	  this.debugRaycastRenderer.setTranslation(hit.position)
+			if (hit != null && this.enableDebugRaycast)
+				  this.debugRaycastRenderer.setTranslation(hit.position)
 			
 			if (this.currentSubviewer != null)
 				this.currentSubviewer.onMouseMove(ev, mouse.x, mouse.y, cameraPos, ray, hit, distToHit)
@@ -498,9 +504,19 @@ class Viewer
 	{
 		if (ev.deltaY > 0)
 			this.cameraDist = Math.min(500000, this.cameraDist * 1.25)
+
 		else if (ev.deltaY < 0)
-			this.cameraDist = Math.max(1000, this.cameraDist / 1.25)
-		
+		{
+			if (this.cameraDist <= 1000)
+			{
+				let matrix = this.getCurrentCamera().view
+				let delta = matrix.mulDirection(new Vec3(0, 0, ev.deltaY * 2))
+				
+				this.cameraFocus = this.cameraFocus.add(delta)
+			}
+			else
+				this.cameraDist = Math.max(1000, this.cameraDist / 1.25)
+		}
 		this.render()
 	}
 }

@@ -82,18 +82,40 @@ class MainWindow
 			pointScale: 1,
 			shadingFactor: 0.3,
 			fogFactor: 0.0000025,
+			kclEnableModel: true,
 			kclEnableColors: true,
+			kclEnableWalls: true,
 			kclEnableDeathBarriers: true,
 			kclEnableInvisible: true,
 			kclEnableEffects: false,
+			kclHighlighter: 0,
 			enemyPathsEnableSizeRender: true,
 			checkpointsEnableVerticalPanels: true,
 			checkpointsEnableRespawnPointLinks: true,
 			enableRotationRender: true,
-			cannonsEnableDirectionRender: true,
-			respawnsEnablePlayerSlots: false,
-			startPointsEnableZoneRender: true
+			cannonsEnableDirectionRender: false,
+			cannonsEnableKclHighlight: true,
+			respawnsEnablePlayerSlots: true,
+			startPointsEnableZoneRender: true,
 		}
+
+		this.hl = 
+		{
+			baseType: -1,
+			basicEffect: -1,
+			blightEffect: -1,
+			intensity: -1,
+			collisionEffect: -1
+		}
+		this.hl.reset = () =>
+		{
+			this.hl.baseType = -1,
+			this.hl.basicEffect = -1,
+			this.hl.blightEffect = -1,
+			this.hl.intensity = -1,
+			this.hl.collisionEffect = -1
+		}
+
 		
 		this.currentKmpFilename = null
 		this.currentKclFilename = null
@@ -157,6 +179,12 @@ class MainWindow
 			isReloading = false
 		}, 1)
 	}
+
+
+	openExternalLink(link)
+	{
+		shell.openExternal(link)
+	}
 	
 	
 	refreshPanels()
@@ -166,19 +194,51 @@ class MainWindow
 		panel.addText(null, "<strong>Hold Shift + Right Mouse:</strong> Pan Camera")
 		panel.addText(null, "<strong>Mouse Wheel:</strong> Zoom")
 		panel.addText(null, "<strong>Double Right Click:</strong> Focus Camera")
-		panel.addButton(null, "Load course_model.brres", () => this.openCourseBrres())
-		panel.addButton(null, "Load course.kcl", () => this.openCourseKcl())
-		panel.addButton(null, "Load custom model", () => this.openCustomModel())
+		//panel.addButton(null, "Load course_model.brres", () => this.openCourseBrres())
+		//panel.addButton(null, "Load course.kcl", () => this.openCourseKcl())
+		panel.addButton(null, "Load Model", () => this.openCustomModel())
 		panel.addButton(null, "(5) Toggle Projection", () => this.cfg.useOrthoProjection = !this.cfg.useOrthoProjection)
 		panel.addButton(null, "Center view", () => this.viewer.centerView())
 		panel.addSlider(null, "Shading", 0, 1, this.cfg.shadingFactor, 0.05, (x) => this.cfg.shadingFactor = x)
 		panel.addSlider(null, "Fog", 0.0000001, 0.0002, this.cfg.fogFactor, 0.0000001, (x) => this.cfg.fogFactor = x)
 		panel.addSlider(null, "Point Scale", 0.1, 5, this.cfg.pointScale, 0.1, (x) => this.cfg.pointScale = x)
 		let kclGroup = panel.addGroup(null, "Collision data:")
+		//panel.addCheckbox(kclGroup, "Enable model", this.cfg.kclEnableModel, (x) => { this.cfg.kclEnableModel = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Use colors", this.cfg.kclEnableColors, (x) => { this.cfg.kclEnableColors = x; this.openKcl(this.currentKclFilename) })
+		panel.addCheckbox(kclGroup, "Show walls", this.cfg.kclEnableWalls, (x) => { this.cfg.kclEnableWalls = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show death barriers", this.cfg.kclEnableDeathBarriers, (x) => { this.cfg.kclEnableDeathBarriers = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show invisible walls", this.cfg.kclEnableInvisible, (x) => { this.cfg.kclEnableInvisible = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show effects/triggers", this.cfg.kclEnableEffects, (x) => { this.cfg.kclEnableEffects = x; this.openKcl(this.currentKclFilename) })
+		
+		let hlOptions =
+		[
+			{ str: "None", value: 0 },
+			{ str: "Trickable Road", value: 1 },
+			{ str: "Horizontal Walls", value: 2 },
+			{ str: "Barrel Roll Walls", value: 3 },
+			{ str: "Custom", value: 4 },
+		]
+		panel.addSelectionDropdown(kclGroup, "Highlight", this.cfg.kclHighlighter, hlOptions, true, false, (x) => { this.cfg.kclHighlighter = x; this.refreshPanels() })
+	
+		if (this.cfg.kclHighlighter == 4)
+		{
+			const onBlur = (x) =>
+			{
+				this.openKcl(this.currentKclFilename)
+				this.viewer.render()
+				return x
+			}
+			panel.addSelectionNumericInput(kclGroup, "Base Type", 		 -1, 0x1f, this.hl.baseType, 		1.0, 0.0, true, false, (x) => { this.hl.baseType = x 		}, onBlur)
+			panel.addSelectionNumericInput(kclGroup, "Variant", 	 	 -1, 0x7,  this.hl.basicEffect, 	1.0, 0.0, true, false, (x) => { this.hl.basicEffect = x 	}, onBlur)
+			panel.addSelectionNumericInput(kclGroup, "BLIGHT Index", 	 -1, 0x7,  this.hl.blightEffect, 	1.0, 0.0, true, false, (x) => { this.hl.blightEffect = x 	}, onBlur)
+			panel.addSelectionNumericInput(kclGroup, "Intensity(?)", 	 -1, 0x3,  this.hl.intensity, 		1.0, 0.0, true, false, (x) => { this.hl.intensity = x	 	}, onBlur)
+			panel.addSelectionNumericInput(kclGroup, "Collision Effect", -1, 0x7,  this.hl.collisionEffect, 1.0, 0.0, true, false, (x) => { this.hl.collisionEffect = x }, onBlur)
+		}
+		else
+		{
+			this.hl.reset()
+			this.openKcl(this.currentKclFilename)
+		}
 		
 		this.refreshTitle()
 		this.viewer.refreshPanels()
@@ -513,7 +573,7 @@ class MainWindow
 			return
 		
 		let kclData = fs.readFileSync(filename)
-		let modelBuilder = require("./util/kclLoader.js").KclLoader.load(kclData, this.cfg)
+		let modelBuilder = require("./util/kclLoader.js").KclLoader.load(kclData, this.cfg, this.hl)
 		this.viewer.setModel(modelBuilder)
 		this.currentKclFilename = filename
 		
@@ -566,7 +626,8 @@ class Panel
 		
 		this.onDestroy = []
 		
-		this.parentDiv.removeChild(this.panelDiv)
+		if (this.panelDiv)
+			this.parentDiv.removeChild(this.panelDiv)
 	}
 	
 	
@@ -748,7 +809,7 @@ class Panel
 	}
 	
 	
-	addSelectionNumericInput(group, str, min = 0, max = 1, values = 0, step = 0.1, dragStep = 0.1, enabled = true, multiedit = false, onchange = null)
+	addSelectionNumericInput(group, str, min = 0, max = 1, values = 0, step = 0.1, dragStep = 0.1, enabled = true, multiedit = false, onchange = null, modify = null)
 	{
 		let div = document.createElement("div")
 		div.className = "panelRowElement"
@@ -762,20 +823,38 @@ class Panel
 		if (onchange == null)
 			onchange = (x, i) => { }
 		
+		if (modify == null)
+			modify = (x) => { return x }
+		
 		let input = document.createElement("input")
 		input.className = "panelNumericInput"
 		input.type = "input"
-		input.value = (!enabled || multiedit ? "" : values[0])
+		input.value = (enabled && values.every(v => v === values[0]) ? values[0] : "")
 		input.disabled = !enabled
+
+		input.lastInput = input.value
 		
 		let inFocus = false
 		input.onfocus = () => { inFocus = true; this.window.setUndoPoint() }
-		input.onblur = () => { inFocus = false; this.window.setUndoPoint(); this.window.viewer.canvas.focus(); this.window.viewer.currentSubviewer.refreshPanels() }
-		input.onkeydown = (ev) => { if (inFocus) ev.stopPropagation() }
+		input.onblur = () => { inFocus = false; this.window.setUndoPoint(); this.window.viewer.canvas.focus(); input.value = modify(input.lastInput) }
+		input.onkeydown = (ev) => {
+			if (inFocus)
+			{
+				if (ev.key === "Enter")
+					input.value = modify(input.lastInput)
+				else
+					ev.stopPropagation()
+			}
+		}
 		
 		let safeParseFloat = (s) =>
 		{
-			let x = parseFloat(s)
+			let x = 0
+			if (s.substring(0, 2) == '0x')
+				x = parseInt(s, 16)
+			else
+				x = parseFloat(s)
+
 			if (isNaN(x) || !isFinite(x))
 				return 0
 			
@@ -804,6 +883,8 @@ class Panel
 			for (let i = 0; i < values.length; i++)
 				onchange(input.value != "" ? clampValue(safeParseFloat(input.value)) : values[i], i)
 			
+			input.lastInput = (input.value != "" ? clampValue(safeParseFloat(input.value)) : lastInput)
+
 			this.onRefreshView()
 		}
 		
@@ -833,7 +914,7 @@ class Panel
 		
 		let onMouseMove = (ev) =>
 		{
-			if (mouseDown)
+			if (mouseDown && dragStep > 0)
 			{
 				let dy = lastEv.screenY - ev.screenY
 				let value = safeParseFloat(input.value)
@@ -844,17 +925,19 @@ class Panel
 				
 				if (!multiedit)
 				{
-					input.value = value.toFixed(5)
+					input.value = modify(value.toFixed(5))
 					for (let i = 0; i < values.length; i++)
 						onchange(value, i)
 				}
 				else
 				{
+					input.value = values.every(v => v === values[0]) ? modify(clampValue(values[0] + valueDelta)) : ""
 					for (let i = 0; i < values.length; i++)
 						onchange(clampValue(values[i] + valueDelta), i)
 				}
 				
 				lastEv = ev
+				input.lastInput = input.value
 				
 				this.onRefreshView()
 				
@@ -910,11 +993,11 @@ class Panel
 			selectOption.value = option.value
 			select.appendChild(selectOption)
 		}
-		
-		if (!enabled || multiedit)
-			select.selectedIndex = -1
-		else
+
+		if (enabled && values.every(v => v === values[0]))
 			select.selectedIndex = options.findIndex(op => op.value == values[0])
+		else
+			select.selectedIndex = -1
 		
 		select.onchange = () =>
 		{

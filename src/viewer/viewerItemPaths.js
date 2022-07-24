@@ -1,67 +1,22 @@
 const { GfxScene, GfxCamera, GfxMaterial, GfxModel, GfxNodeRenderer, GfxNodeRendererTransform } = require("../gl/scene.js")
+const { PathViewer } = require("./pathViewer.js")
 const { ModelBuilder } = require("../util/modelBuilder.js")
 const { Vec3 } = require("../math/vec3.js")
 const { Mat4 } = require("../math/mat4.js")
 const { Geometry } = require("../math/geometry.js")
 
 
-class ViewerItemPaths
+class ViewerItemPaths extends PathViewer
 {
 	constructor(window, viewer, data)
 	{
-		this.window = window
-		this.viewer = viewer
-		this.data = data
-		
-		this.scene = new GfxScene()
-		this.sceneAfter = new GfxScene()
-		this.sceneSizeCircles = new GfxScene()
-		
-		this.hoveringOverPoint = null
-		this.linkingPoints = false
-		
-		this.modelPoint = new ModelBuilder()
-			.addSphere(-150, -150, -150, 150, 150, 150)
-			.calculateNormals()
-			.makeModel(viewer.gl)
-		
-		this.modelPointSelection = new ModelBuilder()
-			.addSphere(-250, -250, 250, 250, 250, -250)
-			.calculateNormals()
-			.makeModel(viewer.gl)
-			
-		this.modelPath = new ModelBuilder()
-			.addCylinder(-100, -100, 0, 100, 100, 1)
-			.calculateNormals()
-			.makeModel(viewer.gl)
-		
-		this.modelArrow = new ModelBuilder()
-			.addCone(-250, -250, -500, 250, 250, 0)
-			.calculateNormals()
-			.makeModel(viewer.gl)
-			
-		this.modelSizeCircle = new ModelBuilder()
-			.addSphere(-1, -1, -1, 1, 1, 1, 8)
-			.calculateNormals()
-			.makeModel(viewer.gl)
-			
-		this.renderers = []
+		super(window, viewer, data)
 	}
 	
 	
-	setData(data)
+	points()
 	{
-		this.data = data
-		this.refresh()
-	}
-	
-	
-	destroy()
-	{
-		for (let r of this.renderers)
-			r.detach()
-		
-		this.renderers = []
+		return this.data.itemPoints
 	}
 	
 	
@@ -71,11 +26,16 @@ class ViewerItemPaths
 		this.panel = panel
 		
 		panel.addCheckbox(null, "Show point sizes", this.viewer.cfg.enemyPathsEnableSizeRender, (x) => this.viewer.cfg.enemyPathsEnableSizeRender = x)
+		
+		if (this.data.itemPoints.nodes.length == 0 && this.data.enemyPoints.nodes.length > 0)
+			panel.addButton(null, "Copy From Enemy Paths", () => this.copyFromEnemyPaths())
+		
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Extend Path")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
+		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
 		panel.addButton(null, "(F) Set Selected as First Point", () => this.setSelectedAsFirstPoint())
 		
@@ -128,364 +88,65 @@ class ViewerItemPaths
 			{ str: "B.Bill can't stop & Low-priority route", value: 0xb },
 		]
 		panel.addSelectionDropdown(selectionGroup, "Setting 2", selectedPoints.map(p => p.setting2), setting2Options, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
+
+		panel.addButton(selectionGroup, "Set as Default Bill Route", () => this.setDefaultBillRoute())
 	}
 	
 	
 	refresh()
 	{
-		for (let r of this.renderers)
-			r.detach()
-		
-		this.renderers = []
-		
-		for (let point of this.data.itemPoints.nodes)
-		{
-			if (point.selected === undefined)
-			{
-				point.selected = false
-				point.moveOrigin = point.pos
-			}
-			
-			point.renderer = new GfxNodeRendererTransform()
-				.attach(this.scene.root)
-				.setModel(this.modelPoint)
-				.setMaterial(this.viewer.material)
-			
-			point.rendererSelected = new GfxNodeRendererTransform()
-				.attach(this.sceneAfter.root)
-				.setModel(this.modelPointSelection)
-				.setMaterial(this.viewer.materialUnshaded)
-				.setEnabled(false)
-				
-			point.rendererSelectedCore = new GfxNodeRenderer()
-				.attach(point.rendererSelected)
-				.setModel(this.modelPoint)
-				.setMaterial(this.viewer.material)
-				
-			point.rendererSizeCircle = new GfxNodeRendererTransform()
-				.attach(this.sceneSizeCircles.root)
-				.setModel(this.modelSizeCircle)
-				.setMaterial(this.viewer.materialUnshaded)
-				
-			this.renderers.push(point.renderer)
-			this.renderers.push(point.rendererSelected)
-			this.renderers.push(point.rendererSizeCircle)
-				
-			point.rendererOutgoingPaths = []
-			point.rendererOutgoingPathArrows = []
-			
-			for (let next of point.next)
-			{
-				let rPath = new GfxNodeRendererTransform()
-					.attach(this.scene.root)
-					.setModel(this.modelPath)
-					.setMaterial(this.viewer.material)
-					
-				let rArrow = new GfxNodeRendererTransform()
-					.attach(this.scene.root)
-					.setModel(this.modelArrow)
-					.setMaterial(this.viewer.material)
-					
-				point.rendererOutgoingPaths.push(rPath)
-				point.rendererOutgoingPathArrows.push(rArrow)
-					
-				this.renderers.push(rPath)
-				this.renderers.push(rArrow)
-			}
-		}
-		
+		super.refresh()
 		this.refreshPanels()
 	}
-	
-	
-	getHoveringOverElement(cameraPos, ray, distToHit, includeSelected = true)
-	{
-		let elem = null
-		
-		let minDistToCamera = distToHit + 1000
-		let minDistToPoint = 1000000
-		for (let point of this.data.itemPoints.nodes)
-		{
-			if (!includeSelected && point.selected)
-				continue
-			
-			let distToCamera = point.pos.sub(cameraPos).magn()
-			if (distToCamera >= minDistToCamera)
-				continue
-			
-			let scale = this.viewer.getElementScale(point.pos)
-			
-			let pointDistToRay = Geometry.linePointDistance(ray.origin, ray.direction, point.pos)
-			
-			if (pointDistToRay < 150 * scale * 4 && pointDistToRay < minDistToPoint)
-			{
-				elem = point
-				minDistToCamera = distToCamera
-				minDistToPoint = pointDistToRay
-			}
-		}
-		
-		return elem
-	}
-	
-	
-	selectAll()
+
+
+	setDefaultBillRoute()
 	{
 		for (let point of this.data.itemPoints.nodes)
-			point.selected = true
-		
-		this.refreshPanels()
-	}
-	
-	
-	unselectAll()
-	{
-		for (let point of this.data.itemPoints.nodes)
-			point.selected = false
-		
-		this.refreshPanels()
-	}
-	
-	
-	toggleAllSelection()
-	{
-		let hasSelection = (this.data.itemPoints.nodes.find(p => p.selected) != null)
-		
-		if (hasSelection)
-			this.unselectAll()
-		else
-			this.selectAll()
-	}
-	
-	
-	deleteSelectedPoints()
-	{
-		let pointsToDelete = []
-		
-		for (let point of this.data.itemPoints.nodes)
-		{
-			if (!point.selected)
-				continue
-			
-			pointsToDelete.push(point)
-		}
-		
-		for (let point of pointsToDelete)
-			this.data.itemPoints.removeNode(point)
-		
-		this.refresh()
-		this.window.setNotSaved()
-		this.window.setUndoPoint()
-	}
-	
-	
-	unlinkSelectedPoints()
-	{
-		for (let point of this.data.itemPoints.nodes)
-		{
-			if (!point.selected)
-				continue
-			
-			let nextPointsToUnlink = []
-			
-			for (let next of point.next)
-			{
-				if (!next.node.selected)
-					continue
-				
-				nextPointsToUnlink.push(next.node)
-			}
-			
-			for (let next of nextPointsToUnlink)
-				this.data.itemPoints.unlinkNodes(point, next)
-		}
-		
-		this.refresh()
-		this.window.setNotSaved()
-		this.window.setUndoPoint()
-	}
-	
-	
-	setSelectedAsFirstPoint()
-	{
-		for (let p = 0; p < this.data.itemPoints.nodes.length; p++)
-		{
-			let point = this.data.itemPoints.nodes[p]
-			
-			if (!point.selected)
-				continue
-			
-			this.data.itemPoints.nodes.splice(p, 1)
-			this.data.itemPoints.nodes.unshift(point)
-		}
-		
-		this.refresh()
-		this.window.setNotSaved()
-		this.window.setUndoPoint()
-	}
-	
-	
-	onKeyDown(ev)
-	{
-		switch (ev.key)
-		{
-			case "A":
-			case "a":
-				this.toggleAllSelection()
-				return true
-			
-			case "Backspace":
-			case "Delete":
-			case "X":
-			case "x":
-				this.deleteSelectedPoints()
-				return true
-				
-			case "U":
-			case "u":
-				this.unlinkSelectedPoints()
-				return true
-				
-			case "F":
-			case "f":
-				this.setSelectedAsFirstPoint()
-				return true
-		}
-		
-		return false
-	}
-	
-	
-	onMouseDown(ev, x, y, cameraPos, ray, hit, distToHit, mouse3DPos)
-	{
-		this.linkingPoints = false
-		
-		for (let point of this.data.itemPoints.nodes)
-			point.moveOrigin = point.pos
-		
-		let hoveringOverElem = this.getHoveringOverElement(cameraPos, ray, distToHit)
-		
-		if (ev.altKey || (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.selected)))
-			this.unselectAll()
-		
-		if (hoveringOverElem != null)
-		{
-			if (ev.altKey)
-			{
-				let newPoint = this.data.itemPoints.addNode()
-				newPoint.pos = hoveringOverElem.pos
-				newPoint.size = hoveringOverElem.size
-				
-				this.data.itemPoints.linkNodes(hoveringOverElem, newPoint)
-				
-				this.refresh()
-				
-				newPoint.selected = true
-				this.linkingPoints = true
-				this.viewer.setCursor("-webkit-grabbing")
-				this.refreshPanels()
-				this.window.setNotSaved()
-			}
-			else
-			{
-				hoveringOverElem.selected = true
-				this.refreshPanels()
-				this.viewer.setCursor("-webkit-grabbing")
-			}
-		}
-		else if (ev.altKey)
-		{
-			let newPoint = this.data.itemPoints.addNode()
-			newPoint.pos = mouse3DPos
-			
-			this.refresh()
-			newPoint.selected = true
-			this.viewer.setCursor("-webkit-grabbing")
-			this.refreshPanels()
-			this.window.setNotSaved()
-		}
-	}
-	
-	
-	onMouseMove(ev, x, y, cameraPos, ray, hit, distToHit)
-	{
-		if (!this.viewer.mouseDown)
-		{
-			let lastHover = this.hoveringOverPoint
-			this.hoveringOverPoint = this.getHoveringOverElement(cameraPos, ray, distToHit)
-			
-			if (this.hoveringOverPoint != null)
-				this.viewer.setCursor("-webkit-grab")
-			
-			if (this.hoveringOverPoint != lastHover)
-				this.viewer.render()
-		}
-		else
-		{
-			if (this.viewer.mouseAction == "move")
-			{
-				let linkToPoint = this.getHoveringOverElement(cameraPos, ray, distToHit, false)
-				
-				for (let point of this.data.itemPoints.nodes)
+			if (point.selected)
+				for (let prev of point.prev)
 				{
-					if (!point.selected)
-						continue
-					
-					this.window.setNotSaved()
-					this.viewer.setCursor("-webkit-grabbing")
-					
-					if (this.linkingPoints && linkToPoint != null)
-					{
-						point.pos = linkToPoint.pos
-					}
-					else
-					{					
-						let screenPosMoved = this.viewer.pointToScreen(point.moveOrigin)
-						screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
-						screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y
-						let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
-						
-						let hit = this.viewer.collision.raycast(pointRayMoved.origin, pointRayMoved.direction)
-						if (hit != null)
-							point.pos = hit.position
-						else
-						{
-							let screenPos = this.viewer.pointToScreen(point.moveOrigin)
-							let pointRay = this.viewer.getScreenRay(screenPos.x, screenPos.y)
-							let origDistToScreen = point.moveOrigin.sub(pointRay.origin).magn()
-							
-							point.pos = pointRayMoved.origin.add(pointRayMoved.direction.scale(origDistToScreen))
-						}
-					}
+					let i = prev.node.next.findIndex(p => p.node == point)
+					let prevLink = prev.node.next.splice(i, 1)[0]
+					prev.node.next.unshift(prevLink)
 				}
-				
-				this.refreshPanels()
-			}
-		}
+		
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
 	}
-	
-	
-	onMouseUp(ev, x, y)
+
+
+	copyFromEnemyPaths()
 	{
-		if (this.viewer.mouseAction == "move")
+		let newGraph = this.data.enemyPoints.clone()
+		newGraph.onAddNode = (node) => 
 		{
-			if (this.linkingPoints)
-			{
-				let pointBeingLinked = this.data.itemPoints.nodes.find(p => p.selected)
-				if (pointBeingLinked == null)
-					return
-				
-				let pointBeingLinkedTo = this.data.itemPoints.nodes.find(p => p != pointBeingLinked && p.pos == pointBeingLinked.pos)
-				
-				if (pointBeingLinkedTo != null)
-				{
-					this.data.itemPoints.removeNode(pointBeingLinked)
-					this.data.itemPoints.linkNodes(pointBeingLinked.prev[0].node, pointBeingLinkedTo)
-					this.refresh()
-					this.window.setNotSaved()
-				}
-			}
+			node.pos = new Vec3(0, 0, 0)
+			node.size = 10
+			node.setting1 = 0
+			node.setting2 = 0
 		}
+		newGraph.onCloneNode = (newNode, oldNode) => 
+		{
+			newNode.pos = oldNode.pos.clone()
+			newNode.size = oldNode.size
+			newNode.setting1 = oldNode.setting1
+			newNode.setting2 = oldNode.setting2
+		}
+
+		for (let point of newGraph.nodes)
+		{
+			point.setting1 = 0
+			point.setting2 = 0
+			delete point.setting3
+		}
+
+		this.data.itemPoints = newGraph
+
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
 	}
 	
 	
@@ -518,7 +179,7 @@ class ViewerItemPaths
 				
 				let scale2 = Math.min(scale, this.viewer.getElementScale(nextPos))
 				
-				let nextBbillCantStop = bbillCantStop || (point.next[n].node.setting2 & 0x1) != 0
+				let nextBbillCantStop = (point.next[n].node.setting2 & 0x1) != 0
 				let lowPriority = (point.next[n].node.setting2 & 0xa) != 0
 				
 				let matrixScale = Mat4.scale(scale2, scale2, nextPos.sub(point.pos).magn())
@@ -530,7 +191,7 @@ class ViewerItemPaths
 				
 				point.rendererOutgoingPaths[n]
 					.setCustomMatrix(matrixScale.mul(matrixAlign.mul(matrixTranslate)))
-					.setDiffuseColor(nextBbillCantStop ? [0.5, 0.5, 0.5, 1] : lowPriority ? [0.8, 1, 0.5, 1] : [0.5, 1, 0, 1])
+					.setDiffuseColor(nextBbillCantStop ? [0.5, 0.5, 0.5, 1] : lowPriority ? [0.5, 1, 0.8, 1] : n != 0 ? [0.8, 1, 0.5, 1] : [0.5, 1, 0, 1])
 					
 				point.rendererOutgoingPathArrows[n]
 					.setCustomMatrix(matrixScaleArrow.mul(matrixAlign.mul(matrixTranslateArrow)))
@@ -561,39 +222,6 @@ class ViewerItemPaths
 		
 		this.sceneAfter.clearDepth(this.viewer.gl)
 		this.sceneAfter.render(this.viewer.gl, this.viewer.getCurrentCamera())
-	}
-	
-	
-	drawSizeCircles()
-	{
-		let gl = this.viewer.gl
-		let camera = this.viewer.getCurrentCamera()
-		
-		gl.enable(gl.STENCIL_TEST)
-		gl.stencilFunc(gl.ALWAYS, 0, 0xff)
-		gl.stencilMask(0xff)
-		gl.clearStencil(0)
-		gl.clear(gl.STENCIL_BUFFER_BIT)
-
-		gl.colorMask(false, false, false, false)
-		gl.depthMask(false)
-		gl.cullFace(gl.FRONT)
-		gl.stencilOp(gl.KEEP, gl.INCR, gl.KEEP)
-		this.sceneSizeCircles.render(gl, camera)
-		
-		gl.cullFace(gl.BACK)
-		gl.stencilOp(gl.KEEP, gl.DECR, gl.KEEP)
-		this.sceneSizeCircles.render(gl, camera)
-		
-		gl.cullFace(gl.BACK)
-		gl.colorMask(true, true, true, true)
-		gl.stencilMask(0x00)
-		gl.stencilFunc(gl.NOTEQUAL, 0, 0xff)
-
-		this.sceneSizeCircles.render(gl, camera)
-		
-		gl.depthMask(true)
-		gl.disable(gl.STENCIL_TEST)
 	}
 }
 

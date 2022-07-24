@@ -1,69 +1,26 @@
 const { GfxScene, GfxCamera, GfxMaterial, GfxModel, GfxNodeRenderer, GfxNodeRendererTransform } = require("../gl/scene.js")
+const { PathViewer } = require("./pathViewer.js")
 const { ModelBuilder } = require("../util/modelBuilder.js")
 const { Vec3 } = require("../math/vec3.js")
 const { Mat4 } = require("../math/mat4.js")
 const { Geometry } = require("../math/geometry.js")
 
 
-class ViewerRoutes
+class ViewerRoutes extends PathViewer
 {
 	constructor(window, viewer, data)
 	{
-		this.window = window
-		this.viewer = viewer
-		this.data = data
-		
-		this.scene = new GfxScene()
-		this.sceneAfter = new GfxScene()
-		this.sceneSizeCircles = new GfxScene()
-		
-		this.hoveringOverPoint = null
-		this.linkingPoints = false
-		
-		this.modelPoint = new ModelBuilder()
-			.addSphere(-150, -150, -150, 150, 150, 150)
-			.calculateNormals()
-			.makeModel(viewer.gl)
-		
-		this.modelPointSelection = new ModelBuilder()
-			.addSphere(-250, -250, 250, 250, 250, -250)
-			.calculateNormals()
-			.makeModel(viewer.gl)
-			
-		this.modelPath = new ModelBuilder()
-			.addCylinder(-100, -100, 0, 100, 100, 1)
-			.calculateNormals()
-			.makeModel(viewer.gl)
-		
-		this.modelArrow = new ModelBuilder()
-			.addCone(-250, -250, -500, 250, 250, 0)
-			.calculateNormals()
-			.makeModel(viewer.gl)
-			
-		this.modelSizeCircle = new ModelBuilder()
-			.addSphere(-1, -1, -1, 1, 1, 1, 8)
-			.calculateNormals()
-			.makeModel(viewer.gl)
-			
-		this.renderers = []
-		
+		super(window, viewer, data)
 		this.currentRouteIndex = 0
 	}
 	
 	
-	setData(data)
+	points()
 	{
-		this.data = data
-		this.refresh()
-	}
-	
-	
-	destroy()
-	{
-		for (let r of this.renderers)
-			r.detach()
-		
-		this.renderers = []
+		if (this.currentRouteIndex < 0 || this.currentRouteIndex >= this.data.routes.length)
+			return { nodes: [] }
+
+		return this.data.routes[this.currentRouteIndex].points
 	}
 	
 	
@@ -77,6 +34,7 @@ class ViewerRoutes
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
+		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
 		
 		let routeOptions = []
@@ -98,7 +56,7 @@ class ViewerRoutes
 			{ str: "Straight Edges", value: 0 },
 			{ str: "Curved Edges", value: 1 },
 		]
-		panel.addSelectionDropdown(null, "Setting 1", route.setting1, setting1Options, true, false, (x, i) => { this.window.setNotSaved(); route.setting1 = x })
+		panel.addSelectionDropdown(null, "Setting 1", route.setting1, setting1Options, true, false, (x, i) => { this.window.setNotSaved(); route.setting1 = x; this.refresh() })
 		
 		let setting2Options =
 		[
@@ -107,6 +65,9 @@ class ViewerRoutes
 		]
 		panel.addSelectionDropdown(null, "Setting 2", route.setting2, setting2Options, true, false, (x, i) => { this.window.setNotSaved(); route.setting2 = x })
 		
+		//if (route.points.nodes.length < 2 || route.setting1 && route.points.nodes.length < 3)
+			//panel.addText(null, "⚠️ <strong>WARNING! Less than " + (2 + route.setting1) + " points may cause a crash!</strong>")
+
 		let selectedPoints = route.points.nodes.filter(p => p.selected)
 		
 		let selectionGroup = panel.addGroup(null, "Selection:")
@@ -123,103 +84,8 @@ class ViewerRoutes
 	
 	refresh()
 	{
-		for (let r of this.renderers)
-			r.detach()
-		
-		this.renderers = []
-		
-		if (this.currentRouteIndex >= 0 && this.currentRouteIndex < this.data.routes.length)
-		{
-			let route = this.data.routes[this.currentRouteIndex]
-			
-			for (let point of route.points.nodes)
-			{
-				if (point.selected === undefined)
-				{
-					point.selected = false
-					point.moveOrigin = point.pos
-				}
-				
-				point.renderer = new GfxNodeRendererTransform()
-					.attach(this.scene.root)
-					.setModel(this.modelPoint)
-					.setMaterial(this.viewer.material)
-				
-				point.rendererSelected = new GfxNodeRendererTransform()
-					.attach(this.sceneAfter.root)
-					.setModel(this.modelPointSelection)
-					.setMaterial(this.viewer.materialUnshaded)
-					.setEnabled(false)
-					
-				point.rendererSelectedCore = new GfxNodeRenderer()
-					.attach(point.rendererSelected)
-					.setModel(this.modelPoint)
-					.setMaterial(this.viewer.material)
-					
-				this.renderers.push(point.renderer)
-				this.renderers.push(point.rendererSelected)
-					
-				point.rendererOutgoingPaths = []
-				point.rendererOutgoingPathArrows = []
-				
-				for (let next of point.next)
-				{
-					let rPath = new GfxNodeRendererTransform()
-						.attach(this.scene.root)
-						.setModel(this.modelPath)
-						.setMaterial(this.viewer.material)
-						
-					let rArrow = new GfxNodeRendererTransform()
-						.attach(this.scene.root)
-						.setModel(this.modelArrow)
-						.setMaterial(this.viewer.material)
-						
-					point.rendererOutgoingPaths.push(rPath)
-					point.rendererOutgoingPathArrows.push(rArrow)
-						
-					this.renderers.push(rPath)
-					this.renderers.push(rArrow)
-				}
-			}
-		}
-		
+		super.refresh()
 		this.refreshPanels()
-	}
-	
-	
-	getHoveringOverElement(cameraPos, ray, distToHit, includeSelected = true)
-	{
-		if (this.currentRouteIndex < 0 || this.currentRouteIndex >= this.data.routes.length)
-			return
-		
-		let route = this.data.routes[this.currentRouteIndex]
-		
-		let elem = null
-		
-		let minDistToCamera = distToHit + 1000
-		let minDistToPoint = 1000000
-		for (let point of route.points.nodes)
-		{
-			if (!includeSelected && point.selected)
-				continue
-			
-			let distToCamera = point.pos.sub(cameraPos).magn()
-			if (distToCamera >= minDistToCamera)
-				continue
-			
-			let scale = this.viewer.getElementScale(point.pos)
-			
-			let pointDistToRay = Geometry.linePointDistance(ray.origin, ray.direction, point.pos)
-			
-			if (pointDistToRay < 150 * scale * 4 && pointDistToRay < minDistToPoint)
-			{
-				elem = point
-				minDistToCamera = distToCamera
-				minDistToPoint = pointDistToRay
-			}
-		}
-		
-		return elem
 	}
 	
 	
@@ -244,110 +110,8 @@ class ViewerRoutes
 		this.window.setNotSaved()
 		this.window.setUndoPoint()
 	}
-	
-	
-	selectAll()
-	{
-		if (this.currentRouteIndex < 0 || this.currentRouteIndex >= this.data.routes.length)
-			return
-		
-		let route = this.data.routes[this.currentRouteIndex]
-		
-		for (let point of route.points.nodes)
-			point.selected = true
-		
-		this.refreshPanels()
-	}
-	
-	
-	unselectAll()
-	{
-		if (this.currentRouteIndex < 0 || this.currentRouteIndex >= this.data.routes.length)
-			return
-		
-		let route = this.data.routes[this.currentRouteIndex]
-		
-		for (let point of route.points.nodes)
-			point.selected = false
-		
-		this.refreshPanels()
-	}
-	
-	
-	toggleAllSelection()
-	{
-		if (this.currentRouteIndex < 0 || this.currentRouteIndex >= this.data.routes.length)
-			return
-		
-		let route = this.data.routes[this.currentRouteIndex]
-		
-		let hasSelection = (route.points.nodes.find(p => p.selected) != null)
-		
-		if (hasSelection)
-			this.unselectAll()
-		else
-			this.selectAll()
-	}
-	
-	
-	deleteSelectedPoints()
-	{
-		if (this.currentRouteIndex < 0 || this.currentRouteIndex >= this.data.routes.length)
-			return
-		
-		let route = this.data.routes[this.currentRouteIndex]
-		
-		let pointsToDelete = []
-		
-		for (let point of route.points.nodes)
-		{
-			if (!point.selected)
-				continue
-			
-			pointsToDelete.push(point)
-		}
-		
-		for (let point of pointsToDelete)
-			route.points.removeNode(point)
-		
-		this.refresh()
-		this.window.setNotSaved()
-		this.window.setUndoPoint()
-	}
-	
-	
-	unlinkSelectedPoints()
-	{
-		if (this.currentRouteIndex < 0 || this.currentRouteIndex >= this.data.routes.length)
-			return
-		
-		let route = this.data.routes[this.currentRouteIndex]
-		
-		for (let point of route.points.nodes)
-		{
-			if (!point.selected)
-				continue
-			
-			let nextPointsToUnlink = []
-			
-			for (let next of point.next)
-			{
-				if (!next.node.selected)
-					continue
-				
-				nextPointsToUnlink.push(next.node)
-			}
-			
-			for (let next of nextPointsToUnlink)
-				route.points.unlinkNodes(point, next)
-		}
-		
-		this.refresh()
-		this.window.setNotSaved()
-		this.window.setUndoPoint()
-	}
-	
-	
+
+
 	onKeyDown(ev)
 	{
 		switch (ev.key)
@@ -363,6 +127,11 @@ class ViewerRoutes
 			case "x":
 				this.deleteSelectedPoints()
 				return true
+
+			case "Y":
+			case "y":
+				this.snapSelectedToY()
+				return true
 				
 			case "U":
 			case "u":
@@ -371,156 +140,6 @@ class ViewerRoutes
 		}
 		
 		return false
-	}
-	
-	
-	onMouseDown(ev, x, y, cameraPos, ray, hit, distToHit, mouse3DPos)
-	{
-		if (this.currentRouteIndex < 0 || this.currentRouteIndex >= this.data.routes.length)
-			return
-		
-		let route = this.data.routes[this.currentRouteIndex]
-		
-		this.linkingPoints = false
-		
-		for (let point of route.points.nodes)
-			point.moveOrigin = point.pos
-		
-		let hoveringOverElem = this.getHoveringOverElement(cameraPos, ray, distToHit)
-		
-		if (ev.altKey || (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.selected)))
-			this.unselectAll()
-		
-		if (hoveringOverElem != null)
-		{
-			if (ev.altKey)
-			{
-				let newPoint = route.points.addNode()
-				newPoint.pos = hoveringOverElem.pos
-				newPoint.setting1 = hoveringOverElem.setting1
-				newPoint.setting2 = hoveringOverElem.setting2
-				
-				route.points.linkNodes(hoveringOverElem, newPoint)
-				
-				this.refresh()
-				
-				newPoint.selected = true
-				this.linkingPoints = true
-				this.viewer.setCursor("-webkit-grabbing")
-				this.refreshPanels()
-				this.window.setNotSaved()
-			}
-			else
-			{
-				hoveringOverElem.selected = true
-				this.refreshPanels()
-				this.viewer.setCursor("-webkit-grabbing")
-			}
-		}
-		else if (ev.altKey)
-		{
-			let newPoint = route.points.addNode()
-			newPoint.pos = mouse3DPos
-			
-			this.refresh()
-			newPoint.selected = true
-			this.viewer.setCursor("-webkit-grabbing")
-			this.refreshPanels()
-			this.window.setNotSaved()
-		}
-	}
-	
-	
-	onMouseMove(ev, x, y, cameraPos, ray, hit, distToHit)
-	{
-		if (this.currentRouteIndex < 0 || this.currentRouteIndex >= this.data.routes.length)
-			return
-		
-		let route = this.data.routes[this.currentRouteIndex]
-		
-		if (!this.viewer.mouseDown)
-		{
-			let lastHover = this.hoveringOverPoint
-			this.hoveringOverPoint = this.getHoveringOverElement(cameraPos, ray, distToHit)
-			
-			if (this.hoveringOverPoint != null)
-				this.viewer.setCursor("-webkit-grab")
-			
-			if (this.hoveringOverPoint != lastHover)
-				this.viewer.render()
-		}
-		else
-		{
-			if (this.viewer.mouseAction == "move")
-			{
-				let linkToPoint = this.getHoveringOverElement(cameraPos, ray, distToHit, false)
-				
-				for (let point of route.points.nodes)
-				{
-					if (!point.selected)
-						continue
-					
-					this.window.setNotSaved()
-					this.viewer.setCursor("-webkit-grabbing")
-					
-					if (this.linkingPoints && linkToPoint != null)
-					{
-						point.pos = linkToPoint.pos
-					}
-					else
-					{					
-						let screenPosMoved = this.viewer.pointToScreen(point.moveOrigin)
-						screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
-						screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y
-						let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
-						
-						let hit = this.viewer.collision.raycast(pointRayMoved.origin, pointRayMoved.direction)
-						if (hit != null)
-							point.pos = hit.position
-						else
-						{
-							let screenPos = this.viewer.pointToScreen(point.moveOrigin)
-							let pointRay = this.viewer.getScreenRay(screenPos.x, screenPos.y)
-							let origDistToScreen = point.moveOrigin.sub(pointRay.origin).magn()
-							
-							point.pos = pointRayMoved.origin.add(pointRayMoved.direction.scale(origDistToScreen))
-						}
-					}
-				}
-				
-				this.refreshPanels()
-			}
-		}
-	}
-	
-	
-	onMouseUp(ev, x, y)
-	{
-		if (this.currentRouteIndex < 0 || this.currentRouteIndex >= this.data.routes.length)
-			return
-		
-		let route = this.data.routes[this.currentRouteIndex]
-		
-		
-		if (this.viewer.mouseAction == "move")
-		{
-			if (this.linkingPoints)
-			{
-				let pointBeingLinked = route.points.nodes.find(p => p.selected)
-				if (pointBeingLinked == null)
-					return
-				
-				let pointBeingLinkedTo = route.points.nodes.find(p => p != pointBeingLinked && p.pos == pointBeingLinked.pos)
-				
-				if (pointBeingLinkedTo != null)
-				{
-					route.points.removeNode(pointBeingLinked)
-					route.points.linkNodes(pointBeingLinked.prev[0].node, pointBeingLinkedTo)
-					this.refresh()
-					this.window.setNotSaved()
-				}
-			}
-		}
 	}
 	
 	
