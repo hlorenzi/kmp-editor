@@ -12,6 +12,7 @@ Currently edits the following sections:
 - Respawn points (`JGPT`)
 - Objects (`GOBJ`)
 - Routes (`POTI`)
+- Area (`AREA`)
 - Cannon Points (`CNPT`)
 - Battle Finish Points (`MSPT`)
 - Track Information (`STGI`)
@@ -19,8 +20,7 @@ Currently edits the following sections:
 The tool will keep other sections intact when saving.
 
 :warning: This is an early release, so use at your own risk! Remember to always backup your files
-beforehand. Also, KMP format restrictions are only currently checked at save time, so save often
-if you're not sure about going over a limit.
+beforehand.
 
 ## Running from source
 
