@@ -1144,6 +1144,7 @@ class KmpData
 		}
 		
 		this.objects = new NodeGraph()
+		this.objects.maxNodes = 999
 		this.objects.onAddNode = (node) =>
 		{
 			node.pos = new Vec3(0, 0, 0)
@@ -1253,9 +1254,7 @@ class KmpData
 			node.priority = 0
 			node.setting1 = 0
 			node.setting2 = 0
-			node.camera = null
 			node.cameraIndex = 0xff
-			node.route = null
 			node.routeIndex = 0xff
 			node.enemyIndex = 0xff
 			node.render = false
@@ -1270,9 +1269,7 @@ class KmpData
 			newNode.priority = oldNode.priority
 			newNode.setting1 = oldNode.setting1
 			newNode.setting2 = oldNode.setting2
-			newNode.camera = oldNode.camera
 			newNode.cameraIndex = oldNode.cameraIndex
-			newNode.route = oldNode.route
 			newNode.routeIndex = oldNode.routeIndex
 			newNode.enemyIndex = oldNode.enemyIndex
 			newNode.render = oldNode.render

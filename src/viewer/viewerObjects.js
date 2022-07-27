@@ -387,7 +387,7 @@ class ViewerObjects extends PointViewer
 			routeOptions.push({ str: "Route " + i + " (0x" + i.toString(16) + ")", value: i })
 		panel.addSelectionDropdown(selectionGroup, "Route", selectedPoints.map(p => p.routeIndex), routeOptions, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].routeIndex = x })
 		
-		for (let s = 0; s < 8; s++)
+		for (let s = 1; s <= 8; s++)
 			panel.addSelectionNumericInput(selectionGroup, "Setting " + s, 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
 		
 		panel.addSelectionNumericInput(selectionGroup, "Presence", 0, 0xffff, selectedPoints.map(p => p.presence), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].presence = x })

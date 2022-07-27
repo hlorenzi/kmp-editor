@@ -118,7 +118,7 @@ class ViewerAreas extends PointViewer
 				break
 
 			case 3:
-				let routeOptions = []
+				let routeOptions = [{ str: "None", value: 0xff }]
 				for (let i = 0; i < this.data.routes.length; i++)
 					routeOptions.push({ str: "Route " + i + " (0x" + i.toString(16) + ")", value: i })
 				panel.addSelectionDropdown(selectionGroup, "Route", selectedPoints.map(p => p.routeIndex), routeOptions, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].routeIndex = x })
@@ -212,6 +212,22 @@ class ViewerAreas extends PointViewer
 		}
 		
 		return false
+	}
+
+
+	onMouseDown(ev, x, y, cameraPos, ray, hit, distToHit, mouse3DPos)
+	{
+		super.onMouseDown(ev, x, y, cameraPos, ray, hit, distToHit, mouse3DPos)
+
+		if (ev.altKey)
+		{
+			let newPointIndex = this.data.areaPoints.nodes.findIndex(p => p.selected)
+			if (newPointIndex > 0)
+			{
+				this.data.areaPoints.nodes[newPointIndex].render = true
+				this.refresh()
+			}
+		}
 	}
 
 
