@@ -148,7 +148,7 @@ class ViewerCheckpoints
 				let maxLayer = this.data.checkpointPoints.maxLayer
 				let groupComp = selectedPoints[0].pathPointIndex / selectedPoints[0].pathLen
 				let overallComp = (groupComp + selectedPoints[0].pathLayer - 1) / maxLayer
-				return (100 * overallComp).toFixed(4).toString() + "%"
+				return overallComp !== NaN ? (100 * overallComp).toFixed(4).toString() + "%" : "N/A"
 			}
 			
 			panel.addText(selectionGroup, "<strong>CKPH Index:</strong> " + formatNumHex(selectedPoints[0].pathIndex) + ", point #" + formatNum(selectedPoints[0].pathPointIndex))
@@ -561,6 +561,7 @@ class ViewerCheckpoints
 				
 				newPoint.selected = [true, true]
 				this.linkingPoints = true
+				this.data.refreshIndices(this.viewer.cfg.isBattleTrack)
 				this.viewer.setCursor("-webkit-grabbing")
 				this.refreshPanels()
 				this.window.setNotSaved()
@@ -589,6 +590,7 @@ class ViewerCheckpoints
 			this.refresh()
 			newPoint.selected[0] = true
 			newPoint.selected[1] = true
+			this.data.refreshIndices(this.viewer.cfg.isBattleTrack)
 			this.viewer.setCursor("-webkit-grabbing")
 			this.refreshPanels()
 			this.window.setNotSaved()

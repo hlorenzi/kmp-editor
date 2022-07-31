@@ -320,6 +320,7 @@ class MainWindow
 		
 		this.undoPointer -= 1
 		this.currentKmpData = this.undoStack[this.undoPointer].data.clone()
+		this.currentKmpData.refreshIndices(this.cfg.isBattleTrack)
 		this.viewer.setSubviewer(this.undoStack[this.undoPointer].subviewer)
 		this.viewer.subviewerRoutes.currentRouteIndex = this.undoStack[this.undoPointer].currentRouteIndex
 		

@@ -350,6 +350,7 @@ class PathViewer
 				
 				newPoint.selected = true
 				this.linkingPoints = true
+				this.data.refreshIndices(this.viewer.cfg.isBattleTrack)
 				this.viewer.setCursor("-webkit-grabbing")
 				this.refreshPanels()
 				this.window.setNotSaved()
@@ -368,6 +369,7 @@ class PathViewer
 			
 			this.refresh()
 			newPoint.selected = true
+			this.data.refreshIndices(this.viewer.cfg.isBattleTrack)
 			this.viewer.setCursor("-webkit-grabbing")
 			this.refreshPanels()
 			this.window.setNotSaved()
