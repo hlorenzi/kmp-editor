@@ -20,7 +20,8 @@ class PathViewer
 		
 		this.hoveringOverPoint = null
 		this.linkingPoints = false
-		this.multiSelect = false
+		this.ctrlIsHeld = false
+		this.altIsHeld = false
 		
 		this.modelPoint = new ModelBuilder()
 			.addSphere(-150, -150, -150, 150, 150, 150)
@@ -218,7 +219,7 @@ class PathViewer
 			if (point.selected)
 			{
 				let hit = this.viewer.collision.raycast(point.pos, new Vec3(0, 0, 1))
-				if (hit != null)
+				if (hit != null && point.pos.sub(hit.position).magn() > 1)
 					point.pos = hit.position
 			}
 		}
@@ -324,7 +325,10 @@ class PathViewer
 			this.unselectAll()
 
 		if (ev.ctrlKey)
-			this.multiSelect = true
+			this.ctrlIsHeld = true
+
+		if (ev.altKey)
+			this.altIsHeld = true
 		
 		if (hoveringOverElem != null)
 		{
@@ -399,19 +403,50 @@ class PathViewer
 			if (this.hoveringOverPoint != lastHover)
 				this.viewer.render()
 		}
-		else if (!this.multiSelect && this.viewer.mouseAction == "move")
+		else if (!this.ctrlIsHeld && this.viewer.mouseAction == "move")
 		{
 			let linkToPoint = this.getHoveringOverElement(cameraPos, ray, distToHit, false)
+			let selectedPoints = []
 			
 			for (let point of this.points().nodes)
 			{
 				if (!point.selected)
 					continue
+				selectedPoints.push(point)
+			}
+
+			if (selectedPoints.length == 1 && ev.altKey && !this.altIsHeld)
+			{
+				let point = selectedPoints[0]
+
+				let newPoint = this.points().addNode()
+				newPoint.pos = point.moveOrigin
+				newPoint.size = point.size
 				
+				this.points().linkNodes(point, newPoint)
+				
+				this.refresh()
+				
+				point.selected = false
+				newPoint.selected = true
+				this.linkingPoints = true
+				this.altIsHeld = true
+				this.viewer.setCursor("-webkit-grabbing")
+				this.refreshPanels()
+				this.window.setNotSaved()
+				return
+			}
+			else if (!ev.altKey)
+			{
+				this.altIsHeld = false
+			}
+
+			for (let point of selectedPoints)
+			{	
 				this.window.setNotSaved()
 				this.viewer.setCursor("-webkit-grabbing")
 				
-				if (this.linkingPoints && linkToPoint != null)
+				if (this.linkingPoints && linkToPoint != null && linkToPoint.pos != point.moveOrigin)
 				{
 					point.pos = linkToPoint.pos
 				}
@@ -443,7 +478,8 @@ class PathViewer
 	
 	onMouseUp(ev, x, y)
 	{
-		this.multiSelect = false
+		this.ctrlIsHeld = false
+		this.altIsHeld = false
 		
 		if (this.viewer.mouseAction == "move")
 		{
