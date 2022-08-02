@@ -101,6 +101,7 @@ class ViewerCheckpoints
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
 		panel.addButton(null, "(E) Clear Respawn Point Assignment", () => this.clearRespawnPoints())
+		panel.addButton(null, "(S) Toggle Show Loaded Checkpoints", () => this.toggleShowLoaded())
 		panel.addButton(null, "(R) Assign Selected Respawn Point to Selected Checkpoints", () => this.assignRespawnPoints())
 		
 		panel.addSelectionNumericInput(null, "Editing Y", -1000000, 1000000, -this.zTop, null, 1.0, true, false, (x, i) => { this.zTop = -x })
@@ -247,6 +248,7 @@ class ViewerCheckpoints
 			point.rendererOutgoingPaths = []
 			point.rendererOutgoingPathArrows = []
 			point.rendererOutgoingPathPanels = []
+			point.rendererOutgoingQuads = []
 			
 			for (let next of point.next)
 			{
@@ -279,10 +281,20 @@ class ViewerCheckpoints
 					.attach(this.sceneSidePanels.root)
 					.setModel(this.modelPanel)
 					.setMaterial(this.viewer.material)
-				
+				/*
+				let modelQuad = new ModelBuilder()
+					.addQuad(point.pos[0], point.pos[1], next.node.pos[1], next.node.pos[0])
+					.calculateNormals()
+					.makeModel(this.viewer.gl)
+				let rQuad = new GfxNodeRendererTransform()
+					.attach(this.scene.root)
+					.setModel(modelQuad)
+					.setMaterial(this.viewer.material)
+				*/
 				point.rendererOutgoingPaths.push([rPath1, rPath2])
 				point.rendererOutgoingPathArrows.push([rArrow1, rArrow2])
 				point.rendererOutgoingPathPanels.push([rPanel1, rPanel2])
+				//point.rendererOutgoingQuads.push(rQuad)
 					
 				this.renderers.push(rPath1)
 				this.renderers.push(rPath2)
@@ -290,6 +302,7 @@ class ViewerCheckpoints
 				this.renderers.push(rArrow2)
 				this.renderers.push(rPanel1)
 				this.renderers.push(rPanel2)
+				//this.renderers.push(rQuad)
 			}
 		}
 		
@@ -482,6 +495,57 @@ class ViewerCheckpoints
 		this.window.setNotSaved()
 		this.window.setUndoPoint()
 	}
+
+
+	toggleShowLoaded()
+	{
+		let notAllRendered = this.data.checkpointPoints.nodes.some(p => !p.isRendered)
+
+		for (let point of this.data.checkpointPoints.nodes)
+			point.isRendered = notAllRendered
+
+		if (notAllRendered)
+			return
+
+
+		let selectedPoints = []
+
+		for (let point of this.data.checkpointPoints.nodes)
+		{
+			if (!point.selected[0] && !point.selected[1])
+				continue
+
+			point.isRendered = true
+			selectedPoints.push(point)
+		}
+
+		while (selectedPoints.length > 0)
+		{
+			let point = selectedPoints.pop()
+
+			for (let prev of point.prev)
+			{
+				if (prev.node.isRendered)
+					continue
+
+				prev.node.isRendered = true
+
+				if (prev.node.type == 255)
+					selectedPoints.push(prev.node)
+			}
+
+			for (let next of point.next)
+			{
+				if (next.node.isRendered)
+					continue
+
+				next.node.isRendered = true
+
+				if (next.node.type == 255)
+					selectedPoints.push(next.node)
+			}
+		}
+	}
 	
 	
 	onKeyDown(ev)
@@ -511,6 +575,11 @@ class ViewerCheckpoints
 			case "E":
 			case "e":
 				this.clearRespawnPoints()
+				return true
+
+			case "S":
+			case "s":
+				this.toggleShowLoaded()
 				return true
 				
 			case "R":
@@ -750,6 +819,7 @@ class ViewerCheckpoints
 		for (let point of this.data.checkpointPoints.nodes)
 		{
 			let scales = [0, 0]
+			let prevIsRendered = point.prev.some(p => p.node.isRendered)
 			
 			for (let which = 0; which < 2; which++)
 			{
@@ -761,6 +831,7 @@ class ViewerCheckpoints
 					.setTranslation(point.pos[which])
 					.setScaling(new Vec3(scale, scale, scale))
 					.setDiffuseColor(point.type == 0 ? [1, 0.5, 1, 1] : point.type != 0xff ? [1, 0, 1, 1] : [0, 0, 1, 1])
+					.setEnabled(point.isRendered || prevIsRendered)
 				
 				for (let n = 0; n < point.next.length; n++)
 				{
@@ -778,13 +849,22 @@ class ViewerCheckpoints
 					point.rendererOutgoingPaths[n][which]
 						.setCustomMatrix(matrixScale.mul(matrixAlign.mul(matrixTranslate)))
 						.setDiffuseColor(point.next[n].node.firstInPath ? [0, 0.8, 0.7, 1] : [0, 0.5, 1, 1])
+						.setEnabled(point.isRendered)
 						
 					point.rendererOutgoingPathArrows[n][which]
 						.setCustomMatrix(matrixScaleArrow.mul(matrixAlign.mul(matrixTranslateArrow)))
 						.setDiffuseColor(point.next[n].node.firstInPath ? [0, 0.9, 0.8, 1] : [0, 0.75, 1, 1])
+						.setEnabled(point.isRendered)
 						
 					setupPanelMatrices(point.rendererOutgoingPathPanels[n][which], point.pos[which], nextPos)
 					point.rendererOutgoingPathPanels[n][which].setDiffuseColor([0, 0.25, 1, 0.3])
+						.setEnabled(point.isRendered)
+					/*
+					point.rendererOutgoingQuads[n]
+						.setTranslation(new Vec3(0, 0, this.zTop))
+						.setDiffuseColor(point.type == 0 ? [1, 0.5, 1, 0.6] : point.type != 0xff ? [1, 0.25, 1, 0.6] : [0, 0.25, 1, 0.6])
+						.setEnabled(true)
+					*/
 				}
 			}
 			
@@ -792,9 +872,11 @@ class ViewerCheckpoints
 			
 			setupPathMatrices(point.rendererCheckbar, barScale, point.pos[0], point.pos[1])
 			point.rendererCheckbar.setDiffuseColor(point.type == 0 ? [1, 0.5, 1, 1] : point.type != 0xff ? [1, 0, 1, 1] : [0, 0, 1, 1])
+				.setEnabled(point.isRendered || prevIsRendered)
 			
 			setupPanelMatrices(point.rendererCheckpanel, point.pos[0], point.pos[1])
 			point.rendererCheckpanel.setDiffuseColor(point.type == 0 ? [1, 0.5, 1, 0.6] : point.type != 0xff ? [1, 0.25, 1, 0.6] : [0, 0.25, 1, 0.6])
+				.setEnabled(point.isRendered || prevIsRendered)
 			
 			let respawnNode = point.respawnNode
 			if (respawnNode == null && this.data.respawnPoints.nodes.length > 0)
@@ -806,7 +888,7 @@ class ViewerCheckpoints
 				
 				point.rendererRespawnLink
 					.setDiffuseColor([0.85, 0.85, 0, 1])
-					.setEnabled(this.viewer.cfg.checkpointsEnableRespawnPointLinks)
+					.setEnabled(this.viewer.cfg.checkpointsEnableRespawnPointLinks && point.isRendered)
 			}
 			else
 				point.rendererRespawnLink.setEnabled(false)
@@ -831,7 +913,7 @@ class ViewerCheckpoints
 					.setTranslation(point.pos[which])
 					.setScaling(new Vec3(scale, scale, scale))
 					.setDiffuseColor([0.5, 0.5, 1, 1])
-					.setEnabled(point.selected[which])
+					.setEnabled(point.selected[which] && (point.isRendered || prevIsRendered))
 					
 				point.rendererSelectedCore[which]
 					.setDiffuseColor([0, 0, 1, 1])
