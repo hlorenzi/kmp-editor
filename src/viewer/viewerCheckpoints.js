@@ -100,8 +100,8 @@ class ViewerCheckpoints
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
-		panel.addButton(null, "(E) Clear Respawn Point Assignment", () => this.clearRespawnPoints())
 		panel.addButton(null, "(S) Toggle Show Loaded Checkpoints", () => this.toggleShowLoaded())
+		panel.addButton(null, "(E) Clear Respawn Point Assignment", () => this.clearRespawnPoints())
 		panel.addButton(null, "(R) Assign Selected Respawn Point to Selected Checkpoints", () => this.assignRespawnPoints())
 		
 		panel.addSelectionNumericInput(null, "Editing Y", -1000000, 1000000, -this.zTop, null, 1.0, true, false, (x, i) => { this.zTop = -x })

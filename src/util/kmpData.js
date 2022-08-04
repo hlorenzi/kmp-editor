@@ -1257,7 +1257,7 @@ class KmpData
 			node.cameraIndex = 0xff
 			node.routeIndex = 0xff
 			node.enemyIndex = 0xff
-			node.render = false
+			node.isRendered = false
 		}
 		this.areaPoints.onCloneNode = (newNode, oldNode) =>
 		{
@@ -1272,7 +1272,7 @@ class KmpData
 			newNode.cameraIndex = oldNode.cameraIndex
 			newNode.routeIndex = oldNode.routeIndex
 			newNode.enemyIndex = oldNode.enemyIndex
-			newNode.render = oldNode.render
+			newNode.isRendered = oldNode.isRendered
 		}
 		
 		this.trackInfo = {}

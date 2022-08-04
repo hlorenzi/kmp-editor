@@ -56,9 +56,9 @@ class ViewerAreas extends PointViewer
 			panel.addText(selectionGroup, "<strong>AREA Index:</strong> " + i.toString() + " (0x" + i.toString(16) + ")")
 		}
 		
-		panel.addCheckbox(selectionGroup, "Render Area", (!enabled || multiedit ? selectedPoints.every(p => p.render) : selectedPoints[0].render), (x) => {
+		panel.addCheckbox(selectionGroup, "Render Area", (!enabled ? false : multiedit ? selectedPoints.every(p => p.isRendered) : selectedPoints[0].isRendered), (x) => {
             for (let point of selectedPoints)
-                point.render = x
+                point.isRendered = x
          })
 
         let typeOptions =
@@ -224,7 +224,7 @@ class ViewerAreas extends PointViewer
 			let newPointIndex = this.data.areaPoints.nodes.findIndex(p => p.selected)
 			if (newPointIndex > 0)
 			{
-				this.data.areaPoints.nodes[newPointIndex].render = true
+				this.data.areaPoints.nodes[newPointIndex].isRendered = true
 				this.refresh()
 			}
 		}
@@ -278,7 +278,7 @@ class ViewerAreas extends PointViewer
             point.rendererArea
                 .setCustomMatrix(areaScale.mul(matrixDirection))
                 .setDiffuseColor([1, 0.7, 0, 0.5])
-                .setEnabled(point.render)
+                .setEnabled(point.isRendered)
 		}
 		
 		this.scene.render(this.viewer.gl, this.viewer.getCurrentCamera())
