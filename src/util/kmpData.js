@@ -1261,9 +1261,9 @@ class KmpData
 		}
 		this.areaPoints.onCloneNode = (newNode, oldNode) =>
 		{
-			newNode.pos = oldNode.pos
-			newNode.rotation = oldNode.rotation
-			newNode.scale = oldNode.scale
+			newNode.pos = oldNode.pos.clone()
+			newNode.rotation = oldNode.rotation.clone()
+			newNode.scale = oldNode.scale.clone()
 			newNode.shape = oldNode.shape
 			newNode.type = oldNode.type
 			newNode.priority = oldNode.priority
