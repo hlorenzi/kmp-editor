@@ -125,6 +125,7 @@ class MainWindow
 		this.undoNeedsNewSlot = false
 		this.undoStack = []
 		this.undoPointer = -1
+		this.savedUndoSlot = -1
 		
 		this.panels = []
 
@@ -284,8 +285,11 @@ class MainWindow
 	setUndoPoint()
 	{
 		if (!this.undoNeedsNewSlot)
+		{
+			this.undoStack[this.undoPointer].subviewer = this.viewer.currentSubviewer
 			return
-		
+		}
+
 		this.undoStack.splice(this.undoPointer + 1, this.undoStack.length - this.undoPointer - 1)		
 		
 		this.undoStack.push({
@@ -455,6 +459,7 @@ class MainWindow
 			
 			this.currentKmpFilename = filename
 			this.currentNotSaved = false
+			this.savedUndoSlot = this.undoPointer
 			this.refreshPanels()
 			return true
 		}
