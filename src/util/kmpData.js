@@ -3,10 +3,7 @@ const { BinaryWriter } = require("./binaryWriter.js")
 const { Vec3 } = require("../math/vec3.js")
 
 
-let unhandledSections =
-[
-	{ id: "CAME", entryLen: 0x48 },
-]
+let unhandledSections = []
 
 
 let sectionOrder =
@@ -61,6 +58,8 @@ class KmpData
 		let objects = []
 		let routes = []
 		let areas = []
+		let cameras = []
+		let camHeader = 0
 		let respawnPoints = []
 		let cannonPoints = []
 		let trackInfo = {}
@@ -251,6 +250,34 @@ class KmpData
 					}
 					break
 				}
+
+				case "CAME":
+				{
+					camHeader = extraData
+
+					for (let i = 0; i < entryNum; i++)
+					{
+						let type = parser.readByte()
+						let nextCam = parser.readByte()
+						let shake = parser.readByte()
+						let routeIndex = parser.readByte()
+						let vCam = parser.readUInt16()
+						let vZoom = parser.readUInt16()
+						let vView = parser.readUInt16()
+						let start = parser.readByte()
+						let movie = parser.readByte()
+						let pos = parser.readVec3()
+						let rotation = parser.readVec3()
+						let zoomStart = parser.readFloat32()
+						let zoomEnd = parser.readFloat32()
+						let viewPosStart = parser.readVec3()
+						let viewPosEnd = parser.readVec3()
+						let time = parser.readFloat32()
+
+						cameras.push({ type, nextCam, shake, routeIndex, vCam, vZoom, vView, start, movie, pos, rotation, zoomStart, zoomEnd, viewPosStart, viewPosEnd, time })
+					}
+					break
+				}
 				
 				case "JGPT":
 				{
@@ -331,44 +358,44 @@ class KmpData
 			itemPoints, itemPaths,
 			checkpointPoints, checkpointPaths,
 			objects, routes, areas, cannonPoints,
-			trackInfo,
+			trackInfo, cameras, camHeader,
 			respawnPoints
 		}
 	}
 	
 	
-	static convertToWorkingFormat(kmpData)
+	static convertToWorkingFormat(loadedKmp)
 	{
-		let kmp = new KmpData()
-		kmp.trackInfo = kmpData.trackInfo
-		kmp.unhandledSectionData = kmpData.unhandledSectionData
+		let data = new KmpData()
+		data.trackInfo = loadedKmp.trackInfo
+		data.unhandledSectionData = loadedKmp.unhandledSectionData
 		
-		for (let i = 0; i < kmpData.startPoints.length; i++)
+		for (let i = 0; i < loadedKmp.startPoints.length; i++)
 		{
-			let kmpPoint = kmpData.startPoints[i]
+			let kmpPoint = loadedKmp.startPoints[i]
 			
-			let node = kmp.startPoints.addNode()
+			let node = data.startPoints.addNode()
 			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
 			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
 			node.playerIndex = kmpPoint.playerIndex
 		}
 		
-		for (let i = 0; i < kmpData.finishPoints.length; i++)
+		for (let i = 0; i < loadedKmp.finishPoints.length; i++)
 		{
-			let kmpPoint = kmpData.finishPoints[i]
+			let kmpPoint = loadedKmp.finishPoints[i]
 			
-			let node = kmp.finishPoints.addNode()
+			let node = data.finishPoints.addNode()
 			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
 			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
 			node.id = kmpPoint.id
 			node.unknown = kmpPoint.unknown
 		}
 		
-		for (let i = 0; i < kmpData.enemyPoints.length; i++)
+		for (let i = 0; i < loadedKmp.enemyPoints.length; i++)
 		{
-			let kmpPoint = kmpData.enemyPoints[i]
+			let kmpPoint = loadedKmp.enemyPoints[i]
 			
-			let node = kmp.enemyPoints.addNode()
+			let node = data.enemyPoints.addNode()
 			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
 			node.size = kmpPoint.size
 			node.setting1 = kmpPoint.setting1
@@ -376,74 +403,74 @@ class KmpData
 			node.setting3 = kmpPoint.setting3
 		}
 		
-		for (let i = 0; i < kmpData.enemyPaths.length; i++)
+		for (let i = 0; i < loadedKmp.enemyPaths.length; i++)
 		{
-			let kmpPath = kmpData.enemyPaths[i]
+			let kmpPath = loadedKmp.enemyPaths[i]
 		
 			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
 			{
-				kmp.enemyPoints.linkNodes(kmp.enemyPoints.nodes[p], kmp.enemyPoints.nodes[p + 1])
-				kmp.enemyPoints.nodes[p].pathIndex = i
-				kmp.enemyPoints.nodes[p + 1].pathIndex = i
+				data.enemyPoints.linkNodes(data.enemyPoints.nodes[p], data.enemyPoints.nodes[p + 1])
+				data.enemyPoints.nodes[p].pathIndex = i
+				data.enemyPoints.nodes[p + 1].pathIndex = i
 			}
 			
-			const emptyPrevGroups = kmpPath.prevGroups.find(g => g != 0xff && g < kmpData.enemyPaths.length) == null
+			const emptyPrevGroups = kmpPath.prevGroups.find(g => g != 0xff && g < loadedKmp.enemyPaths.length) == null
 			
 			for (let j = 0; j < 6; j++)
 			{
-				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < kmpData.enemyPaths.length)
+				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < loadedKmp.enemyPaths.length)
 				{
-					const nextComesBackToThis = kmpData.enemyPaths[kmpPath.nextGroups[j]].nextGroups.find(g => g == i) != null
-					const nextIsBattleDispatch = kmpPath.nextGroups[j] > i && kmpData.enemyPaths[kmpPath.nextGroups[j]].prevGroups.find(g => g != 0xff && g < kmpData.enemyPaths.length) == null
+					const nextComesBackToThis = loadedKmp.enemyPaths[kmpPath.nextGroups[j]].nextGroups.find(g => g == i) != null
+					const nextIsBattleDispatch = kmpPath.nextGroups[j] > i && loadedKmp.enemyPaths[kmpPath.nextGroups[j]].prevGroups.find(g => g != 0xff && g < loadedKmp.enemyPaths.length) == null
 					
 					if (!emptyPrevGroups || (!nextComesBackToThis || nextIsBattleDispatch))
 					{
 						let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
-						let nextPoint = kmpData.enemyPaths[kmpPath.nextGroups[j]].startIndex
+						let nextPoint = loadedKmp.enemyPaths[kmpPath.nextGroups[j]].startIndex
 						
-						kmp.enemyPoints.linkNodes(kmp.enemyPoints.nodes[lastPoint], kmp.enemyPoints.nodes[nextPoint])
-						kmp.enemyPoints.nodes[lastPoint].pathIndex = i
-						kmp.enemyPoints.nodes[nextPoint].pathIndex = kmpPath.nextGroups[j]
+						data.enemyPoints.linkNodes(data.enemyPoints.nodes[lastPoint], data.enemyPoints.nodes[nextPoint])
+						data.enemyPoints.nodes[lastPoint].pathIndex = i
+						data.enemyPoints.nodes[nextPoint].pathIndex = kmpPath.nextGroups[j]
 					}
 				}
 			}
 		}
 		
-		for (let i = 0; i < kmpData.itemPoints.length; i++)
+		for (let i = 0; i < loadedKmp.itemPoints.length; i++)
 		{
-			let kmpPoint = kmpData.itemPoints[i]
+			let kmpPoint = loadedKmp.itemPoints[i]
 			
-			let node = kmp.itemPoints.addNode()
+			let node = data.itemPoints.addNode()
 			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
 			node.size = kmpPoint.size
 			node.setting1 = kmpPoint.setting1
 			node.setting2 = kmpPoint.setting2
 		}
 		
-		for (let i = 0; i < kmpData.itemPaths.length; i++)
+		for (let i = 0; i < loadedKmp.itemPaths.length; i++)
 		{
-			let kmpPath = kmpData.itemPaths[i]
+			let kmpPath = loadedKmp.itemPaths[i]
 		
 			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
-				kmp.itemPoints.linkNodes(kmp.itemPoints.nodes[p], kmp.itemPoints.nodes[p + 1])
+				data.itemPoints.linkNodes(data.itemPoints.nodes[p], data.itemPoints.nodes[p + 1])
 			
 			for (let j = 0; j < 6; j++)
 			{
-				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < kmpData.itemPaths.length)
+				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < loadedKmp.itemPaths.length)
 				{
 					let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
-					let nextPoint = kmpData.itemPaths[kmpPath.nextGroups[j]].startIndex
+					let nextPoint = loadedKmp.itemPaths[kmpPath.nextGroups[j]].startIndex
 					
-					kmp.itemPoints.linkNodes(kmp.itemPoints.nodes[lastPoint], kmp.itemPoints.nodes[nextPoint])
+					data.itemPoints.linkNodes(data.itemPoints.nodes[lastPoint], data.itemPoints.nodes[nextPoint])
 				}
 			}
 		}
 		
-		for (let i = 0; i < kmpData.checkpointPoints.length; i++)
+		for (let i = 0; i < loadedKmp.checkpointPoints.length; i++)
 		{
-			let kmpPoint = kmpData.checkpointPoints[i]
+			let kmpPoint = loadedKmp.checkpointPoints[i]
 			
-			let node = kmp.checkpointPoints.addNode()
+			let node = data.checkpointPoints.addNode()
 			node.pos = [new Vec3(kmpPoint.x1, -kmpPoint.z1, 0), new Vec3(kmpPoint.x2, -kmpPoint.z2, 0)]
 			node.type = kmpPoint.type
 			node.respawnNode = null
@@ -451,32 +478,32 @@ class KmpData
 			node.isRendered = true
 		}
 
-		for (let i = 0; i < kmpData.checkpointPaths.length; i++)
+		for (let i = 0; i < loadedKmp.checkpointPaths.length; i++)
 		{
-			let kmpPath = kmpData.checkpointPaths[i]
+			let kmpPath = loadedKmp.checkpointPaths[i]
 		
 			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
-				kmp.checkpointPoints.linkNodes(kmp.checkpointPoints.nodes[p], kmp.checkpointPoints.nodes[p + 1])
+				data.checkpointPoints.linkNodes(data.checkpointPoints.nodes[p], data.checkpointPoints.nodes[p + 1])
 
 			for (let j = 0; j < 6; j++)
 			{
-				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < kmpData.checkpointPaths.length)
+				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < loadedKmp.checkpointPaths.length)
 				{
 					let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
-					let nextPoint = kmpData.checkpointPaths[kmpPath.nextGroups[j]].startIndex
+					let nextPoint = loadedKmp.checkpointPaths[kmpPath.nextGroups[j]].startIndex
 					
-					kmp.checkpointPoints.linkNodes(kmp.checkpointPoints.nodes[lastPoint], kmp.checkpointPoints.nodes[nextPoint])
+					data.checkpointPoints.linkNodes(data.checkpointPoints.nodes[lastPoint], data.checkpointPoints.nodes[nextPoint])
 				}
 			}
 			
-			kmp.checkpointPoints.nodes[kmpPath.startIndex].firstInPath = true
+			data.checkpointPoints.nodes[kmpPath.startIndex].firstInPath = true
 		}
 		
-		for (let i = 0; i < kmpData.objects.length; i++)
+		for (let i = 0; i < loadedKmp.objects.length; i++)
 		{
-			let kmpObj = kmpData.objects[i]
+			let kmpObj = loadedKmp.objects[i]
 			
-			let node = kmp.objects.addNode()
+			let node = data.objects.addNode()
 			node.pos = new Vec3(kmpObj.pos.x, -kmpObj.pos.z, -kmpObj.pos.y)
 			node.rotation = new Vec3(kmpObj.rotation.x, kmpObj.rotation.y, kmpObj.rotation.z)
 			node.scale = new Vec3(kmpObj.scale.x, kmpObj.scale.z, kmpObj.scale.y)
@@ -487,11 +514,11 @@ class KmpData
 			node.presence = kmpObj.presence
 		}
 		
-		for (let i = 0; i < kmpData.routes.length; i++)
+		for (let i = 0; i < loadedKmp.routes.length; i++)
 		{
-			let kmpRoute = kmpData.routes[i]
+			let kmpRoute = loadedKmp.routes[i]
 			
-			let route = kmp.addNewRoute()
+			let route = data.addNewRoute()
 			route.setting1 = kmpRoute.setting1
 			route.setting2 = kmpRoute.setting2
 			
@@ -511,40 +538,40 @@ class KmpData
 			}
 		}
 		
-		for (let i = 0; i < kmpData.respawnPoints.length; i++)
+		for (let i = 0; i < loadedKmp.respawnPoints.length; i++)
 		{
-			let kmpPoint = kmpData.respawnPoints[i]
+			let kmpPoint = loadedKmp.respawnPoints[i]
 			
-			let node = kmp.respawnPoints.addNode()
+			let node = data.respawnPoints.addNode()
 			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
 			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
 			node.size = kmpPoint.size
 		}
 		
-		for (let i = 0; i < kmpData.cannonPoints.length; i++)
+		for (let i = 0; i < loadedKmp.cannonPoints.length; i++)
 		{
-			let kmpPoint = kmpData.cannonPoints[i]
+			let kmpPoint = loadedKmp.cannonPoints[i]
 			
-			let node = kmp.cannonPoints.addNode()
+			let node = data.cannonPoints.addNode()
 			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
 			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
 			node.id = kmpPoint.id
 			node.effect = kmpPoint.effect == 0xffff ? 0 : kmpPoint.effect
 		}
 		
-		for (let i = 0; i < kmpData.checkpointPoints.length; i++)
+		for (let i = 0; i < loadedKmp.checkpointPoints.length; i++)
 		{
-			let respawnIndex = kmpData.checkpointPoints[i].respawnIndex
+			let respawnIndex = loadedKmp.checkpointPoints[i].respawnIndex
 			
-			if (respawnIndex >= 0 && respawnIndex < kmp.respawnPoints.nodes.length)
-				kmp.checkpointPoints.nodes[i].respawnNode = kmp.respawnPoints.nodes[respawnIndex]
+			if (respawnIndex >= 0 && respawnIndex < data.respawnPoints.nodes.length)
+				data.checkpointPoints.nodes[i].respawnNode = data.respawnPoints.nodes[respawnIndex]
 		}
 		
-		for (let i = 0; i < kmpData.areas.length; i++)
+		for (let i = 0; i < loadedKmp.areas.length; i++)
 		{
-			let kmpArea = kmpData.areas[i]
+			let kmpArea = loadedKmp.areas[i]
 			
-			let node = kmp.areaPoints.addNode()
+			let node = data.areaPoints.addNode()
 			node.pos = new Vec3(kmpArea.pos.x, -kmpArea.pos.z, -kmpArea.pos.y)
 			node.rotation = new Vec3(kmpArea.rotation.x, kmpArea.rotation.y, kmpArea.rotation.z)
 			node.scale = new Vec3(kmpArea.scale.x, kmpArea.scale.z, kmpArea.scale.y)
@@ -553,17 +580,41 @@ class KmpData
 			node.priority = kmpArea.priority
 			node.setting1 = kmpArea.setting1
 			node.setting2 = kmpArea.setting2
-			node.camera = null
 			node.cameraIndex = kmpArea.cameraIndex
-			node.route = null
 			node.routeIndex = kmpArea.routeIndex
 			node.enemyIndex = kmpArea.enemyIndex
 		}
+
+		data.firstIntroCam = (loadedKmp.camHeader & 0xff00) >>> 8
+		data.firstSelectionCam = loadedKmp.camHeader & 0xff
+		
+		for (let i = 0; i < loadedKmp.cameras.length; i++)
+		{
+			let kmpCam = loadedKmp.cameras[i]
+
+			let node = data.cameras.addNode()
+			node.pos = new Vec3(kmpCam.pos.x, -kmpCam.pos.z, -kmpCam.pos.y)
+			node.rotation = new Vec3(kmpCam.rotation.x, kmpCam.rotation.y, kmpCam.rotation.z)
+			node.type = kmpCam.type
+			node.nextCam = kmpCam.nextCam
+			node.shake = kmpCam.shake
+			node.routeIndex = kmpCam.routeIndex
+			node.vCam = kmpCam.vCam
+			node.vZoom = kmpCam.vZoom
+			node.vView = kmpCam.vView
+			node.start = kmpCam.start
+			node.movie = kmpCam.movie
+			node.zoomStart = kmpCam.zoomStart
+			node.zoomEnd = kmpCam.zoomEnd
+			node.viewPosStart = new Vec3(kmpCam.viewPosStart.x, -kmpCam.viewPosStart.z, -kmpCam.viewPosStart.y)
+			node.viewPosEnd = new Vec3(kmpCam.viewPosEnd.x, -kmpCam.viewPosEnd.z, -kmpCam.viewPosEnd.y)
+			node.time = kmpCam.time
+		}
 		
 
-		kmp.isBattleTrack = kmpData.itemPaths.length == 0 && kmpData.checkpointPaths.length == 0 && kmpData.finishPoints.length > 0
+		data.isBattleTrack = loadedKmp.itemPaths.length == 0 && loadedKmp.checkpointPaths.length == 0 && loadedKmp.finishPoints.length > 0
 		
-		return kmp
+		return data
 	}
 	
 	
@@ -987,7 +1038,45 @@ class KmpData
 		}
 		
 		// Write CAME
-		writeUnhandledSection("CAME")
+		let sectionCameAddr = w.head
+		let sectionCameOrder = sectionOrder.findIndex(s => s == "CAME")
+		w.seek(sectionOffsetsAddr + sectionCameOrder * 4)
+		w.writeUInt32(sectionCameAddr - headerEndAddr)
+		
+		w.seek(sectionCameAddr)
+		w.writeAscii("CAME")
+		w.writeUInt16(this.cameras.nodes.length)
+		w.writeByte(this.firstIntroCam)
+		w.writeByte(this.firstSelectionCam)
+		for (let i = 0; i < this.cameras.nodes.length; i++)
+		{
+			let cam = this.cameras.nodes[i]
+			
+			w.writeByte(cam.type)
+			w.writeByte(cam.nextCam)
+			w.writeByte(cam.shake)
+			w.writeByte(cam.routeIndex)
+			w.writeUInt16(cam.vCam)
+			w.writeUInt16(cam.vZoom)
+			w.writeUInt16(cam.vView)
+			w.writeByte(cam.start)
+			w.writeByte(cam.movie)
+			w.writeFloat32(cam.pos.x)
+			w.writeFloat32(-cam.pos.z)
+			w.writeFloat32(-cam.pos.y)
+			w.writeFloat32(cam.rotation.x)
+			w.writeFloat32(cam.rotation.y)
+			w.writeFloat32(cam.rotation.z)
+			w.writeFloat32(cam.zoomStart)
+			w.writeFloat32(cam.zoomEnd)
+			w.writeFloat32(cam.viewPosStart.x)
+			w.writeFloat32(-cam.viewPosStart.z)
+			w.writeFloat32(-cam.viewPosStart.y)
+			w.writeFloat32(cam.viewPosEnd.x)
+			w.writeFloat32(-cam.viewPosEnd.z)
+			w.writeFloat32(-cam.viewPosEnd.y)
+			w.writeFloat32(cam.time)
+		}
 		
 		// Write JGPT
 		let sectionJgptAddr = w.head
@@ -1144,6 +1233,7 @@ class KmpData
 		}
 		
 		this.objects = new NodeGraph()
+		this.objects.maxNodes = 9999
 		this.objects.onAddNode = (node) =>
 		{
 			node.pos = new Vec3(0, 0, 0)
@@ -1253,29 +1343,67 @@ class KmpData
 			node.priority = 0
 			node.setting1 = 0
 			node.setting2 = 0
-			node.camera = null
 			node.cameraIndex = 0xff
-			node.route = null
 			node.routeIndex = 0xff
 			node.enemyIndex = 0xff
-			node.render = false
+			node.isRendered = false
 		}
 		this.areaPoints.onCloneNode = (newNode, oldNode) =>
 		{
-			newNode.pos = oldNode.pos
-			newNode.rotation = oldNode.rotation
-			newNode.scale = oldNode.scale
+			newNode.pos = oldNode.pos.clone()
+			newNode.rotation = oldNode.rotation.clone()
+			newNode.scale = oldNode.scale.clone()
 			newNode.shape = oldNode.shape
 			newNode.type = oldNode.type
 			newNode.priority = oldNode.priority
 			newNode.setting1 = oldNode.setting1
 			newNode.setting2 = oldNode.setting2
-			newNode.camera = oldNode.camera
 			newNode.cameraIndex = oldNode.cameraIndex
-			newNode.route = oldNode.route
 			newNode.routeIndex = oldNode.routeIndex
 			newNode.enemyIndex = oldNode.enemyIndex
-			newNode.render = oldNode.render
+			newNode.isRendered = oldNode.isRendered
+		}
+
+		this.cameras = new NodeGraph()
+		this.firstIntroCam = 0
+		this.firstSelectionCam = 0
+		this.cameras.onAddNode = (node) =>
+		{
+			node.pos = new Vec3(0, 0, 0)
+			node.rotation = new Vec3(0, 0, 0)
+			node.type = 0
+			node.nextCam = 0
+			node.shake = 0
+			node.routeIndex = 0xff
+			node.vCam = 0
+			node.vZoom = 0
+			node.vView = 0
+			node.start = 0
+			node.movie = 0
+			node.zoomStart = 0
+			node.zoomEnd = 0
+			node.viewPosStart = new Vec3(0, 0, 0)
+			node.viewPosEnd = new Vec3(0, 0, 0)
+			node.time = 0
+		}
+		this.cameras.onCloneNode = (newNode, oldNode) =>
+		{
+			newNode.pos = oldNode.pos.clone()
+			newNode.rotation = oldNode.rotation.clone()
+			newNode.type = oldNode.type
+			newNode.nextCam = oldNode.nextCam
+			newNode.shake = oldNode.shake
+			newNode.routeIndex = oldNode.routeIndex
+			newNode.vCam = oldNode.vCam
+			newNode.vZoom = oldNode.vZoom
+			newNode.vView = oldNode.vView
+			newNode.start = oldNode.start
+			newNode.movie = oldNode.movie
+			newNode.zoomStart = oldNode.zoomStart
+			newNode.zoomEnd = oldNode.zoomEnd
+			newNode.viewPosStart = oldNode.viewPosStart.clone()
+			newNode.viewPosEnd = oldNode.viewPosEnd.clone()
+			newNode.time = oldNode.time
 		}
 		
 		this.trackInfo = {}
@@ -1362,6 +1490,9 @@ class KmpData
 		cloned.respawnPoints = this.respawnPoints.clone()
 		cloned.cannonPoints = this.cannonPoints.clone()
 		cloned.areaPoints = this.areaPoints.clone()
+		cloned.cameras = this.cameras.clone()
+		cloned.firstIntroCam = this.firstIntroCam
+		cloned.firstSelectionCam = this.firstSelectionCam
 		
 		for (let route of this.routes)
 		{

@@ -181,11 +181,18 @@ class PointViewer
 	
 	deleteSelectedPoints()
 	{
+		let pointsToDelete = []
+		
 		for (let point of this.points().nodes)
 		{
-			if (point.selected)
-                this.points().removeNode(point)
-		}	
+			if (!point.selected)
+				continue
+			
+			pointsToDelete.push(point)
+		}
+		
+		for (let point of pointsToDelete)
+			this.points().removeNode(point)
 		
 		this.refresh()
 		this.window.setNotSaved()

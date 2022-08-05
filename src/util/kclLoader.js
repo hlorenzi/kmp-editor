@@ -37,7 +37,10 @@ class KclLoader
 		let model = new ModelBuilder()
 
 		if (!cfg.kclEnableModel)
-			return model
+		{
+			model.addTri(new Vec3(0, 0, 0), new Vec3(1, 0, 0), new Vec3(0, 1, 0))
+			return model.calculateNormals()
+		}
 		
 		let collisionTypeData =
 		[

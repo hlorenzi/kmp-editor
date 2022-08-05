@@ -7,6 +7,7 @@ const { ViewerCheckpoints } = require("./viewerCheckpoints.js")
 const { ViewerObjects } = require("./viewerObjects.js")
 const { ViewerRoutes } = require("./viewerRoutes.js")
 const { ViewerAreas } = require("./viewerAreas.js")
+const { ViewerCameras } = require("./viewerCameras.js")
 const { ViewerRespawnPoints } = require("./viewerRespawnPoints.js")
 const { ViewerCannonPoints } = require("./viewerCannonPoints.js")
 const { ViewerFinishPoints } = require("./viewerFinishPoints.js")
@@ -121,6 +122,7 @@ class Viewer
 			new ViewerObjects(this.window, this, this.data),
 			new ViewerRoutes(this.window, this, this.data),
 			new ViewerAreas(this.window, this, this.data),
+			new ViewerCameras(this.window, this, this.data),
 			new ViewerCannonPoints(this.window, this, this.data),
 			new ViewerFinishPoints(this.window, this, this.data),
 		]
