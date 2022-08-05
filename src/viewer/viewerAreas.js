@@ -100,7 +100,10 @@ class ViewerAreas extends PointViewer
 		switch (selectionType)
 		{
 			case 0:
-				panel.addSelectionNumericInput(selectionGroup, "Camera ID", 0, 0xff, selectedPoints.map(p => p.cameraIndex), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].cameraIndex = x })
+				let camOptions = [{ str: "None", value: 0xff }]
+				for (let i = 0; i < this.data.cameras.nodes.length; i++)
+					camOptions.push({ str: "Camera " + i + " (0x" + i.toString(16) + ")", value: i })
+				panel.addSelectionDropdown(selectionGroup, "Camera", selectedPoints.map(p => p.cameraIndex), camOptions, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].cameraIndex = x })
 				break
 
 			case 1:
