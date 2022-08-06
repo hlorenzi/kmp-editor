@@ -334,7 +334,12 @@ class PathViewer
 		{
 			if (ev.altKey)
 			{
-				if (hoveringOverElem.next.length >= this.points().maxNextNodes)
+				if (this.points().nodes.length >= this.points().maxNodes)
+				{
+					alert("KMP error!\n\nMaximum number of points surpassed (" + this.points().maxNodes + ")")
+					return
+				}
+				else if (hoveringOverElem.next.length >= this.points().maxNextNodes)
 				{
 					alert("Node link error!\n\nMax outgoing connections to a point surpassed (maximum " + this.points().maxNextNodes + ")")
 					return
@@ -364,6 +369,11 @@ class PathViewer
 		}
 		else if (ev.altKey)
 		{
+			if (this.points().nodes.length >= this.points().maxNodes)
+			{
+				alert("KMP error!\n\nMaximum number of points surpassed (" + this.points().maxNodes + ")")
+				return
+			}
 			let newPoint = this.points().addNode()
 			newPoint.pos = mouse3DPos
 			
@@ -419,6 +429,11 @@ class PathViewer
 
 			if (selectedPoints.length == 1 && ev.altKey && !this.altIsHeld)
 			{
+				if (this.points().nodes.length >= this.points().maxNodes)
+				{
+					alert("KMP error!\n\nMaximum number of points surpassed (" + this.points().maxNodes + ")")
+					return
+				}
 				let point = selectedPoints[0]
 
 				let newPoint = this.points().addNode()
@@ -433,6 +448,7 @@ class PathViewer
 				newPoint.selected = true
 				this.linkingPoints = true
 				this.altIsHeld = true
+				this.data.refreshIndices(this.viewer.cfg.isBattleTrack)
 				this.viewer.setCursor("-webkit-grabbing")
 				this.refreshPanels()
 				this.window.setNotSaved()

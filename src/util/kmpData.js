@@ -1233,7 +1233,7 @@ class KmpData
 		}
 		
 		this.objects = new NodeGraph()
-		this.objects.maxNodes = 9999
+		this.objects.maxNodes = 0xffff
 		this.objects.onAddNode = (node) =>
 		{
 			node.pos = new Vec3(0, 0, 0)
@@ -1425,6 +1425,7 @@ class KmpData
 		route.setting2 = 0
 		
 		route.points = new NodeGraph()
+		route.points.maxNodes = 0xffff
 		route.points.onAddNode = (node) =>
 		{
 			node.pos = new Vec3(0, 0, 0)
@@ -1521,7 +1522,7 @@ class NodeGraph
 	constructor()
 	{
 		this.nodes = []
-		this.maxNodes = 255
+		this.maxNodes = 0xff
 		this.maxNextNodes = 1
 		this.maxPrevNodes = 1
 		this.onAddNode = () => { }
@@ -1532,12 +1533,6 @@ class NodeGraph
 	
 	addNode()
 	{
-		if (this.nodes.length >= this.maxNodes)
-		{
-			alert("KMP error!\n\nMaximum number of points surpassed (" + this.maxNodes + ")")
-			return
-		}
-
 		let node =
 		{
 			next: [],
