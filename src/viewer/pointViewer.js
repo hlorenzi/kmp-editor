@@ -263,6 +263,11 @@ class PointViewer
 		{
 			if (ev.altKey)
 			{
+				if (this.points().nodes.length >= this.points().maxNodes)
+				{
+					alert("KMP error!\n\nMaximum number of points surpassed (" + this.points().maxNodes + ")")
+					return
+				}
 				let newPoint = this.points().addNode()
 				this.points().onCloneNode(newPoint, hoveringOverElem)
 				
@@ -282,6 +287,11 @@ class PointViewer
 		}
 		else if (ev.altKey)
 		{
+			if (this.points().nodes.length >= this.points().maxNodes)
+			{
+				alert("KMP error!\n\nMaximum number of points surpassed (" + this.points().maxNodes + ")")
+				return
+			}
 			let newPoint = this.points().addNode()
 			newPoint.pos = mouse3DPos
 			

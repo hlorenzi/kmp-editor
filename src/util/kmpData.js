@@ -682,6 +682,10 @@ class KmpData
 		w.writeAscii("KTPT")
 		w.writeUInt16(this.startPoints.nodes.length)
 		w.writeUInt16(0)
+
+		if (this.startPoints.nodes.length > 0xff)
+			throw "kmp encode: max start points surpassed (have " + this.startPoints.nodes.length + ", max 255)"
+			
 		for (let p of this.startPoints.nodes)
 		{
 			w.writeFloat32(p.pos.x)
@@ -949,6 +953,10 @@ class KmpData
 		w.writeAscii("GOBJ")
 		w.writeUInt16(this.objects.nodes.length)
 		w.writeUInt16(0)
+
+		if (this.objects.nodes.length > 0xff)
+			alert("Warning: More than 255 objects found (" + this.objects.nodes.length + ").\nTrack slot 5.3 is required for objects to load correctly.")
+
 		for (let i = 0; i < this.objects.nodes.length; i++)
 		{
 			let obj = this.objects.nodes[i]
@@ -1013,6 +1021,10 @@ class KmpData
 		w.writeAscii("AREA")
 		w.writeUInt16(this.areaPoints.nodes.length)
 		w.writeUInt16(0)
+
+		if (this.areaPoints.nodes.length > 0xff)
+			throw "kmp encode: max AREA points surpassed (have " + this.areaPoints.nodes.length + ", max 255)"
+			
 		for (let i = 0; i < this.areaPoints.nodes.length; i++)
 		{
 			let area = this.areaPoints.nodes[i]
@@ -1048,6 +1060,10 @@ class KmpData
 		w.writeUInt16(this.cameras.nodes.length)
 		w.writeByte(this.firstIntroCam)
 		w.writeByte(this.firstSelectionCam)
+
+		if (this.cameras.nodes.length > 0xff)
+			throw "kmp encode: max cameras surpassed (have " + this.cameras.nodes.length + ", max 255)"
+			
 		for (let i = 0; i < this.cameras.nodes.length; i++)
 		{
 			let cam = this.cameras.nodes[i]
@@ -1088,6 +1104,10 @@ class KmpData
 		w.writeAscii("JGPT")
 		w.writeUInt16(this.respawnPoints.nodes.length)
 		w.writeUInt16(0)
+
+		if (this.respawnPoints.nodes.length > 0xff)
+			throw "kmp encode: max respawn points surpassed (have " + this.respawnPoints.nodes.length + ", max 255)"
+			
 		for (let i = 0; i < this.respawnPoints.nodes.length; i++)
 		{
 			let p = this.respawnPoints.nodes[i]
@@ -1112,6 +1132,10 @@ class KmpData
 		w.writeAscii("CNPT")
 		w.writeUInt16(this.cannonPoints.nodes.length)
 		w.writeUInt16(0)
+
+		if (this.cannonPoints.nodes.length > 0xff)
+			throw "kmp encode: max cannon points surpassed (have " + this.cannonPoints.nodes.length + ", max 255)"
+			
 		for (let p of this.cannonPoints.nodes)
 		{
 			w.writeFloat32(p.pos.x)
@@ -1134,6 +1158,10 @@ class KmpData
 		w.writeAscii("MSPT")
 		w.writeUInt16(this.finishPoints.nodes.length)
 		w.writeUInt16(0)
+
+		if (this.finishPoints.nodes.length > 0xff)
+			throw "kmp encode: max finish points surpassed (have " + this.finishPoints.nodes.length + ", max 255)"
+			
 		for (let p of this.finishPoints.nodes)
 		{
 			w.writeFloat32(p.pos.x)
@@ -1178,7 +1206,6 @@ class KmpData
 		this.unhandledSectionData = []
 		
 		this.startPoints = new NodeGraph()
-		this.startPoints.maxNodes = 12
 		this.startPoints.onAddNode = (node) =>
 		{
 			node.pos = new Vec3(0, 0, 0)
@@ -1233,7 +1260,7 @@ class KmpData
 		}
 		
 		this.objects = new NodeGraph()
-		this.objects.maxNodes = 9999
+		this.objects.maxNodes = 0xffff
 		this.objects.onAddNode = (node) =>
 		{
 			node.pos = new Vec3(0, 0, 0)
@@ -1299,7 +1326,6 @@ class KmpData
 		}
 		
 		this.cannonPoints = new NodeGraph()
-		this.cannonPoints.maxNodes = 8
 		this.cannonPoints.onAddNode = (node) =>
 		{
 			node.pos = new Vec3(0, 0, 0)
@@ -1425,6 +1451,7 @@ class KmpData
 		route.setting2 = 0
 		
 		route.points = new NodeGraph()
+		route.points.maxNodes = 0xffff
 		route.points.onAddNode = (node) =>
 		{
 			node.pos = new Vec3(0, 0, 0)
@@ -1521,7 +1548,7 @@ class NodeGraph
 	constructor()
 	{
 		this.nodes = []
-		this.maxNodes = 255
+		this.maxNodes = 0xff
 		this.maxNextNodes = 1
 		this.maxPrevNodes = 1
 		this.onAddNode = () => { }
@@ -1532,12 +1559,6 @@ class NodeGraph
 	
 	addNode()
 	{
-		if (this.nodes.length >= this.maxNodes)
-		{
-			alert("KMP error!\n\nMaximum number of points surpassed (" + this.maxNodes + ")")
-			return
-		}
-
 		let node =
 		{
 			next: [],
