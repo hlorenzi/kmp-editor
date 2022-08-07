@@ -13,7 +13,8 @@ class ViewerRespawnPoints extends PointViewer
 		super(window, viewer, data)
 		
 		this.modelPlayerPos = new ModelBuilder()
-			.addCone(-250, -250, -250, 250, 250, 250, 8, new Vec3(1, 0, 0))
+			//.addCone(-80, -80, -125, 80, 80, 125, 8, new Vec3(1, 0, 0))
+			.addSphere(-60, -60, -60, 60, 60, 60)
 			.calculateNormals()
 			.makeModel(viewer.gl)
 	}
@@ -104,39 +105,36 @@ class ViewerRespawnPoints extends PointViewer
 				
 			point.rendererSelectedCore
 				.setDiffuseColor([0.55, 0.55, 0, 1])
-				
-			const customMatrix = (x, y, z, s=scale) =>
-			{
-				return Mat4.scale(s, s / 1.5, s / 1.5)
-					.mul(Mat4.translation(x, y, -z))
-					.mul(Mat4.rotation(new Vec3(0, 0, 1), 90 * Math.PI / 180))
-					.mul(Mat4.rotation(new Vec3(1, 0, 0), point.rotation.x * Math.PI / 180))
-					.mul(Mat4.rotation(new Vec3(0, 0, 1), -point.rotation.y * Math.PI / 180))
-					.mul(Mat4.rotation(new Vec3(0, 1, 0), -point.rotation.z * Math.PI / 180))
-					.mul(Mat4.translation(point.pos.x, point.pos.y, point.pos.z))
-			}
+			
+			let matrixScale = Mat4.scale(scale, scale / 1.5, scale / 1.5)
+			let matrixDirection =
+				Mat4.rotation(new Vec3(0, 0, 1), 90 * Math.PI / 180)
+				.mul(Mat4.rotation(new Vec3(1, 0, 0), point.rotation.x * Math.PI / 180))
+				.mul(Mat4.rotation(new Vec3(0, 0, 1), -point.rotation.y * Math.PI / 180))
+				.mul(Mat4.rotation(new Vec3(0, 1, 0), -point.rotation.z * Math.PI / 180))
+				.mul(Mat4.translation(point.pos.x, point.pos.y, point.pos.z))
 				
 			point.rendererDirection
-				.setCustomMatrix(customMatrix(0, 0, 0))
+				.setCustomMatrix(matrixScale.mul(matrixDirection))
 				.setDiffuseColor([0.85, 0.85, 0, 1])
 				.setEnabled(this.viewer.cfg.enableRotationRender)
 				
 			point.rendererDirectionArrow
-				.setCustomMatrix(customMatrix(0, 0, 0))
+				.setCustomMatrix(matrixScale.mul(matrixDirection))
 				.setDiffuseColor([0.75, 0.75, 0, 1])
 				.setEnabled(this.viewer.cfg.enableRotationRender)
 				
 			point.rendererDirectionUp
-				.setCustomMatrix(customMatrix(0, 0, 0))
+				.setCustomMatrix(matrixScale.mul(matrixDirection))
 				.setDiffuseColor([0.5, 0.5, 0, 1])
 				.setEnabled(this.viewer.cfg.enableRotationRender)
-			
+
 			let k = 0
 			for (let i = -600; i <= 0; i += 300)
 				for (let j = -450; j <= 450; j += 300)
 				{
 					point.rendererPlayerPositions[k]
-						.setCustomMatrix(customMatrix(i, j, 550, 0.5))
+						.setCustomMatrix(Mat4.translation(i, j, 0).mul(matrixDirection).mul(Mat4.translation(0, 0, -550)))
 						.setDiffuseColor([0.75, 0.75, 0, 1])
 						.setEnabled(this.viewer.cfg.respawnsEnablePlayerSlots)
 					k++
