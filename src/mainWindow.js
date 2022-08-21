@@ -87,6 +87,7 @@ class MainWindow
 			kclEnableWalls: true,
 			kclEnableDeathBarriers: true,
 			kclEnableInvisible: true,
+			kclEnableItemRoad: true,
 			kclEnableEffects: false,
 			kclHighlighter: 0,
 			enemyPathsEnableSizeRender: true,
@@ -209,6 +210,7 @@ class MainWindow
 		panel.addCheckbox(kclGroup, "Show walls", this.cfg.kclEnableWalls, (x) => { this.cfg.kclEnableWalls = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show death barriers", this.cfg.kclEnableDeathBarriers, (x) => { this.cfg.kclEnableDeathBarriers = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show invisible walls", this.cfg.kclEnableInvisible, (x) => { this.cfg.kclEnableInvisible = x; this.openKcl(this.currentKclFilename) })
+		panel.addCheckbox(kclGroup, "Show item road/wall", this.cfg.kclEnableItemRoad, (x) => { this.cfg.kclEnableItemRoad = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show effects/triggers", this.cfg.kclEnableEffects, (x) => { this.cfg.kclEnableEffects = x; this.openKcl(this.currentKclFilename) })
 		
 		let hlOptions =
