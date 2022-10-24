@@ -7,6 +7,7 @@ class BinaryWriter
 	{
 		this.bytes = []
 		this.head = 0
+		this.littleEndian = false
 	}
 	
 	
@@ -49,6 +50,9 @@ class BinaryWriter
 	
 	writeBytes(bytes)
 	{
+		if (this.littleEndian)
+			bytes.reverse()
+
 		for (let i = 0; i < bytes.length; i++)
 			this.writeByte(bytes[i])
 	}
@@ -56,17 +60,21 @@ class BinaryWriter
 	
 	writeUInt16(x)
 	{
-		this.writeByte(x >> 8)
-		this.writeByte(x >> 0)
+		this.writeBytes([
+			x >> 8,
+			x >> 0
+		])
 	}
 	
 	
 	writeUInt32(x)
 	{
-		this.writeByte(x >> 24)
-		this.writeByte(x >> 16)
-		this.writeByte(x >>  8)
-		this.writeByte(x >>  0)
+		this.writeBytes([
+			x >> 24,
+			x >> 16,
+			x >> 8,
+			x >> 0
+		])
 	}
 	
 	
@@ -92,10 +100,12 @@ class BinaryWriter
 	{
 		let view = new DataView(new ArrayBuffer(4))
 		view.setFloat32(0, x)
-		this.writeByte(view.getUint8(0))
-		this.writeByte(view.getUint8(1))
-		this.writeByte(view.getUint8(2))
-		this.writeByte(view.getUint8(3))
+		this.writeBytes([
+			view.getUint8(0),
+			view.getUint8(1),
+			view.getUint8(2),
+			view.getUint8(3)
+		])
 	}
 	
 	
@@ -103,8 +113,10 @@ class BinaryWriter
 	{
 		let view = new DataView(new ArrayBuffer(4))
 		view.setFloat32(0, x)
-		this.writeByte(view.getUint8(0))
-		this.writeByte(view.getUint8(1))
+		this.writeBytes([
+			view.getUint8(0),
+			view.getUint8(1),
+		])
 	}
 	
 	
@@ -118,6 +130,9 @@ class BinaryWriter
 	
 	writeAsciiLength(str, length)
 	{
+		if (this.littleEndian)
+			str = str.split('').reverse().join('')
+
 		for (let i = 0; i < Math.min(str.length, length); i++)
 			this.writeByte(str.charCodeAt(i))
 		
@@ -128,6 +143,9 @@ class BinaryWriter
 	
 	writeAscii(str)
 	{
+		if (this.littleEndian)
+			str = str.split('').reverse().join('')
+			
 		for (let i = 0; i < str.length; i++)
 			this.writeByte(str.charCodeAt(i))
 	}

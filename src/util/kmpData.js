@@ -3,7 +3,7 @@ const { BinaryWriter } = require("./binaryWriter.js")
 const { Vec3 } = require("../math/vec3.js")
 
 
-let unhandledSections = []
+let unhandledSections = ["CORS", "GLPT", "GLPH"]
 
 
 let sectionOrder =
@@ -23,6 +23,9 @@ let sectionOrder =
 	"CNPT",
 	"MSPT",
 	"STGI",
+	"CORS",
+	"GLPT",
+	"GLPH",
 ]
 
 let format = 
@@ -105,37 +108,81 @@ let format =
 
 	"POTI":
 	{
-
+		pointNum: "UInt16",
+		setting1: "Byte",
+		setting2: "Byte",
 	},
 
 	"AREA":
 	{
-
+		shape: "Byte",
+		type: "Byte",
+		cameraIndex: "Byte",
+		priority: "Byte",
+		pos: "Vec3",
+		rotation: "Vec3",
+		scale: "Vec3",
+		setting1: "UInt16",
+		setting2: "UInt16",
+		routeIndex: "Byte",
+		enemyIndex: "Byte",
+		unknown: "UInt16",
 	},
 
 	"CAME":
 	{
-
+		type: "Byte",
+		nextCam: "Byte",
+		shake: "Byte",
+		routeIndex: "Byte",
+		vCam: "UInt16",
+		vZoom: "UInt16",
+		vView: "UInt16",
+		start: "Byte",
+		movie: "Byte",
+		pos: "Vec3",
+		rotation: "Vec3",
+		zoomStart: "Float32",
+		zoomEnd: "Float32",
+		viewPosStart: "Vec3",
+		viewPosEnd: "Vec3",
+		time: "Float32",
 	},
 
 	"JGPT":
 	{
-
+		pos: "Vec3",
+		rotation: "Vec3",
+		unknown: "UInt16",
+		size: "UInt16",
 	},
 
 	"CNPT":
 	{
-
+		pos: "Vec3",
+		rotation: "Vec3",
+		id: "UInt16",
+		effect: "UInt16",
 	},
 
 	"MSPT":
 	{
-
+		pos: "Vec3",
+		rotation: "Vec3",
+		id: "UInt16",
+		unknown: "UInt16",
 	},
 
 	"STGI":
 	{
-
+		lapCount: "Byte",
+		polePosition: "Byte",
+		driverDistance: "Byte",
+		lensFlareFlash: "Byte",
+		unknown1: "Byte",
+		flareColor: ["Bytes", 4],
+		unknown2: "Byte",
+		speedMod: "Float32MSB2",
 	}
 }
 
@@ -146,7 +193,11 @@ class KmpData
 	{
 		let parser = new BinaryParser(bytes)
 		
-		if (parser.readAsciiLength(4) != "RKMD")
+		if (parser.readAsciiLength(4) == "RKMD")
+			;
+		else if (parser.readAsciiLength(4) == "DMDC")
+			parser.littleEndian = true
+		else
 			throw "kmp: invalid magic number"
 		
 		let fileLenInBytes = parser.readUInt32()
@@ -160,362 +211,114 @@ class KmpData
 		
 		if (parser.head != headerLenInBytes)
 			throw "kmp: invalid header length"
-	
-		let startPoints = []
-		let finishPoints = []
-		let enemyPoints = []
-		let enemyPaths = []
-		let itemPoints = []
-		let itemPaths = []
-		let checkpointPoints = []
-		let checkpointPaths = []
-		let objects = []
-		let routes = []
-		let areas = []
-		let cameras = []
-		let respawnPoints = []
-		let cannonPoints = []
-		let trackInfo = {}
-		let unhandledSectionData = []
 		
+		let sectionData = { sectionNum, unhandled: [] }
+		for (let i = 0; i < sectionNum; i++)
+			sectionData[sectionOrder[i]] = { headerData: 0x0, entries: [] }
+
 		for (let sectionOffset of sectionOffsets)
 		{
 			if (sectionOffset < 0 || sectionOffset + headerLenInBytes >= parser.getLength())
 				continue
-			
+
 			parser.seek(sectionOffset + headerLenInBytes)
 			
 			let sectionId = parser.readAsciiLength(4)
 			let entryNum = parser.readUInt16()
 			let headerData = parser.readUInt16()
 			
-			//console.log("kmp: loading section at(" + sectionOffset + ") id(" + sectionId + ") entryNum(" + entryNum + ")")
-			
-			switch (sectionId)
+			if (sectionId in format)
 			{
-				case "KTPT":
+				sectionData[sectionId].headerData = headerData
+				for (let i = 0; i < entryNum; i++) 
 				{
-					for (let i = 0; i < entryNum; i++)
+					let data = {}
+					for (let p in format[sectionId])
+						data[p] = parser.read(format[sectionId][p])
+
+					if(sectionId == "POTI")
 					{
-						let pos = parser.readVec3()
-						let rotation = parser.readVec3()
-						let playerIndex = parser.readUInt16()
-						let unknown = parser.readUInt16()
-						
-						startPoints.push({ pos, rotation, playerIndex, unknown, headerData })
-					}
-					break
-				}
-				
-				case "ENPT":
-				{
-					for (let i = 0; i < entryNum; i++)
-					{
-						let pos = parser.readVec3()
-						let size = parser.readFloat32()
-						let setting1 = parser.readUInt16()
-						let setting2 = parser.readByte()
-						let setting3 = parser.readByte()
-						
-						enemyPoints.push({ pos, size, setting1, setting2, setting3, headerData })
-					}
-					break
-				}
-				
-				case "ENPH":
-				{
-					for (let i = 0; i < entryNum; i++)
-					{
-						let startIndex = parser.readByte()
-						let pointNum = parser.readByte()
-						let prevGroups = parser.readBytes(6)
-						let nextGroups = parser.readBytes(6)
-						let unknown = parser.readUInt16()
-						
-						enemyPaths.push({ startIndex, pointNum, prevGroups, nextGroups, unknown, headerData })
-					}
-					break
-				}
-				
-				case "ITPT":
-				{
-					for (let i = 0; i < entryNum; i++)
-					{
-						let pos = parser.readVec3()
-						let size = parser.readFloat32()
-						let setting1 = parser.readUInt16()
-						let setting2 = parser.readUInt16()
-						
-						itemPoints.push({ pos, size, setting1, setting2, headerData })
-					}
-					break
-				}
-				
-				case "ITPH":
-				{
-					for (let i = 0; i < entryNum; i++)
-					{
-						let startIndex = parser.readByte()
-						let pointNum = parser.readByte()
-						let prevGroups = parser.readBytes(6)
-						let nextGroups = parser.readBytes(6)
-						let unknown = parser.readUInt16()
-						
-						itemPaths.push({ startIndex, pointNum, prevGroups, nextGroups, unknown, headerData })
-					}
-					break
-				}
-				
-				case "CKPT":
-				{
-					for (let i = 0; i < entryNum; i++)
-					{
-						let x1 = parser.readFloat32()
-						let z1 = parser.readFloat32()
-						let x2 = parser.readFloat32()
-						let z2 = parser.readFloat32()
-						let respawnIndex = parser.readByte()
-						let type = parser.readByte()
-						let prev = parser.readByte()
-						let next = parser.readByte()
-						
-						checkpointPoints.push({ x1, z1, x2, z2, respawnIndex, type, prev, next, headerData })
-					}
-					break
-				}
-				
-				case "CKPH":
-				{
-					for (let i = 0; i < entryNum; i++)
-					{
-						let startIndex = parser.readByte()
-						let pointNum = parser.readByte()
-						let prevGroups = parser.readBytes(6)
-						let nextGroups = parser.readBytes(6)
-						let unknown = parser.readUInt16()
-						
-						checkpointPaths.push({ startIndex, pointNum, prevGroups, nextGroups, unknown, headerData })
-					}
-					break
-				}
-				
-				case "GOBJ":
-				{
-					for (let i = 0; i < entryNum; i++)
-					{
-						let id = parser.readUInt16()
-						let xpfThing = parser.readUInt16()
-						let pos = parser.readVec3()
-						let rotation = parser.readVec3()
-						let scale = parser.readVec3()
-						let routeIndex = parser.readUInt16()
-						let settings = parser.readUInt16s(8)
-						let presence = parser.readUInt16()
-						
-						objects.push({ id, xpfThing, pos, rotation, scale, routeIndex, settings, presence, headerData })
-					}
-					break
-				}
-				
-				case "POTI":
-				{
-					for (let i = 0; i < entryNum; i++)
-					{
-						let route = {}
-						let pointNum = parser.readUInt16()
-						route.points = []
-						route.setting1 = parser.readByte()
-						route.setting2 = parser.readByte()
-						
-						for (let j = 0; j < pointNum; j++)
+						data.points = []
+						for (let j = 0; j < data.pointNum; j++)
 						{
 							let point = {}
 							point.pos = parser.readVec3()
 							point.setting1 = parser.readUInt16()
 							point.setting2 = parser.readUInt16()
-							
-							route.points.push(point)
+							data.points.push(point)
 						}
-						
-						routes.push(route)
 					}
-					break
+					sectionData[sectionId].entries.push(data)
 				}
-
-				case "AREA":
-				{
-					for (let i = 0; i < entryNum; i++)
-					{
-						let shape = parser.readByte()
-						let type = parser.readByte()
-						let cameraIndex = parser.readByte()
-						let priority = parser.readByte()
-						let pos = parser.readVec3()
-						let rotation = parser.readVec3()
-						let scale = parser.readVec3()
-						let setting1 = parser.readUInt16()
-						let setting2 = parser.readUInt16()
-						let routeIndex = parser.readByte()
-						let enemyIndex = parser.readByte()
-						let unknown = parser.readUInt16()
-						
-						areas.push({ shape, type, cameraIndex, priority, pos, rotation, scale, setting1, setting2, routeIndex, enemyIndex, unknown, headerData })
-					}
-					break
-				}
-
-				case "CAME":
-				{
-					for (let i = 0; i < entryNum; i++)
-					{
-						let type = parser.readByte()
-						let nextCam = parser.readByte()
-						let shake = parser.readByte()
-						let routeIndex = parser.readByte()
-						let vCam = parser.readUInt16()
-						let vZoom = parser.readUInt16()
-						let vView = parser.readUInt16()
-						let start = parser.readByte()
-						let movie = parser.readByte()
-						let pos = parser.readVec3()
-						let rotation = parser.readVec3()
-						let zoomStart = parser.readFloat32()
-						let zoomEnd = parser.readFloat32()
-						let viewPosStart = parser.readVec3()
-						let viewPosEnd = parser.readVec3()
-						let time = parser.readFloat32()
-
-						cameras.push({ type, nextCam, shake, routeIndex, vCam, vZoom, vView, start, movie, pos, rotation, zoomStart, zoomEnd, viewPosStart, viewPosEnd, time, headerData })
-					}
-					break
-				}
+			}
+			else
+			{
+				let unhandledSection = unhandledSections.find(s => s.id == sectionId)
+				if (unhandledSection == null)
+					throw ("kmp: section not handled: " + sectionId)
 				
-				case "JGPT":
-				{
-					for (let i = 0; i < entryNum; i++)
-					{
-						let pos = parser.readVec3()
-						let rotation = parser.readVec3()
-						let unknown = parser.readUInt16()
-						let size = parser.readUInt16()
-						
-						respawnPoints.push({ pos, rotation, unknown, size, headerData })
-					}
-					break
-				}
-				
-				case "CNPT":
-				{
-					for (let i = 0; i < entryNum; i++)
-					{
-						let pos = parser.readVec3()
-						let rotation = parser.readVec3()
-						let id = parser.readUInt16()
-						let effect = parser.readUInt16()
-						
-						cannonPoints.push({ pos, rotation, id, effect, headerData })
-					}
-					break
-				}
-				
-				case "MSPT":
-				{
-					for (let i = 0; i < entryNum; i++)
-					{
-						let pos = parser.readVec3()
-						let rotation = parser.readVec3()
-						let id = parser.readUInt16()
-						let unknown = parser.readUInt16()
-						
-						finishPoints.push({ pos, rotation, id, unknown, headerData })
-					}
-					break
-				}
-				
-				case "STGI":
-				{
-					trackInfo.lapCount = parser.readByte()
-					trackInfo.polePosition = parser.readByte()
-					trackInfo.driverDistance = parser.readByte()
-					trackInfo.lensFlareFlash = parser.readByte()
-					trackInfo.unknown1 = parser.readByte()
-					trackInfo.flareColor = parser.readBytes(4)
-					trackInfo.unknown2 = parser.readByte()
-					trackInfo.speedMod = parser.readFloat32MSB2()
-					break
-				}
-				
-				default:
-				{
-					let unhandledSection = unhandledSections.find(s => s.id == sectionId)
-					if (unhandledSection == null)
-						throw ("kmp: section not handled: " + sectionId)
+				let bytes = []
+				for (let i = 0; i < entryNum; i++)
+					for (let j = 0; j < unhandledSection.entryLen; j++)
+						bytes.push(parser.readByte())
 					
-					let bytes = []
-					for (let i = 0; i < entryNum; i++)
-						for (let j = 0; j < unhandledSection.entryLen; j++)
-							bytes.push(parser.readByte())
-						
-					unhandledSectionData.push({ id: sectionId, headerData, bytes })
-					break
-				}
+				sectionData.unhandled.push({ id: sectionId, headerData, bytes })
+				break
 			}
 		}
 		
-		return {
-			unhandledSectionData,
-			startPoints, finishPoints,
-			enemyPoints, enemyPaths,
-			itemPoints, itemPaths,
-			checkpointPoints, checkpointPaths,
-			objects, routes, areas, cannonPoints,
-			trackInfo, cameras, respawnPoints
-		}
+		return sectionData
 	}
 	
 	
 	static convertToWorkingFormat(loadedKmp)
 	{
 		let data = new KmpData()
-		data.trackInfo = loadedKmp.trackInfo
-		data.unhandledSectionData = loadedKmp.unhandledSectionData
-		
-		for (let i = 0; i < loadedKmp.startPoints.length; i++)
+		data.sectionNum = loadedKmp.sectionNum
+		data.trackInfo = loadedKmp["STGI"].entries[0]
+		data.unhandledSectionData = loadedKmp.unhandled
+
+		const transferProperties = (src, dst) =>
 		{
-			let kmpPoint = loadedKmp.startPoints[i]
+			for (let p in src) {
+				if (src[p] instanceof Vec3)
+					if (["pos", "viewPosStart", "viewPosEnd"].includes(p))
+						dst[p] = new Vec3(src[p].x, -src[p].z, -src[p].y)
+					else
+						dst[p] = new Vec3(src[p].x, src[p].y, src[p].z)
+				else
+					dst[p] = src[p]
+			}
+		}
+
+		for (let i = 0; i < loadedKmp["KTPT"].entries.length; i++)
+		{
+			let kmpPoint = loadedKmp["KTPT"].entries[i]
 			
 			let node = data.startPoints.addNode()
-			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
-			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
-			node.playerIndex = kmpPoint.playerIndex
+			transferProperties(kmpPoint, node)
 		}
-		
-		for (let i = 0; i < loadedKmp.finishPoints.length; i++)
+
+		for (let i = 0; i < loadedKmp["MSPT"].entries.length; i++)
 		{
-			let kmpPoint = loadedKmp.finishPoints[i]
+			let kmpPoint = loadedKmp["MSPT"].entries[i]
 			
 			let node = data.finishPoints.addNode()
-			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
-			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
-			node.id = kmpPoint.id
-			node.unknown = kmpPoint.unknown
+			transferProperties(kmpPoint, node)
 		}
-		
-		for (let i = 0; i < loadedKmp.enemyPoints.length; i++)
+
+		for (let i = 0; i < loadedKmp["ENPT"].entries.length; i++)
 		{
-			let kmpPoint = loadedKmp.enemyPoints[i]
+			let kmpPoint = loadedKmp["ENPT"].entries[i]
 			
 			let node = data.enemyPoints.addNode()
-			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
-			node.size = kmpPoint.size
-			node.setting1 = kmpPoint.setting1
-			node.setting2 = kmpPoint.setting2
-			node.setting3 = kmpPoint.setting3
+			transferProperties(kmpPoint, node)
 		}
-		
-		for (let i = 0; i < loadedKmp.enemyPaths.length; i++)
+
+		let enemyPaths = loadedKmp["ENPH"].entries
+		for (let i = 0; i < enemyPaths.length; i++)
 		{
-			let kmpPath = loadedKmp.enemyPaths[i]
+			let kmpPath = enemyPaths[i]
 		
 			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
 			{
@@ -524,19 +327,19 @@ class KmpData
 				data.enemyPoints.nodes[p + 1].pathIndex = i
 			}
 			
-			const emptyPrevGroups = kmpPath.prevGroups.find(g => g != 0xff && g < loadedKmp.enemyPaths.length) == null
+			const emptyPrevGroups = kmpPath.prevGroups.find(g => g != 0xff && g < enemyPaths.length) == null
 			
 			for (let j = 0; j < 6; j++)
 			{
-				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < loadedKmp.enemyPaths.length)
+				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < enemyPaths.length)
 				{
-					const nextComesBackToThis = loadedKmp.enemyPaths[kmpPath.nextGroups[j]].nextGroups.find(g => g == i) != null
-					const nextIsBattleDispatch = kmpPath.nextGroups[j] > i && loadedKmp.enemyPaths[kmpPath.nextGroups[j]].prevGroups.find(g => g != 0xff && g < loadedKmp.enemyPaths.length) == null
+					const nextComesBackToThis = enemyPaths[kmpPath.nextGroups[j]].nextGroups.find(g => g == i) != null
+					const nextIsBattleDispatch = kmpPath.nextGroups[j] > i && enemyPaths[kmpPath.nextGroups[j]].prevGroups.find(g => g != 0xff && g < enemyPaths.length) == null
 					
 					if (!emptyPrevGroups || (!nextComesBackToThis || nextIsBattleDispatch))
 					{
 						let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
-						let nextPoint = loadedKmp.enemyPaths[kmpPath.nextGroups[j]].startIndex
+						let nextPoint = enemyPaths[kmpPath.nextGroups[j]].startIndex
 						
 						data.enemyPoints.linkNodes(data.enemyPoints.nodes[lastPoint], data.enemyPoints.nodes[nextPoint])
 						data.enemyPoints.nodes[lastPoint].pathIndex = i
@@ -545,40 +348,38 @@ class KmpData
 				}
 			}
 		}
-		
-		for (let i = 0; i < loadedKmp.itemPoints.length; i++)
+
+		for (let i = 0; i < loadedKmp["ITPT"].entries.length; i++)
 		{
-			let kmpPoint = loadedKmp.itemPoints[i]
+			let kmpPoint = loadedKmp["ITPT"].entries[i]
 			
 			let node = data.itemPoints.addNode()
-			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
-			node.size = kmpPoint.size
-			node.setting1 = kmpPoint.setting1
-			node.setting2 = kmpPoint.setting2
+			transferProperties(kmpPoint, node)
 		}
 		
-		for (let i = 0; i < loadedKmp.itemPaths.length; i++)
+		let itemPaths = loadedKmp["ITPH"].entries
+		for (let i = 0; i < itemPaths.length; i++)
 		{
-			let kmpPath = loadedKmp.itemPaths[i]
+			let kmpPath = itemPaths[i]
 		
 			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
 				data.itemPoints.linkNodes(data.itemPoints.nodes[p], data.itemPoints.nodes[p + 1])
 			
 			for (let j = 0; j < 6; j++)
 			{
-				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < loadedKmp.itemPaths.length)
+				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < itemPaths.length)
 				{
 					let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
-					let nextPoint = loadedKmp.itemPaths[kmpPath.nextGroups[j]].startIndex
+					let nextPoint = itemPaths[kmpPath.nextGroups[j]].startIndex
 					
 					data.itemPoints.linkNodes(data.itemPoints.nodes[lastPoint], data.itemPoints.nodes[nextPoint])
 				}
 			}
 		}
 		
-		for (let i = 0; i < loadedKmp.checkpointPoints.length; i++)
+		for (let i = 0; i < loadedKmp["CKPT"].entries.length; i++)
 		{
-			let kmpPoint = loadedKmp.checkpointPoints[i]
+			let kmpPoint = loadedKmp["CKPT"].entries[i]
 			
 			let node = data.checkpointPoints.addNode()
 			node.pos = [new Vec3(kmpPoint.x1, -kmpPoint.z1, 0), new Vec3(kmpPoint.x2, -kmpPoint.z2, 0)]
@@ -588,19 +389,20 @@ class KmpData
 			node.isRendered = true
 		}
 
-		for (let i = 0; i < loadedKmp.checkpointPaths.length; i++)
+		let checkpointPaths = loadedKmp["CKPH"].entries
+		for (let i = 0; i < checkpointPaths.length; i++)
 		{
-			let kmpPath = loadedKmp.checkpointPaths[i]
+			let kmpPath = checkpointPaths[i]
 		
 			for (let p = kmpPath.startIndex; p < kmpPath.startIndex + kmpPath.pointNum - 1; p++)
 				data.checkpointPoints.linkNodes(data.checkpointPoints.nodes[p], data.checkpointPoints.nodes[p + 1])
 
 			for (let j = 0; j < 6; j++)
 			{
-				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < loadedKmp.checkpointPaths.length)
+				if (kmpPath.nextGroups[j] != 0xff && kmpPath.nextGroups[j] < checkpointPaths.length)
 				{
 					let lastPoint = kmpPath.startIndex + kmpPath.pointNum - 1
-					let nextPoint = loadedKmp.checkpointPaths[kmpPath.nextGroups[j]].startIndex
+					let nextPoint = checkpointPaths[kmpPath.nextGroups[j]].startIndex
 					
 					data.checkpointPoints.linkNodes(data.checkpointPoints.nodes[lastPoint], data.checkpointPoints.nodes[nextPoint])
 				}
@@ -609,24 +411,17 @@ class KmpData
 			data.checkpointPoints.nodes[kmpPath.startIndex].firstInPath = true
 		}
 		
-		for (let i = 0; i < loadedKmp.objects.length; i++)
+		for (let i = 0; i < loadedKmp["GOBJ"].entries.length; i++)
 		{
-			let kmpObj = loadedKmp.objects[i]
+			let kmpObj = loadedKmp["GOBJ"].entries[i]
 			
 			let node = data.objects.addNode()
-			node.pos = new Vec3(kmpObj.pos.x, -kmpObj.pos.z, -kmpObj.pos.y)
-			node.rotation = new Vec3(kmpObj.rotation.x, kmpObj.rotation.y, kmpObj.rotation.z)
-			node.scale = new Vec3(kmpObj.scale.x, kmpObj.scale.z, kmpObj.scale.y)
-			node.id = kmpObj.id
-			node.route = null
-			node.routeIndex = kmpObj.routeIndex
-			node.settings = kmpObj.settings
-			node.presence = kmpObj.presence
+			transferProperties(kmpObj, node)
 		}
 		
-		for (let i = 0; i < loadedKmp.routes.length; i++)
+		for (let i = 0; i < loadedKmp["POTI"].entries.length; i++)
 		{
-			let kmpRoute = loadedKmp.routes[i]
+			let kmpRoute = loadedKmp["POTI"].entries[i]
 			
 			let route = data.addNewRoute()
 			route.setting1 = kmpRoute.setting1
@@ -648,81 +443,52 @@ class KmpData
 			}
 		}
 		
-		for (let i = 0; i < loadedKmp.respawnPoints.length; i++)
+		for (let i = 0; i < loadedKmp["JGPT"].entries.length; i++)
 		{
-			let kmpPoint = loadedKmp.respawnPoints[i]
+			let kmpPoint = loadedKmp["JGPT"].entries[i]
 			
 			let node = data.respawnPoints.addNode()
-			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
-			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
-			node.size = kmpPoint.size
+			transferProperties(kmpPoint, node)
 		}
 		
-		for (let i = 0; i < loadedKmp.cannonPoints.length; i++)
+		for (let i = 0; i < loadedKmp["CNPT"].entries.length; i++)
 		{
-			let kmpPoint = loadedKmp.cannonPoints[i]
+			let kmpPoint = loadedKmp["CNPT"].entries[i]
 			
 			let node = data.cannonPoints.addNode()
-			node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
-			node.rotation = new Vec3(kmpPoint.rotation.x, kmpPoint.rotation.y, kmpPoint.rotation.z)
-			node.id = kmpPoint.id
+			transferProperties(kmpPoint, node)
 			node.effect = kmpPoint.effect == 0xffff ? 0 : kmpPoint.effect
 		}
 		
-		for (let i = 0; i < loadedKmp.checkpointPoints.length; i++)
+		for (let i = 0; i < loadedKmp["CKPT"].entries.length; i++)
 		{
-			let respawnIndex = loadedKmp.checkpointPoints[i].respawnIndex
+			let respawnIndex = loadedKmp["CKPT"].entries[i].respawnIndex
 			
 			if (respawnIndex >= 0 && respawnIndex < data.respawnPoints.nodes.length)
 				data.checkpointPoints.nodes[i].respawnNode = data.respawnPoints.nodes[respawnIndex]
 		}
 		
-		for (let i = 0; i < loadedKmp.areas.length; i++)
+		for (let i = 0; i < loadedKmp["AREA"].entries.length; i++)
 		{
-			let kmpArea = loadedKmp.areas[i]
+			let kmpArea = loadedKmp["AREA"].entries[i]
 			
 			let node = data.areaPoints.addNode()
-			node.pos = new Vec3(kmpArea.pos.x, -kmpArea.pos.z, -kmpArea.pos.y)
-			node.rotation = new Vec3(kmpArea.rotation.x, kmpArea.rotation.y, kmpArea.rotation.z)
-			node.scale = new Vec3(kmpArea.scale.x, kmpArea.scale.z, kmpArea.scale.y)
-			node.shape = kmpArea.shape
-			node.type = kmpArea.type
-			node.priority = kmpArea.priority
-			node.setting1 = kmpArea.setting1
-			node.setting2 = kmpArea.setting2
-			node.cameraIndex = kmpArea.cameraIndex
-			node.routeIndex = kmpArea.routeIndex
-			node.enemyIndex = kmpArea.enemyIndex
+			transferProperties(kmpArea, node)
 		}
 
-		data.firstIntroCam = (loadedKmp.camHeader & 0xff00) >>> 8
-		data.firstSelectionCam = loadedKmp.camHeader & 0xff
+		data.firstIntroCam = (loadedKmp["CAME"].headerData & 0xff00) >>> 8
+		data.firstSelectionCam = loadedKmp["CAME"].headerData & 0xff
 		
-		for (let i = 0; i < loadedKmp.cameras.length; i++)
+		for (let i = 0; i < loadedKmp["CAME"].entries.length; i++)
 		{
-			let kmpCam = loadedKmp.cameras[i]
+			let kmpCam = loadedKmp["CAME"].entries[i]
 
 			let node = data.cameras.addNode()
-			node.pos = new Vec3(kmpCam.pos.x, -kmpCam.pos.z, -kmpCam.pos.y)
-			node.rotation = new Vec3(kmpCam.rotation.x, kmpCam.rotation.y, kmpCam.rotation.z)
-			node.type = kmpCam.type
-			node.nextCam = kmpCam.nextCam
-			node.shake = kmpCam.shake
-			node.routeIndex = kmpCam.routeIndex
-			node.vCam = kmpCam.vCam
-			node.vZoom = kmpCam.vZoom
-			node.vView = kmpCam.vView
-			node.start = kmpCam.start
-			node.movie = kmpCam.movie
-			node.zoomStart = kmpCam.zoomStart
-			node.zoomEnd = kmpCam.zoomEnd
-			node.viewPosStart = new Vec3(kmpCam.viewPosStart.x, -kmpCam.viewPosStart.z, -kmpCam.viewPosStart.y)
-			node.viewPosEnd = new Vec3(kmpCam.viewPosEnd.x, -kmpCam.viewPosEnd.z, -kmpCam.viewPosEnd.y)
-			node.time = kmpCam.time
+			transferProperties(kmpCam, node)
 		}
 		
 
-		data.isBattleTrack = loadedKmp.itemPaths.length == 0 && loadedKmp.checkpointPaths.length == 0 && loadedKmp.finishPoints.length > 0
+		data.isBattleTrack = loadedKmp["ITPT"].entries.length == 0 && loadedKmp["CKPT"].entries.length == 0 && loadedKmp["MSPT"].entries.length > 0
 		
 		return data
 	}
@@ -732,7 +498,7 @@ class KmpData
 	{
 		let w = new BinaryWriter()
 		
-		let sectionNum = 15
+		let sectionNum = this.sectionNum
 		
 		w.writeAscii("RKMD")
 		

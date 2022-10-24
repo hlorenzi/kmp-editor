@@ -7,6 +7,7 @@ class BinaryParser
 	{
 		this.bytes = bytes
 		this.head = 0
+		this.littleEndian = false
 	}
 	
 	
@@ -46,16 +47,18 @@ class BinaryParser
 		for (let i = 0; i < length; i++)
 			arr.push(this.readByte())
 		
+		if (this.littleEndian)
+			arr = arr.reverse()
+		
 		return arr
 	}
 	
 	
 	readUInt16()
 	{
-		let b0 = this.readByte()
-		let b1 = this.readByte()
+		let b = this.readBytes(2)
 		
-		let result = (b0 << 8) | b1
+		let result = (b[0] << 8) | b[1]
 		
 		if (result < 0)
 			return 0x10000 + result
@@ -76,12 +79,9 @@ class BinaryParser
 	
 	readUInt32()
 	{
-		let b0 = this.readByte()
-		let b1 = this.readByte()
-		let b2 = this.readByte()
-		let b3 = this.readByte()
+		let b = this.readBytes(4)
 		
-		let result = (b0 << 24) | (b1 << 16) | (b2 << 8) | b3
+		let result = (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3]
 		
 		if (result < 0)
 			return 0x100000000 + result
@@ -112,18 +112,15 @@ class BinaryParser
 	
 	readFloat32()
 	{
-		let b0 = this.readByte()
-		let b1 = this.readByte()
-		let b2 = this.readByte()
-		let b3 = this.readByte()
+		let b = this.readBytes(4)
 		
 		let buf = new ArrayBuffer(4)
 		let view = new DataView(buf)
 
-		view.setUint8(0, b0)
-		view.setUint8(1, b1)
-		view.setUint8(2, b2)
-		view.setUint8(3, b3)
+		view.setUint8(0, b[0])
+		view.setUint8(1, b[1])
+		view.setUint8(2, b[2])
+		view.setUint8(3, b[3])
 
 		return view.getFloat32(0)
 	}
@@ -131,14 +128,13 @@ class BinaryParser
 	
 	readFloat32MSB2()
 	{
-		let b0 = this.readByte()
-		let b1 = this.readByte()
+		let b = this.readBytes(2)
 		
 		let buf = new ArrayBuffer(4)
 		let view = new DataView(buf)
 
-		view.setUint8(0, b0)
-		view.setUint8(1, b1)
+		view.setUint8(0, b[0])
+		view.setUint8(1, b[1])
 		view.setUint8(2, 0)
 		view.setUint8(3, 0)
 
@@ -162,6 +158,9 @@ class BinaryParser
 		for (let i = 0; i < length; i++)
 			str += String.fromCharCode(this.readByte())
 		
+		if (this.littleEndian)
+			str = str.split('').reverse().join('')
+		
 		return str
 	}
 	
@@ -177,8 +176,20 @@ class BinaryParser
 			
 			str += String.fromCharCode(c)
 		}
+
+		if (this.littleEndian)
+			str = str.split('').reverse().join('')
 		
 		return str
+	}
+
+
+	read(type)
+	{
+		if (type instanceof Array)
+			return this["read" + type[0]](type[1])
+		else
+			return this["read" + type]()
 	}
 }
 
