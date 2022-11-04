@@ -32,7 +32,7 @@ let format =
 {
 	"KTPT":
 	{
-		pos: "Vec3",
+		pos: "PosVec3",
 		rotation: "Vec3",
 		playerIndex: "UInt16",
 		unknown: "UInt16",
@@ -40,7 +40,7 @@ let format =
 
 	"ENPT":
 	{
-		pos: "Vec3",
+		pos: "PosVec3",
 		size: "Float32",
 		setting1: "UInt16",
 		setting2: "Byte",
@@ -58,7 +58,7 @@ let format =
 
 	"ITPT":
 	{
-		pos: "Vec3",
+		pos: "PosVec3",
 		size: "Float32",
 		setting1: "UInt16",
 		setting2: "UInt16",
@@ -98,7 +98,7 @@ let format =
 	{
 		id: "UInt16",
 		xpfThing: "UInt16",
-		pos: "Vec3",
+		pos: "PosVec3",
 		rotation: "Vec3",
 		scale: "Vec3",
 		routeIndex: "UInt16",
@@ -119,7 +119,7 @@ let format =
 		type: "Byte",
 		cameraIndex: "Byte",
 		priority: "Byte",
-		pos: "Vec3",
+		pos: "PosVec3",
 		rotation: "Vec3",
 		scale: "Vec3",
 		setting1: "UInt16",
@@ -140,18 +140,18 @@ let format =
 		vView: "UInt16",
 		start: "Byte",
 		movie: "Byte",
-		pos: "Vec3",
+		pos: "PosVec3",
 		rotation: "Vec3",
 		zoomStart: "Float32",
 		zoomEnd: "Float32",
-		viewPosStart: "Vec3",
-		viewPosEnd: "Vec3",
+		viewPosStart: "PosVec3",
+		viewPosEnd: "PosVec3",
 		time: "Float32",
 	},
 
 	"JGPT":
 	{
-		pos: "Vec3",
+		pos: "PosVec3",
 		rotation: "Vec3",
 		unknown: "UInt16",
 		size: "UInt16",
@@ -159,7 +159,7 @@ let format =
 
 	"CNPT":
 	{
-		pos: "Vec3",
+		pos: "PosVec3",
 		rotation: "Vec3",
 		id: "UInt16",
 		effect: "UInt16",
@@ -167,7 +167,7 @@ let format =
 
 	"MSPT":
 	{
-		pos: "Vec3",
+		pos: "PosVec3",
 		rotation: "Vec3",
 		id: "UInt16",
 		unknown: "UInt16",
@@ -242,7 +242,7 @@ class KmpData
 						for (let j = 0; j < data.pointNum; j++)
 						{
 							let point = {}
-							point.pos = parser.readVec3()
+							point.pos = parser.readPosVec3()
 							point.setting1 = parser.readUInt16()
 							point.setting2 = parser.readUInt16()
 							data.points.push(point)
@@ -282,10 +282,7 @@ class KmpData
 		{
 			for (let p in src) {
 				if (src[p] instanceof Vec3)
-					if (["pos", "viewPosStart", "viewPosEnd"].includes(p))
-						dst[p] = new Vec3(src[p].x, -src[p].z, -src[p].y)
-					else
-						dst[p] = new Vec3(src[p].x, src[p].y, src[p].z)
+					dst[p] = src[p].clone()
 				else
 					dst[p] = src[p]
 			}
@@ -432,7 +429,7 @@ class KmpData
 			for (let kmpPoint of kmpRoute.points)
 			{
 				let node = route.points.addNode()
-				node.pos = new Vec3(kmpPoint.pos.x, -kmpPoint.pos.z, -kmpPoint.pos.y)
+				node.pos = kmpPoint.pos.clone()
 				node.setting1 = kmpPoint.setting1
 				node.setting2 = kmpPoint.setting2
 				
@@ -487,7 +484,6 @@ class KmpData
 			transferProperties(kmpCam, node)
 		}
 		
-
 		data.isBattleTrack = loadedKmp["ITPT"].entries.length == 0 && loadedKmp["CKPT"].entries.length == 0 && loadedKmp["MSPT"].entries.length > 0
 		
 		return data

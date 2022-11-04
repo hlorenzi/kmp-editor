@@ -150,6 +150,16 @@ class BinaryParser
 		
 		return new Vec3(x, y, z)
 	}
+
+
+	readPosVec3()
+	{
+		let x = this.readFloat32()
+		let y = this.readFloat32()
+		let z = this.readFloat32()
+		
+		return new Vec3(x, -z, -y)
+	}
 	
 	
 	readAsciiLength(length)

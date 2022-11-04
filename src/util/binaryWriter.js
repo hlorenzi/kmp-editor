@@ -126,6 +126,14 @@ class BinaryWriter
 		this.writeFloat32(v.y)
 		this.writeFloat32(v.z)
 	}
+
+
+	writePosVec3(v)
+	{
+		this.writeFloat32(v.x)
+		this.writeFloat32(-v.z)
+		this.writeFloat32(-v.y)
+	}
 	
 	
 	writeAsciiLength(str, length)
@@ -148,6 +156,14 @@ class BinaryWriter
 			
 		for (let i = 0; i < str.length; i++)
 			this.writeByte(str.charCodeAt(i))
+	}
+
+	write(type)
+	{
+		if (type instanceof Array)
+			this["read" + type[0]](type[1])
+		else
+			this["read" + type]()
 	}
 }
 
