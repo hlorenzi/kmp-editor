@@ -191,6 +191,7 @@ class KmpData
 {
 	static load(bytes)
 	{
+		// read KMP header
 		let parser = new BinaryParser(bytes)
 		
 		if (parser.readAsciiLength(4) == "RKMD")
@@ -211,7 +212,8 @@ class KmpData
 		
 		if (parser.head != headerLenInBytes)
 			throw "kmp: invalid header length"
-		
+
+		// read KMP sections
 		let sectionData = { sectionNum, unhandled: [] }
 		for (let i = 0; i < sectionNum; i++)
 			sectionData[sectionOrder[i]] = { headerData: 0x0, entries: [] }
@@ -232,26 +234,26 @@ class KmpData
 				sectionData[sectionId].headerData = headerData
 				for (let i = 0; i < entryNum; i++) 
 				{
-					let data = {}
+					let props = {}
 					for (let p in format[sectionId])
-						data[p] = parser.read(format[sectionId][p])
+						props[p] = parser.read(format[sectionId][p])
 
 					if(sectionId == "POTI")
 					{
-						data.points = []
-						for (let j = 0; j < data.pointNum; j++)
+						props.points = []
+						for (let j = 0; j < props.pointNum; j++)
 						{
 							let point = {}
 							point.pos = parser.readPosVec3()
 							point.setting1 = parser.readUInt16()
 							point.setting2 = parser.readUInt16()
-							data.points.push(point)
+							props.points.push(point)
 						}
 					}
-					sectionData[sectionId].entries.push(data)
+					sectionData[sectionId].entries.push(props)
 				}
 			}
-			else
+			else  // read unhandled sections
 			{
 				let unhandledSection = unhandledSections.find(s => s.id == sectionId)
 				if (unhandledSection == null)
@@ -278,40 +280,35 @@ class KmpData
 		data.trackInfo = loadedKmp["STGI"].entries[0]
 		data.unhandledSectionData = loadedKmp.unhandled
 
-		const transferProperties = (src, dst) =>
+		// Process simple sections
+		let sectionsToGraphs =
 		{
-			for (let p in src) {
-				if (src[p] instanceof Vec3)
-					dst[p] = src[p].clone()
-				else
-					dst[p] = src[p]
+			"KTPT": "startPoints",
+			"ENPT": "enemyPoints",
+			"ITPT": "itemPoints",
+			"GOBJ": "objects",
+			"AREA": "areaPoints",
+			"CAME": "cameras",
+			"JGPT": "respawnPoints",
+			"CNPT": "cannonPoints",
+			"MSPT": "finishPoints",
+		}
+		
+		for (let [sectionId, graph] of Object.entries(sectionsToGraphs))
+		{
+			for (let kmpPoint of loadedKmp[sectionId].entries)
+			{
+				let node = data[graph].addNode()
+				for (let p in kmpPoint) {
+					if (kmpPoint[p] instanceof Vec3)
+						node[p] = kmpPoint[p].clone()
+					else
+						node[p] = kmpPoint[p]
+				}
 			}
 		}
 
-		for (let i = 0; i < loadedKmp["KTPT"].entries.length; i++)
-		{
-			let kmpPoint = loadedKmp["KTPT"].entries[i]
-			
-			let node = data.startPoints.addNode()
-			transferProperties(kmpPoint, node)
-		}
-
-		for (let i = 0; i < loadedKmp["MSPT"].entries.length; i++)
-		{
-			let kmpPoint = loadedKmp["MSPT"].entries[i]
-			
-			let node = data.finishPoints.addNode()
-			transferProperties(kmpPoint, node)
-		}
-
-		for (let i = 0; i < loadedKmp["ENPT"].entries.length; i++)
-		{
-			let kmpPoint = loadedKmp["ENPT"].entries[i]
-			
-			let node = data.enemyPoints.addNode()
-			transferProperties(kmpPoint, node)
-		}
-
+		// Process complicated sections
 		let enemyPaths = loadedKmp["ENPH"].entries
 		for (let i = 0; i < enemyPaths.length; i++)
 		{
@@ -344,14 +341,6 @@ class KmpData
 					}
 				}
 			}
-		}
-
-		for (let i = 0; i < loadedKmp["ITPT"].entries.length; i++)
-		{
-			let kmpPoint = loadedKmp["ITPT"].entries[i]
-			
-			let node = data.itemPoints.addNode()
-			transferProperties(kmpPoint, node)
 		}
 		
 		let itemPaths = loadedKmp["ITPH"].entries
@@ -408,14 +397,6 @@ class KmpData
 			data.checkpointPoints.nodes[kmpPath.startIndex].firstInPath = true
 		}
 		
-		for (let i = 0; i < loadedKmp["GOBJ"].entries.length; i++)
-		{
-			let kmpObj = loadedKmp["GOBJ"].entries[i]
-			
-			let node = data.objects.addNode()
-			transferProperties(kmpObj, node)
-		}
-		
 		for (let i = 0; i < loadedKmp["POTI"].entries.length; i++)
 		{
 			let kmpRoute = loadedKmp["POTI"].entries[i]
@@ -440,23 +421,6 @@ class KmpData
 			}
 		}
 		
-		for (let i = 0; i < loadedKmp["JGPT"].entries.length; i++)
-		{
-			let kmpPoint = loadedKmp["JGPT"].entries[i]
-			
-			let node = data.respawnPoints.addNode()
-			transferProperties(kmpPoint, node)
-		}
-		
-		for (let i = 0; i < loadedKmp["CNPT"].entries.length; i++)
-		{
-			let kmpPoint = loadedKmp["CNPT"].entries[i]
-			
-			let node = data.cannonPoints.addNode()
-			transferProperties(kmpPoint, node)
-			node.effect = kmpPoint.effect == 0xffff ? 0 : kmpPoint.effect
-		}
-		
 		for (let i = 0; i < loadedKmp["CKPT"].entries.length; i++)
 		{
 			let respawnIndex = loadedKmp["CKPT"].entries[i].respawnIndex
@@ -464,25 +428,9 @@ class KmpData
 			if (respawnIndex >= 0 && respawnIndex < data.respawnPoints.nodes.length)
 				data.checkpointPoints.nodes[i].respawnNode = data.respawnPoints.nodes[respawnIndex]
 		}
-		
-		for (let i = 0; i < loadedKmp["AREA"].entries.length; i++)
-		{
-			let kmpArea = loadedKmp["AREA"].entries[i]
-			
-			let node = data.areaPoints.addNode()
-			transferProperties(kmpArea, node)
-		}
 
 		data.firstIntroCam = (loadedKmp["CAME"].headerData & 0xff00) >>> 8
 		data.firstSelectionCam = loadedKmp["CAME"].headerData & 0xff
-		
-		for (let i = 0; i < loadedKmp["CAME"].entries.length; i++)
-		{
-			let kmpCam = loadedKmp["CAME"].entries[i]
-
-			let node = data.cameras.addNode()
-			transferProperties(kmpCam, node)
-		}
 		
 		data.isBattleTrack = loadedKmp["ITPT"].entries.length == 0 && loadedKmp["CKPT"].entries.length == 0 && loadedKmp["MSPT"].entries.length > 0
 		
