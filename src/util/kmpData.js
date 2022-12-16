@@ -235,8 +235,8 @@ class KmpData
 				for (let i = 0; i < entryNum; i++) 
 				{
 					let props = {}
-					for (let p in format[sectionId])
-						props[p] = parser.read(format[sectionId][p])
+					for (let prop in format[sectionId])
+						props[prop] = parser.read(format[sectionId][prop])
 
 					if(sectionId == "POTI")
 					{
@@ -280,7 +280,7 @@ class KmpData
 		data.trackInfo = loadedKmp["STGI"].entries[0]
 		data.unhandledSectionData = loadedKmp.unhandled
 
-		// Process simple sections
+		// Handle simple sections
 		let sectionsToGraphs =
 		{
 			"KTPT": "startPoints",
@@ -296,19 +296,21 @@ class KmpData
 		
 		for (let [sectionId, graph] of Object.entries(sectionsToGraphs))
 		{
+			data.headerData[sectionId] = loadedKmp[sectionId].headerData
+
 			for (let kmpPoint of loadedKmp[sectionId].entries)
 			{
 				let node = data[graph].addNode()
-				for (let p in kmpPoint) {
-					if (kmpPoint[p] instanceof Vec3)
-						node[p] = kmpPoint[p].clone()
+				for (let prop in kmpPoint) {
+					if (kmpPoint[prop] instanceof Vec3)
+						node[prop] = kmpPoint[prop].clone()
 					else
-						node[p] = kmpPoint[p]
+						node[prop] = kmpPoint[prop]
 				}
 			}
 		}
 
-		// Process complicated sections
+		// Handle complicated sections
 		let enemyPaths = loadedKmp["ENPH"].entries
 		for (let i = 0; i < enemyPaths.length; i++)
 		{
@@ -493,30 +495,23 @@ class KmpData
 		}
 		
 		// Write KTPT
+		let sectionId = "KTPT"
 		let sectionKtptAddr = w.head
-		let sectionKtptOrder = sectionOrder.findIndex(s => s == "KTPT")
+		let sectionKtptOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionKtptOrder * 4)
 		w.writeUInt32(sectionKtptAddr - headerEndAddr)
 		
 		w.seek(sectionKtptAddr)
-		w.writeAscii("KTPT")
+		w.writeAscii(sectionId)
 		w.writeUInt16(this.startPoints.nodes.length)
-		w.writeUInt16(0)
+		w.writeUInt16(this.headerData[sectionId])
 
 		if (this.startPoints.nodes.length > 0xff)
 			throw "kmp encode: max start points surpassed (have " + this.startPoints.nodes.length + ", max 255)"
-			
+		
 		for (let p of this.startPoints.nodes)
-		{
-			w.writeFloat32(p.pos.x)
-			w.writeFloat32(-p.pos.z)
-			w.writeFloat32(-p.pos.y)
-			w.writeFloat32(p.rotation.x)
-			w.writeFloat32(p.rotation.y)
-			w.writeFloat32(p.rotation.z)
-			w.writeUInt16(p.playerIndex)
-			w.writeUInt16(p.p0x1A)
-		}
+			for (let prop in format[sectionId])
+				w.write(format[sectionId][prop], p[prop])
 		
 		// Prepare enemy points
 		let enemyPaths = this.enemyPoints.convertToStorageFormat(asBattle)
@@ -530,36 +525,32 @@ class KmpData
 			throw "kmp encode: max enemy point number surpassed (have " + enemyPoints.length + ", max 255)"
 		
 		// Write ENPT
+		sectionId = "ENPT"
 		let sectionEnptAddr = w.head
-		let sectionEnptOrder = sectionOrder.findIndex(s => s == "ENPT")
+		let sectionEnptOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionEnptOrder * 4)
 		w.writeUInt32(sectionEnptAddr - headerEndAddr)
 		
 		w.seek(sectionEnptAddr)
-		w.writeAscii("ENPT")
+		w.writeAscii(sectionId)
 		w.writeUInt16(enemyPoints.length)
-		w.writeUInt16(0)
+		w.writeUInt16(this.headerData[sectionId])
+
 		for (let p of enemyPoints)
-		{
-			w.writeFloat32(p.pos.x)
-			w.writeFloat32(-p.pos.z)
-			w.writeFloat32(-p.pos.y)
-			w.writeFloat32(p.size)
-			w.writeUInt16(p.setting1)
-			w.writeByte(p.setting2)
-			w.writeByte(p.setting3)
-		}
+			for (let prop in format[sectionId])
+				w.write(format[sectionId][prop], p[prop])
 		
 		// Write ENPH
+		sectionId = "ENPH"
 		let sectionEnphAddr = w.head
-		let sectionEnphOrder = sectionOrder.findIndex(s => s == "ENPH")
+		let sectionEnphOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionEnphOrder * 4)
 		w.writeUInt32(sectionEnphAddr - headerEndAddr)
 		
 		w.seek(sectionEnphAddr)
-		w.writeAscii("ENPH")
+		w.writeAscii(sectionId)
 		w.writeUInt16(enemyPaths.length)
-		w.writeUInt16(0)
+		w.writeUInt16(this.headerData[sectionId])
 		for (let path of enemyPaths)
 		{
 			if (path.nodes.length > 0xff)
@@ -608,35 +599,32 @@ class KmpData
 			throw "kmp encode: max item point number surpassed (have " + itemPoints.length + ", max 255)"
 		
 		// Write ITPT
+		sectionId = "ITPT"
 		let sectionItptAddr = w.head
-		let sectionItptOrder = sectionOrder.findIndex(s => s == "ITPT")
+		let sectionItptOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionItptOrder * 4)
 		w.writeUInt32(sectionItptAddr - headerEndAddr)
 		
 		w.seek(sectionItptAddr)
-		w.writeAscii("ITPT")
+		w.writeAscii(sectionId)
 		w.writeUInt16(itemPoints.length)
-		w.writeUInt16(0)
+		w.writeUInt16(this.headerData[sectionId])
+
 		for (let p of itemPoints)
-		{
-			w.writeFloat32(p.pos.x)
-			w.writeFloat32(-p.pos.z)
-			w.writeFloat32(-p.pos.y)
-			w.writeFloat32(p.size)
-			w.writeUInt16(p.setting1)
-			w.writeUInt16(p.setting2)
-		}
+			for (let prop in format[sectionId])
+				w.write(format[sectionId][prop], p[prop])
 		
 		// Write ITPH
+		sectionId = "ITPH"
 		let sectionItphAddr = w.head
-		let sectionItphOrder = sectionOrder.findIndex(s => s == "ITPH")
+		let sectionItphOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionItphOrder * 4)
 		w.writeUInt32(sectionItphAddr - headerEndAddr)
 		
 		w.seek(sectionItphAddr)
-		w.writeAscii("ITPH")
+		w.writeAscii(sectionId)
 		w.writeUInt16(itemPaths.length)
-		w.writeUInt16(0)
+		w.writeUInt16(this.headerData[sectionId])
 		for (let path of itemPaths)
 		{
 			if (path.nodes.length > 0xff)
@@ -685,15 +673,16 @@ class KmpData
 			throw "kmp encode: max checkpoint point number surpassed (have " + checkpointPoints.length + ", max 255)"
 		
 		// Write CKPT
+		sectionId = "CKPT"
 		let sectionCkptAddr = w.head
-		let sectionCkptOrder = sectionOrder.findIndex(s => s == "CKPT")
+		let sectionCkptOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionCkptOrder * 4)
 		w.writeUInt32(sectionCkptAddr - headerEndAddr)
 		
 		w.seek(sectionCkptAddr)
-		w.writeAscii("CKPT")
+		w.writeAscii(sectionId)
 		w.writeUInt16(checkpointPoints.length)
-		w.writeUInt16(0)
+		w.writeUInt16(this.headerData[sectionId])
 		for (let i = 0; i < checkpointPoints.length; i++)
 		{
 			let p = checkpointPoints[i]
@@ -718,15 +707,16 @@ class KmpData
 		}
 		
 		// Write CKPH
+		sectionId = "CKPH"
 		let sectionCkphAddr = w.head
-		let sectionCkphOrder = sectionOrder.findIndex(s => s == "CKPH")
+		let sectionCkphOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionCkphOrder * 4)
 		w.writeUInt32(sectionCkphAddr - headerEndAddr)
 		
 		w.seek(sectionCkphAddr)
-		w.writeAscii("CKPH")
+		w.writeAscii(sectionId)
 		w.writeUInt16(checkpointPaths.length)
-		w.writeUInt16(0)
+		w.writeUInt16(this.headerData[sectionId])
 		for (let path of checkpointPaths)
 		{
 			if (path.nodes.length > 0xff)
@@ -764,49 +754,33 @@ class KmpData
 		}
 		
 		// Write GOBJ
+		sectionId = "GOBJ"
 		let sectionGobjAddr = w.head
-		let sectionGobjOrder = sectionOrder.findIndex(s => s == "GOBJ")
+		let sectionGobjOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionGobjOrder * 4)
 		w.writeUInt32(sectionGobjAddr - headerEndAddr)
 		
 		w.seek(sectionGobjAddr)
-		w.writeAscii("GOBJ")
+		w.writeAscii(sectionId)
 		w.writeUInt16(this.objects.nodes.length)
-		w.writeUInt16(0)
+		w.writeUInt16(this.headerData[sectionId])
 
 		if (this.objects.nodes.length > 0xff)
 			alert("Warning: More than 255 objects found (" + this.objects.nodes.length + ").\nTrack slot 5.3 is required for objects to load correctly.")
 
-		for (let i = 0; i < this.objects.nodes.length; i++)
-		{
-			let obj = this.objects.nodes[i]
-			
-			w.writeUInt16(obj.id)
-			w.writeUInt16(0)
-			w.writeFloat32(obj.pos.x)
-			w.writeFloat32(-obj.pos.z)
-			w.writeFloat32(-obj.pos.y)
-			w.writeFloat32(obj.rotation.x)
-			w.writeFloat32(obj.rotation.y)
-			w.writeFloat32(obj.rotation.z)
-			w.writeFloat32(obj.scale.x)
-			w.writeFloat32(obj.scale.z)
-			w.writeFloat32(obj.scale.y)
-			w.writeUInt16(obj.routeIndex)
-			for (let s = 0; s < 8; s++)
-				w.writeUInt16(obj.settings[s])
-			
-			w.writeUInt16(obj.presence)
-		}
+		for (let p of this.objects.nodes)
+			for (let prop in format[sectionId])
+				w.write(format[sectionId][prop], p[prop])
 		
 		// Write POTI
+		sectionId = "POTI"
 		let sectionPotiAddr = w.head
-		let sectionPotiOrder = sectionOrder.findIndex(s => s == "POTI")
+		let sectionPotiOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionPotiOrder * 4)
 		w.writeUInt32(sectionPotiAddr - headerEndAddr)
 		
 		w.seek(sectionPotiAddr)
-		w.writeAscii("POTI")
+		w.writeAscii(sectionId)
 		w.writeUInt16(this.routes.length)
 		w.writeUInt16(this.routes.reduce((accum, route) => accum + route.points.nodes.length, 0))
 		for (let route of this.routes)
@@ -832,51 +806,33 @@ class KmpData
 		}
 		
 		// Write AREA
+		sectionId = "AREA"
 		let sectionAreaAddr = w.head
-		let sectionAreaOrder = sectionOrder.findIndex(s => s == "AREA")
+		let sectionAreaOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionAreaOrder * 4)
 		w.writeUInt32(sectionAreaAddr - headerEndAddr)
 		
 		w.seek(sectionAreaAddr)
-		w.writeAscii("AREA")
+		w.writeAscii(sectionId)
 		w.writeUInt16(this.areaPoints.nodes.length)
-		w.writeUInt16(0)
+		w.writeUInt16(this.headerData[sectionId])
 
 		if (this.areaPoints.nodes.length > 0xff)
 			throw "kmp encode: max AREA points surpassed (have " + this.areaPoints.nodes.length + ", max 255)"
 			
-		for (let i = 0; i < this.areaPoints.nodes.length; i++)
-		{
-			let area = this.areaPoints.nodes[i]
-			
-			w.writeByte(area.shape)
-			w.writeByte(area.type)
-			w.writeByte(area.type == 0 ? area.cameraIndex : 0xff)
-			w.writeByte(area.priority)
-			w.writeFloat32(area.pos.x)
-			w.writeFloat32(-area.pos.z)
-			w.writeFloat32(-area.pos.y)
-			w.writeFloat32(area.rotation.x)
-			w.writeFloat32(area.rotation.y)
-			w.writeFloat32(area.rotation.z)
-			w.writeFloat32(area.scale.x)
-			w.writeFloat32(area.scale.z)
-			w.writeFloat32(area.scale.y)
-			w.writeUInt16(area.setting1)
-			w.writeUInt16(area.setting2)
-			w.writeByte(area.routeIndex)
-			w.writeByte(area.type == 4 ? area.enemyIndex : 0xff)
-			w.writeUInt16(0)
-		}
+		for (let p of this.areaPoints.nodes)
+			for (let prop in format[sectionId])
+				w.write(format[sectionId][prop], p[prop])
 		
 		// Write CAME
+		sectionId = "CAME"
 		let sectionCameAddr = w.head
-		let sectionCameOrder = sectionOrder.findIndex(s => s == "CAME")
+		let sectionCameOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionCameOrder * 4)
 		w.writeUInt32(sectionCameAddr - headerEndAddr)
 		
 		w.seek(sectionCameAddr)
-		w.writeAscii("CAME")
+		w.writeAscii(sectionId)
 		w.writeUInt16(this.cameras.nodes.length)
 		w.writeByte(this.firstIntroCam)
 		w.writeByte(this.firstSelectionCam)
@@ -884,134 +840,81 @@ class KmpData
 		if (this.cameras.nodes.length > 0xff)
 			throw "kmp encode: max cameras surpassed (have " + this.cameras.nodes.length + ", max 255)"
 			
-		for (let i = 0; i < this.cameras.nodes.length; i++)
-		{
-			let cam = this.cameras.nodes[i]
-			
-			w.writeByte(cam.type)
-			w.writeByte(cam.nextCam)
-			w.writeByte(cam.shake)
-			w.writeByte(cam.routeIndex)
-			w.writeUInt16(cam.vCam)
-			w.writeUInt16(cam.vZoom)
-			w.writeUInt16(cam.vView)
-			w.writeByte(cam.start)
-			w.writeByte(cam.movie)
-			w.writeFloat32(cam.pos.x)
-			w.writeFloat32(-cam.pos.z)
-			w.writeFloat32(-cam.pos.y)
-			w.writeFloat32(cam.rotation.x)
-			w.writeFloat32(cam.rotation.y)
-			w.writeFloat32(cam.rotation.z)
-			w.writeFloat32(cam.zoomStart)
-			w.writeFloat32(cam.zoomEnd)
-			w.writeFloat32(cam.viewPosStart.x)
-			w.writeFloat32(-cam.viewPosStart.z)
-			w.writeFloat32(-cam.viewPosStart.y)
-			w.writeFloat32(cam.viewPosEnd.x)
-			w.writeFloat32(-cam.viewPosEnd.z)
-			w.writeFloat32(-cam.viewPosEnd.y)
-			w.writeFloat32(cam.time)
-		}
+		for (let p of this.cameras.nodes)
+			for (let prop in format[sectionId])
+				w.write(format[sectionId][prop], p[prop])
 		
 		// Write JGPT
+		sectionId = "JGPT"
 		let sectionJgptAddr = w.head
-		let sectionJgptOrder = sectionOrder.findIndex(s => s == "JGPT")
+		let sectionJgptOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionJgptOrder * 4)
 		w.writeUInt32(sectionJgptAddr - headerEndAddr)
 		
 		w.seek(sectionJgptAddr)
-		w.writeAscii("JGPT")
+		w.writeAscii(sectionId)
 		w.writeUInt16(this.respawnPoints.nodes.length)
 		w.writeUInt16(0)
 
 		if (this.respawnPoints.nodes.length > 0xff)
 			throw "kmp encode: max respawn points surpassed (have " + this.respawnPoints.nodes.length + ", max 255)"
 			
-		for (let i = 0; i < this.respawnPoints.nodes.length; i++)
-		{
-			let p = this.respawnPoints.nodes[i]
-			
-			w.writeFloat32(p.pos.x)
-			w.writeFloat32(-p.pos.z)
-			w.writeFloat32(-p.pos.y)
-			w.writeFloat32(p.rotation.x)
-			w.writeFloat32(p.rotation.y)
-			w.writeFloat32(p.rotation.z)
-			w.writeUInt16(i)
-			w.writeUInt16(p.size)
-		}
+		for (let p of this.respawnPoints.nodes)
+			for (let prop in format[sectionId])
+				w.write(format[sectionId][prop], p[prop])
 		
 		// Write CNPT
+		sectionId = "CNPT"
 		let sectionCnptAddr = w.head
-		let sectionCnptOrder = sectionOrder.findIndex(s => s == "CNPT")
+		let sectionCnptOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionCnptOrder * 4)
 		w.writeUInt32(sectionCnptAddr - headerEndAddr)
 		
 		w.seek(sectionCnptAddr)
-		w.writeAscii("CNPT")
+		w.writeAscii(sectionId)
 		w.writeUInt16(this.cannonPoints.nodes.length)
-		w.writeUInt16(0)
+		w.writeUInt16(this.headerData[sectionId])
 
 		if (this.cannonPoints.nodes.length > 0xff)
 			throw "kmp encode: max cannon points surpassed (have " + this.cannonPoints.nodes.length + ", max 255)"
 			
 		for (let p of this.cannonPoints.nodes)
-		{
-			w.writeFloat32(p.pos.x)
-			w.writeFloat32(-p.pos.z)
-			w.writeFloat32(-p.pos.y)
-			w.writeFloat32(p.rotation.x)
-			w.writeFloat32(p.rotation.y)
-			w.writeFloat32(p.rotation.z)
-			w.writeUInt16(p.id)
-			w.writeUInt16(p.effect)
-		}
+			for (let prop in format[sectionId])
+				w.write(format[sectionId][prop], p[prop])
 		
 		// Write MSPT
+		sectionId = "MSPT"
 		let sectionMsptAddr = w.head
-		let sectionMsptOrder = sectionOrder.findIndex(s => s == "MSPT")
+		let sectionMsptOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionMsptOrder * 4)
 		w.writeUInt32(sectionMsptAddr - headerEndAddr)
 		
 		w.seek(sectionMsptAddr)
-		w.writeAscii("MSPT")
+		w.writeAscii(sectionId)
 		w.writeUInt16(this.finishPoints.nodes.length)
-		w.writeUInt16(0)
+		w.writeUInt16(this.headerData[sectionId])
 
 		if (this.finishPoints.nodes.length > 0xff)
 			throw "kmp encode: max finish points surpassed (have " + this.finishPoints.nodes.length + ", max 255)"
 			
 		for (let p of this.finishPoints.nodes)
-		{
-			w.writeFloat32(p.pos.x)
-			w.writeFloat32(-p.pos.z)
-			w.writeFloat32(-p.pos.y)
-			w.writeFloat32(p.rotation.x)
-			w.writeFloat32(p.rotation.y)
-			w.writeFloat32(p.rotation.z)
-			w.writeUInt16(p.id)
-			w.writeUInt16(p.unknown)
-		}
+			for (let prop in format[sectionId])
+				w.write(format[sectionId][prop], p[prop])
 		
 		// Write STGI
+		sectionId = "STGI"
 		let sectionStgiAddr = w.head
-		let sectionStgiOrder = sectionOrder.findIndex(s => s == "STGI")
+		let sectionStgiOrder = sectionOrder.findIndex(s => s == sectionId)
 		w.seek(sectionOffsetsAddr + sectionStgiOrder * 4)
 		w.writeUInt32(sectionStgiAddr - headerEndAddr)
 		
 		w.seek(sectionStgiAddr)
-		w.writeAscii("STGI")
+		w.writeAscii(sectionId)
 		w.writeUInt16(1)
-		w.writeUInt16(0)
-		w.writeByte(this.trackInfo.lapCount)
-		w.writeByte(this.trackInfo.polePosition)
-		w.writeByte(this.trackInfo.driverDistance)
-		w.writeByte(this.trackInfo.lensFlareFlash)
-		w.writeByte(this.trackInfo.unknown1)
-		w.writeBytes(this.trackInfo.flareColor)
-		w.writeByte(this.trackInfo.unknown2)
-		w.writeFloat32MSB2(this.trackInfo.speedMod)
+		w.writeUInt16(this.headerData[sectionId])
+
+		for (let prop in format[sectionId])
+			w.write(format[sectionId][prop], this.trackInfo[prop])
 		
 		// Write file length
 		w.seek(fileLenAddr)
@@ -1024,6 +927,7 @@ class KmpData
 	constructor()
 	{
 		this.unhandledSectionData = []
+		this.headerData = {}
 		
 		this.startPoints = new NodeGraph()
 		this.startPoints.onAddNode = (node) =>
@@ -1373,7 +1277,6 @@ class NodeGraph
 		this.maxNodes = 0xff
 		this.maxNextNodes = 1
 		this.maxPrevNodes = 1
-		this.headerData = 0
 		this.onAddNode = () => { }
 		this.onCloneNode = () => { }
 		this.findFirstNode = (nodes) => (nodes.length > 0 ? nodes[0] : null)

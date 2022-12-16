@@ -65,6 +65,13 @@ class BinaryWriter
 			x >> 0
 		])
 	}
+
+
+	writeUInt16s(ints)
+	{
+		for (let i = 0; i < ints.length; i++)
+			this.writeUInt16(ints[i])
+	}
 	
 	
 	writeUInt32(x)
@@ -85,8 +92,8 @@ class BinaryWriter
 		else
 			this.writeUInt16(0x10000 + x)
 	}
-	
-	
+
+
 	writeInt32(x)
 	{
 		if (x >= 0)
@@ -158,12 +165,12 @@ class BinaryWriter
 			this.writeByte(str.charCodeAt(i))
 	}
 
-	write(type)
+	write(type, prop)
 	{
 		if (type instanceof Array)
-			this["read" + type[0]](type[1])
+			this["write" + type[0]](prop)
 		else
-			this["read" + type]()
+			this["write" + type](prop)
 	}
 }
 
