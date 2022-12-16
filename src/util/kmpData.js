@@ -187,6 +187,23 @@ let format =
 }
 
 
+function cloneProperties(newNode, oldNode, sectionId)
+{
+	for (let prop in format[sectionId]) {
+		if (oldNode[prop] instanceof Array)
+		{
+			newNode[prop] = []
+			for (let x of oldNode[prop])
+				newNode[prop].push(x)
+		}
+		else if (oldNode[prop] instanceof Vec3)
+			newNode[prop] = oldNode[prop].clone()
+		else
+			newNode[prop] = oldNode[prop]
+	}
+}
+
+
 class KmpData
 {
 	static load(bytes)
@@ -301,12 +318,7 @@ class KmpData
 			for (let kmpPoint of loadedKmp[sectionId].entries)
 			{
 				let node = data[graph].addNode()
-				for (let prop in kmpPoint) {
-					if (kmpPoint[prop] instanceof Vec3)
-						node[prop] = kmpPoint[prop].clone()
-					else
-						node[prop] = kmpPoint[prop]
-				}
+				cloneProperties(node, kmpPoint, sectionId)
 			}
 		}
 
@@ -937,13 +949,7 @@ class KmpData
 			node.playerIndex = 0xffff
 			node.p0x1A = 0
 		}
-		this.startPoints.onCloneNode = (newNode, oldNode) =>
-		{
-			newNode.pos = oldNode.pos.clone()
-			newNode.rotation = oldNode.rotation.clone()
-			newNode.playerIndex = oldNode.playerIndex
-			newNode.p0x1A = oldNode.p0x1A
-		}
+		this.startPoints.onCloneNode = (newNode, oldNode) => { cloneProperties(newNode, oldNode, "KTPT") }
 		
 		this.routes = []
 		
@@ -958,14 +964,7 @@ class KmpData
 			node.setting2 = 0
 			node.setting3 = 0
 		}
-		this.enemyPoints.onCloneNode = (newNode, oldNode) =>
-		{
-			newNode.pos = oldNode.pos.clone()
-			newNode.size = oldNode.size
-			newNode.setting1 = oldNode.setting1
-			newNode.setting2 = oldNode.setting2
-			newNode.setting3 = oldNode.setting3
-		}
+		this.enemyPoints.onCloneNode = (newNode, oldNode) => { cloneProperties(newNode, oldNode, "ENPT") }
 		
 		this.itemPoints = new NodeGraph()
 		this.itemPoints.maxNextNodes = 6
@@ -977,13 +976,7 @@ class KmpData
 			node.setting1 = 0
 			node.setting2 = 0
 		}
-		this.itemPoints.onCloneNode = (newNode, oldNode) =>
-		{
-			newNode.pos = oldNode.pos.clone()
-			newNode.size = oldNode.size
-			newNode.setting1 = oldNode.setting1
-			newNode.setting2 = oldNode.setting2
-		}
+		this.itemPoints.onCloneNode = (newNode, oldNode) => { cloneProperties(newNode, oldNode, "ITPT") }
 		
 		this.objects = new NodeGraph()
 		this.objects.maxNodes = 0xffff
@@ -998,18 +991,7 @@ class KmpData
 			node.settings = [0, 0, 0, 0, 0, 0, 0, 0]
 			node.presence = 7
 		}
-		this.objects.onCloneNode = (newNode, oldNode) =>
-		{
-			newNode.pos = oldNode.pos.clone()
-			newNode.rotation = oldNode.rotation.clone()
-			newNode.scale = oldNode.scale.clone()
-			newNode.id = oldNode.id
-			newNode.route = oldNode.route
-			newNode.routeIndex = oldNode.routeIndex
-			newNode.settings = []
-			for (let i = 0; i < 8; i++) newNode.settings[i] = oldNode.settings[i]
-			newNode.presence = oldNode.presence
-		}
+		this.objects.onCloneNode = (newNode, oldNode) => { cloneProperties(newNode, oldNode, "GOBJ") }
 		
 		this.checkpointPoints = new NodeGraph()
 		this.checkpointPoints.maxNextNodes = 6
@@ -1044,12 +1026,7 @@ class KmpData
 			node.rotation = new Vec3(0, 0, 0)
 			node.size = 0xffff
 		}
-		this.respawnPoints.onCloneNode = (newNode, oldNode) =>
-		{
-			newNode.pos = oldNode.pos.clone()
-			newNode.rotation = oldNode.rotation.clone()
-			newNode.size = oldNode.size
-		}
+		this.respawnPoints.onCloneNode = (newNode, oldNode) => { cloneProperties(newNode, oldNode, "JGPT") }
 		
 		this.cannonPoints = new NodeGraph()
 		this.cannonPoints.onAddNode = (node) =>
@@ -1059,13 +1036,7 @@ class KmpData
 			node.id = 0
 			node.effect = 0xffff
 		}
-		this.cannonPoints.onCloneNode = (newNode, oldNode) =>
-		{
-			newNode.pos = oldNode.pos.clone()
-			newNode.rotation = oldNode.rotation.clone()
-			newNode.id = oldNode.id
-			newNode.effect = oldNode.effect
-		}
+		this.cannonPoints.onCloneNode = (newNode, oldNode) => { cloneProperties(newNode, oldNode, "CNPT") }
 		
 		this.finishPoints = new NodeGraph()
 		this.finishPoints.onAddNode = (node) =>
@@ -1075,13 +1046,7 @@ class KmpData
 			node.id = 0
 			node.unknown = 0xffff
 		}
-		this.finishPoints.onCloneNode = (newNode, oldNode) =>
-		{
-			newNode.pos = oldNode.pos.clone()
-			newNode.rotation = oldNode.rotation.clone()
-			newNode.id = oldNode.id
-			newNode.unknown = oldNode.unknown
-		}
+		this.finishPoints.onCloneNode = (newNode, oldNode) => { cloneProperties(newNode, oldNode, "MSPT") }
 
 		this.areaPoints = new NodeGraph()
 		this.areaPoints.enableCOOB = false
@@ -1100,21 +1065,7 @@ class KmpData
 			node.enemyIndex = 0xff
 			node.isRendered = false
 		}
-		this.areaPoints.onCloneNode = (newNode, oldNode) =>
-		{
-			newNode.pos = oldNode.pos.clone()
-			newNode.rotation = oldNode.rotation.clone()
-			newNode.scale = oldNode.scale.clone()
-			newNode.shape = oldNode.shape
-			newNode.type = oldNode.type
-			newNode.priority = oldNode.priority
-			newNode.setting1 = oldNode.setting1
-			newNode.setting2 = oldNode.setting2
-			newNode.cameraIndex = oldNode.cameraIndex
-			newNode.routeIndex = oldNode.routeIndex
-			newNode.enemyIndex = oldNode.enemyIndex
-			newNode.isRendered = oldNode.isRendered
-		}
+		this.areaPoints.onCloneNode = (newNode, oldNode) => { cloneProperties(newNode, oldNode, "AREA") }
 
 		this.cameras = new NodeGraph()
 		this.firstIntroCam = 0
@@ -1138,25 +1089,7 @@ class KmpData
 			node.viewPosEnd = new Vec3(0, 0, 0)
 			node.time = 0
 		}
-		this.cameras.onCloneNode = (newNode, oldNode) =>
-		{
-			newNode.pos = oldNode.pos.clone()
-			newNode.rotation = oldNode.rotation.clone()
-			newNode.type = oldNode.type
-			newNode.nextCam = oldNode.nextCam
-			newNode.shake = oldNode.shake
-			newNode.routeIndex = oldNode.routeIndex
-			newNode.vCam = oldNode.vCam
-			newNode.vZoom = oldNode.vZoom
-			newNode.vView = oldNode.vView
-			newNode.start = oldNode.start
-			newNode.movie = oldNode.movie
-			newNode.zoomStart = oldNode.zoomStart
-			newNode.zoomEnd = oldNode.zoomEnd
-			newNode.viewPosStart = oldNode.viewPosStart.clone()
-			newNode.viewPosEnd = oldNode.viewPosEnd.clone()
-			newNode.time = oldNode.time
-		}
+		this.cameras.onCloneNode = (newNode, oldNode) => { cloneProperties(newNode, oldNode, "CAME") }
 		
 		this.trackInfo = {}
 		this.trackInfo.lapCount = 3
