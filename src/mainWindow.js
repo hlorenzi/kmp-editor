@@ -87,7 +87,7 @@ class MainWindow
 			kclEnableWalls: true,
 			kclEnableDeathBarriers: true,
 			kclEnableInvisible: true,
-			kclEnableItemRoad: true,
+			kclEnableItemRoad: false,
 			kclEnableEffects: false,
 			kclHighlighter: 0,
 			enemyPathsEnableSizeRender: true,
