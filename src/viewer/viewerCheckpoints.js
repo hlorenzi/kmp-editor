@@ -64,9 +64,12 @@ class ViewerCheckpoints
 	
 	setModel(model)
 	{
-		let bbox = model.getBoundingBox()
-		this.zTop = bbox.zMin - 1000
-		this.zBottom = bbox.zMax + 1000
+		if (this.window.noModelLoaded)
+		{
+			let bbox = model.getBoundingBox()
+			this.zTop = bbox.zMin - 1000
+			this.refreshPanels()
+		}
 	}
 	
 	
