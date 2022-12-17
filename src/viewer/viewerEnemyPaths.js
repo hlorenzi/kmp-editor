@@ -67,10 +67,10 @@ class ViewerEnemyPaths extends PathViewer
 			panel.addText(selectionGroup, "<strong>ENPT Index:</strong> " + formatNumHex(selectedPoints[0].pointIndex))
 		}
 		
-		panel.addSelectionNumericInput(selectionGroup,    "X", -1000000, 1000000, selectedPoints.map(p =>  p.pos.x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.x = x })
-		panel.addSelectionNumericInput(selectionGroup,    "Y", -1000000, 1000000, selectedPoints.map(p => -p.pos.z), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.z = -x })
-		panel.addSelectionNumericInput(selectionGroup,    "Z", -1000000, 1000000, selectedPoints.map(p => -p.pos.y), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.y = -x })
-		panel.addSelectionNumericInput(selectionGroup, "Size",        1,    1000, selectedPoints.map(p =>  p.size),  null, 0.1, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].size = x })
+		panel.addSelectionNumericInput(selectionGroup,    "X", -1000000, 1000000, selectedPoints.map(p =>  p.pos.x),   null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.x = x })
+		panel.addSelectionNumericInput(selectionGroup,    "Y", -1000000, 1000000, selectedPoints.map(p => -p.pos.z),   null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.z = -x })
+		panel.addSelectionNumericInput(selectionGroup,    "Z", -1000000, 1000000, selectedPoints.map(p => -p.pos.y),   null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.y = -x })
+		panel.addSelectionNumericInput(selectionGroup, "Deviation",   1,    1000, selectedPoints.map(p =>  p.deviation), null, 0.1, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].deviation = x })
 		
 		let setting1Options =
 		[
@@ -90,6 +90,8 @@ class ViewerEnemyPaths extends PathViewer
 			{ str: "Force Drift", value: 3 },
 		]
 		panel.addSelectionDropdown(selectionGroup, "Setting 2", selectedPoints.map(p => p.setting2), setting2Options, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
+	
+		panel.addSelectionNumericInput(selectionGroup, "Setting 3", 0, 0xff, selectedPoints.map(p => p.setting3), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting3 = x })
 	}
 	
 	
@@ -106,7 +108,7 @@ class ViewerEnemyPaths extends PathViewer
 		newGraph.onAddNode = (node) => 
 		{
 			node.pos = new Vec3(0, 0, 0)
-			node.size = 10
+			node.deviation = 10
 			node.setting1 = 0
 			node.setting2 = 0
 			node.setting3 = 0
@@ -114,7 +116,7 @@ class ViewerEnemyPaths extends PathViewer
 		newGraph.onCloneNode = (newNode, oldNode) => 
 		{
 			newNode.pos = oldNode.pos.clone()
-			newNode.size = oldNode.size
+			newNode.deviation = oldNode.deviation
 			newNode.setting1 = oldNode.setting1
 			newNode.setting2 = oldNode.setting2
 			newNode.setting3 = oldNode.setting3
@@ -152,7 +154,7 @@ class ViewerEnemyPaths extends PathViewer
 				.setScaling(new Vec3(scale, scale, scale))
 				.setDiffuseColor(p == 0 ? [0.6, 0, 0, 1] : useMushroom ? [1, 0.5, 0.95, 1] : [1, 0, 0, 1])
 				
-			let sizeCircleScale = point.size * 50
+			let sizeCircleScale = point.deviation * 50
 			point.rendererSizeCircle
 				.setTranslation(point.pos)
 				.setScaling(new Vec3(sizeCircleScale, sizeCircleScale, sizeCircleScale))

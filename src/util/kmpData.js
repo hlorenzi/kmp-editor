@@ -35,13 +35,13 @@ let format =
 		pos: "PosVec3",
 		rotation: "Vec3",
 		playerIndex: "UInt16",
-		unknown: "UInt16",
+		padding: "UInt16",
 	},
 
 	"ENPT":
 	{
 		pos: "PosVec3",
-		size: "Float32",
+		deviation: "Float32",
 		setting1: "UInt16",
 		setting2: "Byte",
 		setting3: "Byte",
@@ -59,7 +59,7 @@ let format =
 	"ITPT":
 	{
 		pos: "PosVec3",
-		size: "Float32",
+		deviation: "Float32",
 		setting1: "UInt16",
 		setting2: "UInt16",
 	},
@@ -70,7 +70,7 @@ let format =
 		pointNum: "Byte",
 		prevGroups: ["Bytes", 6],
 		nextGroups: ["Bytes", 6],
-		unknown: "UInt16",
+		padding: "UInt16",
 	},
 
 	"CKPT":
@@ -91,7 +91,7 @@ let format =
 		pointNum: "Byte",
 		prevGroups: ["Bytes", 6],
 		nextGroups: ["Bytes", 6],
-		unknown: "UInt16",
+		padding: "UInt16",
 	},
 
 	"GOBJ":
@@ -126,7 +126,7 @@ let format =
 		setting2: "UInt16",
 		routeIndex: "Byte",
 		enemyIndex: "Byte",
-		unknown: "UInt16",
+		padding: "UInt16",
 	},
 
 	"CAME":
@@ -170,7 +170,7 @@ let format =
 		pos: "PosVec3",
 		rotation: "Vec3",
 		id: "UInt16",
-		unknown: "UInt16",
+		padding: "UInt16",
 	},
 
 	"STGI":
@@ -947,7 +947,7 @@ class KmpData
 			node.pos = new Vec3(0, 0, 0)
 			node.rotation = new Vec3(0, 0, 0)
 			node.playerIndex = 0xffff
-			node.p0x1A = 0
+			node.padding = 0
 		}
 		this.startPoints.onCloneNode = (newNode, oldNode) => { cloneProperties(newNode, oldNode, "KTPT") }
 		
@@ -959,7 +959,7 @@ class KmpData
 		this.enemyPoints.onAddNode = (node) =>
 		{
 			node.pos = new Vec3(0, 0, 0)
-			node.size = 10
+			node.deviation = 10
 			node.setting1 = 0
 			node.setting2 = 0
 			node.setting3 = 0
@@ -972,7 +972,7 @@ class KmpData
 		this.itemPoints.onAddNode = (node) =>
 		{
 			node.pos = new Vec3(0, 0, 0)
-			node.size = 10
+			node.deviation = 10
 			node.setting1 = 0
 			node.setting2 = 0
 		}
@@ -1045,7 +1045,7 @@ class KmpData
 			node.pos = new Vec3(0, 0, 0)
 			node.rotation = new Vec3(0, 0, 0)
 			node.id = 0
-			node.unknown = 0xffff
+			node.padding = 0
 		}
 		this.finishPoints.onCloneNode = (newNode, oldNode) => { cloneProperties(newNode, oldNode, "MSPT") }
 

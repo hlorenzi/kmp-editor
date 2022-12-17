@@ -67,10 +67,10 @@ class ViewerItemPaths extends PathViewer
 			panel.addText(selectionGroup, "<strong>ITPT Index:</strong> " + formatNumHex(selectedPoints[0].pointIndex))
 		}
 		
-		panel.addSelectionNumericInput(selectionGroup,    "X", -1000000, 1000000, selectedPoints.map(p =>  p.pos.x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.x = x })
-		panel.addSelectionNumericInput(selectionGroup,    "Y", -1000000, 1000000, selectedPoints.map(p => -p.pos.z), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.z = -x })
-		panel.addSelectionNumericInput(selectionGroup,    "Z", -1000000, 1000000, selectedPoints.map(p => -p.pos.y), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.y = -x })
-		panel.addSelectionNumericInput(selectionGroup, "Size",        1,    1000, selectedPoints.map(p =>  p.size),  null, 0.1, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].size = x })
+		panel.addSelectionNumericInput(selectionGroup,    "X", -1000000, 1000000, selectedPoints.map(p =>  p.pos.x),   null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.x = x })
+		panel.addSelectionNumericInput(selectionGroup,    "Y", -1000000, 1000000, selectedPoints.map(p => -p.pos.z),   null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.z = -x })
+		panel.addSelectionNumericInput(selectionGroup,    "Z", -1000000, 1000000, selectedPoints.map(p => -p.pos.y),   null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.y = -x })
+		panel.addSelectionNumericInput(selectionGroup, "Deviation",   1,    1000, selectedPoints.map(p =>  p.deviation), null, 0.1, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].deviation = x })
 		
 		let setting1Options =
 		[
@@ -123,14 +123,14 @@ class ViewerItemPaths extends PathViewer
 		newGraph.onAddNode = (node) => 
 		{
 			node.pos = new Vec3(0, 0, 0)
-			node.size = 10
+			node.deviation = 10
 			node.setting1 = 0
 			node.setting2 = 0
 		}
 		newGraph.onCloneNode = (newNode, oldNode) => 
 		{
 			newNode.pos = oldNode.pos.clone()
-			newNode.size = oldNode.size
+			newNode.deviation = oldNode.deviation
 			newNode.setting1 = oldNode.setting1
 			newNode.setting2 = oldNode.setting2
 		}
@@ -167,7 +167,7 @@ class ViewerItemPaths extends PathViewer
 				.setScaling(new Vec3(scale, scale, scale))
 				.setDiffuseColor(p == 0 ? [0, 0.4, 0, 1] : bbillCantStop ? [0.75, 0.75, 0.75, 1] : [0, 0.8, 0, 1])
 				
-			let sizeCircleScale = point.size * 50
+			let sizeCircleScale = point.deviation * 50
 			point.rendererSizeCircle
 				.setTranslation(point.pos)
 				.setScaling(new Vec3(sizeCircleScale, sizeCircleScale, sizeCircleScale))

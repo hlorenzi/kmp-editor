@@ -58,6 +58,7 @@ class ViewerRespawnPoints extends PointViewer
 		panel.addSelectionNumericInput(selectionGroup, "Rot. X", -1000000, 1000000, selectedPoints.map(p =>  p.rotation.x),  null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].rotation.x = x % 360 }, x => { return x % 360 })
 		panel.addSelectionNumericInput(selectionGroup, "Rot. Y", -1000000, 1000000, selectedPoints.map(p =>  p.rotation.y),  null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].rotation.y = x % 360 }, x => { return x % 360 })
 		panel.addSelectionNumericInput(selectionGroup, "Rot. Z", -1000000, 1000000, selectedPoints.map(p =>  p.rotation.z),  null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].rotation.z = x % 360 }, x => { return x % 360 })
+		panel.addSelectionNumericInput(selectionGroup,     "ID",        0,  0xffff, selectedPoints.map(p =>  p.id),          null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].id = x })
 		
 		const toSoundTrig   = (soundData) => { if (soundData == 0xffff) return -1; else return ((soundData - 199) / 100) | 0 }
 		const fromSoundTrig = (soundTrig) => { if (soundTrig == -1) return 0xffff; else return (soundTrig * 100) + 199 }
