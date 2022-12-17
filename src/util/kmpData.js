@@ -153,8 +153,8 @@ let format =
 	{
 		pos: "PosVec3",
 		rotation: "Vec3",
-		unknown: "UInt16",
-		size: "UInt16",
+		id: "UInt16",
+		soundData: "UInt16",
 	},
 
 	"CNPT":
@@ -866,7 +866,7 @@ class KmpData
 		w.seek(sectionJgptAddr)
 		w.writeAscii(sectionId)
 		w.writeUInt16(this.respawnPoints.nodes.length)
-		w.writeUInt16(0)
+		w.writeUInt16(this.headerData[sectionId])
 
 		if (this.respawnPoints.nodes.length > 0xff)
 			throw "kmp encode: max respawn points surpassed (have " + this.respawnPoints.nodes.length + ", max 255)"
@@ -1024,7 +1024,8 @@ class KmpData
 		{
 			node.pos = new Vec3(0, 0, 0)
 			node.rotation = new Vec3(0, 0, 0)
-			node.size = 0xffff
+			node.id = 0
+			node.soundData = 0xffff
 		}
 		this.respawnPoints.onCloneNode = (newNode, oldNode) => { cloneProperties(newNode, oldNode, "JGPT") }
 		
