@@ -59,23 +59,23 @@ class KclLoader
 			{ isDeath: false, isInvis: false, isEffect: false, isWall: true,  isItem: false, c: [0.6, 0.6, 0.6, 1.0] }, // Wall
 			{ isDeath: false, isInvis: true,  isEffect: false, isWall: true,  isItem: false, c: [0.0, 0.0, 0.6, 0.8] }, // Invisible Wall
 			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: true,  c: [0.6, 0.6, 0.7, 0.5] }, // Item Wall
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: true,  isItem: false, c: [0.6, 0.6, 0.6, 1.0] }, // Wall
+			{ isDeath: false, isInvis: false, isEffect: false, isWall: true,  isItem: false, c: [0.6, 0.6, 0.6, 1.0] }, // Wall 2
 			{ isDeath: true,  isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.8, 0.0, 0.0, 0.8] }, // Fall Boundary
 			{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [1.0, 0.0, 0.5, 0.8] }, // Cannon Activator
 			{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [0.5, 0.0, 1.0, 0.5] }, // Force Recalculation
 			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.0, 0.3, 1.0, 1.0] }, // Half-pipe Ramp
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: true,  isItem: false, c: [0.6, 0.6, 0.6, 1.0] }, // Wall (items pass through)
+			{ isDeath: false, isInvis: false, isEffect: false, isWall: true,  isItem: false, c: [0.8, 0.4, 0.0, 0.8] }, // Player-Only Wall
 			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.9, 0.9, 1.0, 1.0] }, // Moving Road
 			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.9, 0.7, 1.0, 1.0] }, // Sticky Road
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 1.0, 1.0, 1.0] }, // Road (alt sfx)
+			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 1.0, 1.0, 1.0] }, // Road 2
 			{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [1.0, 0.0, 1.0, 0.8] }, // Sound Trigger
-			{ isDeath: false, isInvis: false, isEffect: true,  isWall: true,  isItem: false, c: [0.4, 0.6, 0.4, 0.8] }, // Weak Wall
+			{ isDeath: false, isInvis: true , isEffect: false, isWall: true,  isItem: false, c: [0.4, 0.6, 0.4, 0.8] }, // Weak Wall
 			{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [0.8, 0.0, 1.0, 0.8] }, // Effect Trigger
 			{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [1.0, 0.0, 1.0, 0.5] }, // Item State Modifier
-			{ isDeath: false, isInvis: false, isEffect: true,  isWall: true,  isItem: false, c: [0.0, 0.6, 0.0, 0.8] }, // Half-pipe Invis Wall
+			{ isDeath: false, isInvis: true,  isEffect: false, isWall: true,  isItem: false, c: [0.0, 0.6, 0.0, 0.8] }, // Half-pipe Invis Wall
 			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.9, 0.9, 1.0, 1.0] }, // Rotating Road
 			{ isDeath: false, isInvis: false, isEffect: false, isWall: true,  isItem: false, c: [0.8, 0.7, 0.8, 1.0] }, // Special Wall
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: true,  isItem: false, c: [0.6, 0.6, 0.6, 1.0] }, // Wall
+			{ isDeath: false, isInvis: true,  isEffect: false, isWall: true,  isItem: false, c: [0.0, 0.0, 0.6, 0.8] }, // Invisible Wall 2
 		]
 		
 		parser.seek(section3Offset + 0x10)
