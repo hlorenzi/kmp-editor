@@ -82,6 +82,7 @@ class MainWindow
 			pointScale: 1,
 			shadingFactor: 0.3,
 			fogFactor: 0.0000025,
+
 			kclEnableModel: true,
 			kclEnableColors: true,
 			kclEnableWalls: true,
@@ -90,14 +91,21 @@ class MainWindow
 			kclEnableItemRoad: false,
 			kclEnableEffects: false,
 			kclHighlighter: 0,
+
+			enableRotationRender: true,
+
+			startPointsEnableZoneRender: true,
+
 			enemyPathsEnableSizeRender: true,
+
 			checkpointsEnableVerticalPanels: true,
 			checkpointsEnableRespawnPointLinks: true,
-			enableRotationRender: true,
+			checkpointsEnableDirectionArrows: true,
+
+			respawnsEnablePlayerSlots: true,
+
 			cannonsEnableDirectionRender: false,
 			cannonsEnableKclHighlight: true,
-			respawnsEnablePlayerSlots: true,
-			startPointsEnableZoneRender: true,
 		}
 
 		this.hl = 
@@ -489,11 +497,11 @@ class MainWindow
 		let model = new ModelBuilder()
 			.addCube(-5000, -5000, -3, 5000, 5000, 3)
 			.calculateNormals()
-			
+		
+		this.noModelLoaded = true
 		this.viewer.setModel(model)
 		this.viewer.centerView()
 		this.currentKclFilename = null
-		this.noModelLoaded = true
 	}
 	
 	
