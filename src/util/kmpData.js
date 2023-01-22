@@ -3,9 +3,6 @@ const { BinaryWriter } = require("./binaryWriter.js")
 const { Vec3 } = require("../math/vec3.js")
 
 
-let unhandledSections = ["CORS", "GLPT", "GLPH"]
-
-
 let sectionOrder =
 [
 	"KTPT",
@@ -23,9 +20,6 @@ let sectionOrder =
 	"CNPT",
 	"MSPT",
 	"STGI",
-	"CORS",
-	"GLPT",
-	"GLPH",
 ]
 
 let format = 
@@ -211,15 +205,13 @@ class KmpData
 		// read KMP header
 		let parser = new BinaryParser(bytes)
 		
-		if (parser.readAsciiLength(4) == "RKMD")
-			;
-		else if (parser.readAsciiLength(4) == "DMDC")
-			parser.littleEndian = true
-		else
+		if (parser.readAsciiLength(4) != "RKMD")
 			throw "kmp: invalid magic number"
 		
 		let fileLenInBytes = parser.readUInt32()
 		let sectionNum = parser.readUInt16()
+		if (sectionNum != 15)
+			throw "kmp: unexpected section number: " + sectionNum
 		let headerLenInBytes = parser.readUInt16()
 		parser.readUInt32()
 		
@@ -455,9 +447,9 @@ class KmpData
 	convertToStorageFormat(asBattle = false)
 	{
 		let w = new BinaryWriter()
+		let sectionNum = 15
 		
-		let sectionNum = this.sectionNum
-		
+		// Write KMP header
 		w.writeAscii("RKMD")
 		
 		let fileLenAddr = w.head
