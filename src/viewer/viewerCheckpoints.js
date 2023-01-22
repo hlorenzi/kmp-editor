@@ -107,7 +107,7 @@ class ViewerCheckpoints
 		panel.addButton(null, "(E) Clear Respawn Point Assignment", () => this.clearRespawnPoints())
 		panel.addButton(null, "(R) Assign Selected Respawn Point to Selected Checkpoints", () => this.assignRespawnPoints())
 		
-		panel.addSelectionNumericInput(null, "Editing Y", -1000000, 1000000, -this.zTop, null, 1.0, true, false, (x, i) => { this.zTop = -x })
+		panel.addSelectionNumericInput(null, "Editing Y", -1000000, 1000000, -this.zTop, null, 100.0, true, false, (x, i) => { this.zTop = -x })
 		
 		let selectedPoints = this.data.checkpointPoints.nodes.filter(p => p.selected[0] || p.selected[1])
 		
