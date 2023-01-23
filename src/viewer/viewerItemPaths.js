@@ -40,6 +40,7 @@ class ViewerItemPaths extends PathViewer
 		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
 		panel.addButton(null, "(F) Set Selected as First Point", () => this.setSelectedAsFirstPoint())
+		panel.addButton(null, "(D) Set as Default Bill Route", () => this.setDefaultBillRoute())
 		panel.addSpacer(null)
 
 		let selectedPoints = this.data.itemPoints.nodes.filter(p => p.selected)
@@ -91,8 +92,6 @@ class ViewerItemPaths extends PathViewer
 			{ str: "B.Bill can't stop & Low-priority route", value: 0xb },
 		]
 		panel.addSelectionDropdown(selectionGroup, "Setting 2", selectedPoints.map(p => p.setting2), setting2Options, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
-
-		panel.addButton(selectionGroup, "Set as Default Bill Route", () => this.setDefaultBillRoute())
 	}
 	
 	
@@ -150,6 +149,18 @@ class ViewerItemPaths extends PathViewer
 		this.refresh()
 		this.window.setNotSaved()
 		this.window.setUndoPoint()
+	}
+
+
+	onKeyDown(ev)
+	{
+		switch (ev.key)
+		{
+			case "D":
+			case "d":
+				this.setDefaultBillRoute()
+				return true
+		}
 	}
 	
 	
