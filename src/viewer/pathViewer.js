@@ -270,6 +270,7 @@ class PathViewer
 			this.points().nodes.unshift(point)
 		}
 		
+		this.data.refreshIndices(this.viewer.cfg.isBattleTrack)
 		this.refresh()
 		this.window.setNotSaved()
 		this.window.setUndoPoint()
