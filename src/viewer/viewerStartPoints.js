@@ -45,6 +45,7 @@ class ViewerStartPoints extends PointViewer
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
+		panel.addButton(null, "(F) Set Selected as First Point", () => this.setSelectedAsFirstPoint())
 
 		let polePosOptions =
 		[
@@ -98,6 +99,38 @@ class ViewerStartPoints extends PointViewer
 		
 		this.refreshPanels()
 	}
+
+
+	setSelectedAsFirstPoint()
+	{
+		for (let p = 0; p < this.points().nodes.length; p++)
+		{
+			let point = this.points().nodes[p]
+			
+			if (!point.selected)
+				continue
+			
+			this.points().nodes.splice(p, 1)
+			this.points().nodes.unshift(point)
+		}
+		
+		this.data.refreshIndices(this.viewer.cfg.isBattleTrack)
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
+	}
+
+
+	onKeyDown(ev)
+	{
+		switch (ev.key)
+		{
+			case "F":
+			case "f":
+				this.setSelectedAsFirstPoint()
+				return true
+		}
+	}
 	
 	
 	drawAfterModel()
@@ -146,7 +179,7 @@ class ViewerStartPoints extends PointViewer
 			point.rendererStartZone
 				.setCustomMatrix(matrixDirection)
 				.setDiffuseColor([0.25, 0.25, 1, 0.5])
-				.setEnabled(this.viewer.cfg.startPointsEnableZoneRender)
+				.setEnabled(this.viewer.cfg.startPointsEnableZoneRender && !this.viewer.cfg.isBattleTrack && (this.data.startPoints.nodes.indexOf(point) == 0))
 		}
 		
 		this.scene.render(this.viewer.gl, this.viewer.getCurrentCamera())
