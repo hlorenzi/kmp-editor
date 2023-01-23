@@ -27,7 +27,9 @@ class ViewerTrackInformation
 	{
 		let panel = this.window.addPanel("Track Info", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
-	
+		
+		panel.addSpacer(null)
+		
 		let trackModeOptions =
 		[
 			{ str: "Race", value: false },

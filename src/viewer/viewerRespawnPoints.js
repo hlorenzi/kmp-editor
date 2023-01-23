@@ -31,15 +31,19 @@ class ViewerRespawnPoints extends PointViewer
 		let panel = this.window.addPanel("Respawn Points", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
 	
-		panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
-		panel.addCheckbox(null, "Draw player respawn positions", this.viewer.cfg.respawnsEnablePlayerSlots, (x) => this.viewer.cfg.respawnsEnablePlayerSlots = x)
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Duplicate Point")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
+
+		panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
+		panel.addCheckbox(null, "Draw player respawn positions", this.viewer.cfg.respawnsEnablePlayerSlots, (x) => this.viewer.cfg.respawnsEnablePlayerSlots = x)
+		panel.addSpacer(null)
+
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
-		
+		panel.addSpacer(null)
+
 		let selectedPoints = this.data.respawnPoints.nodes.filter(p => p.selected)
 		
 		let selectionGroup = panel.addGroup(null, "Selection:")

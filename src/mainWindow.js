@@ -204,6 +204,7 @@ class MainWindow
 		panel.addText(null, "<strong>Hold Shift + Right Mouse:</strong> Pan Camera")
 		panel.addText(null, "<strong>Mouse Wheel:</strong> Zoom")
 		panel.addText(null, "<strong>Double Right Click:</strong> Focus Camera")
+		panel.addSpacer(null)
 		//panel.addButton(null, "Load course_model.brres", () => this.openCourseBrres())
 		//panel.addButton(null, "Load course.kcl", () => this.openCourseKcl())
 		panel.addButton(null, "Load Model", () => this.openCustomModel())
@@ -212,6 +213,7 @@ class MainWindow
 		panel.addSlider(null, "Shading", 0, 1, this.cfg.shadingFactor, 0.05, (x) => this.cfg.shadingFactor = x)
 		panel.addSlider(null, "Fog", 0.0000001, 0.0002, this.cfg.fogFactor, 0.0000001, (x) => this.cfg.fogFactor = x)
 		panel.addSlider(null, "Point Scale", 0.1, 5, this.cfg.pointScale, 0.1, (x) => this.cfg.pointScale = x)
+		panel.addSpacer(null)
 		let kclGroup = panel.addGroup(null, "Collision data:")
 		//panel.addCheckbox(kclGroup, "Enable model", this.cfg.kclEnableModel, (x) => { this.cfg.kclEnableModel = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Use colors", this.cfg.kclEnableColors, (x) => { this.cfg.kclEnableColors = x; this.openKcl(this.currentKclFilename) })
@@ -220,7 +222,8 @@ class MainWindow
 		panel.addCheckbox(kclGroup, "Show invisible walls", this.cfg.kclEnableInvisible, (x) => { this.cfg.kclEnableInvisible = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show item road/wall", this.cfg.kclEnableItemRoad, (x) => { this.cfg.kclEnableItemRoad = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show effects/triggers", this.cfg.kclEnableEffects, (x) => { this.cfg.kclEnableEffects = x; this.openKcl(this.currentKclFilename) })
-		
+		panel.addSpacer(kclGroup)
+
 		let hlOptions =
 		[
 			{ str: "None", value: 0 },
@@ -719,6 +722,22 @@ class Panel
 	}
 	
 	
+	addSpacer(group, n=1)
+	{
+		for (let i=0; i < n; i++)
+		{
+			let div = document.createElement("div")
+			div.className = "panelRowElement"
+			
+			if (group == null)
+				this.contentDiv.appendChild(div)
+			else
+				group.appendChild(div)
+		}
+		return null
+	}
+
+
 	addText(group, str)
 	{
 		let div = document.createElement("div")

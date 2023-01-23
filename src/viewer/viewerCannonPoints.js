@@ -34,7 +34,12 @@ class ViewerCannonPoints extends PointViewer
 
 		let selectedPoints = this.data.cannonPoints.nodes.filter(p => p.selected)
 	
+		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
+		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Duplicate Point")
+		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
+
 		panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
+		panel.addCheckbox(null, "Draw backwards Y rotation guides", this.viewer.cfg.cannonsEnableDirectionRender, (x) => this.viewer.cfg.cannonsEnableDirectionRender = x)
 		panel.addCheckbox(null, "Highlight selected trigger KCL", this.viewer.cfg.cannonsEnableKclHighlight, (x) => { 
 			this.viewer.cfg.cannonsEnableKclHighlight = x
 			if (selectedPoints.length == 1)
@@ -47,15 +52,13 @@ class ViewerCannonPoints extends PointViewer
 				this.highlighting = true
 			}
 		})
-		panel.addCheckbox(null, "Draw backwards Y rotation guides", this.viewer.cfg.cannonsEnableDirectionRender, (x) => this.viewer.cfg.cannonsEnableDirectionRender = x)
+		panel.addSpacer(null)
 		
-		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
-		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Duplicate Point")
-		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
-		
+		panel.addSpacer(null)
+
 		let selectionGroup = panel.addGroup(null, "Selection:")
 		let enabled = (selectedPoints.length > 0)
 		let multiedit = (selectedPoints.length > 1)

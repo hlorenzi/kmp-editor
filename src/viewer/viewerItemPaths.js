@@ -25,20 +25,23 @@ class ViewerItemPaths extends PathViewer
 		let panel = this.window.addPanel("Item Paths", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
 		
-		panel.addCheckbox(null, "Show point sizes", this.viewer.cfg.enemyPathsEnableSizeRender, (x) => this.viewer.cfg.enemyPathsEnableSizeRender = x)
-		
-		if (this.data.itemPoints.nodes.length == 0 && this.data.enemyPoints.nodes.length > 0)
-			panel.addButton(null, "Copy From Enemy Paths", () => this.copyFromEnemyPaths())
-		
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Extend Path")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
+
+		panel.addCheckbox(null, "Show point sizes", this.viewer.cfg.enemyPathsEnableSizeRender, (x) => this.viewer.cfg.enemyPathsEnableSizeRender = x)
+		panel.addSpacer(null)
+
+		if (this.data.itemPoints.nodes.length == 0 && this.data.enemyPoints.nodes.length > 0)
+			panel.addButton(null, "Copy From Enemy Paths", () => this.copyFromEnemyPaths())
+		
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
 		panel.addButton(null, "(F) Set Selected as First Point", () => this.setSelectedAsFirstPoint())
-		
+		panel.addSpacer(null)
+
 		let selectedPoints = this.data.itemPoints.nodes.filter(p => p.selected)
 		
 		let selectionGroup = panel.addGroup(null, "Selection:")

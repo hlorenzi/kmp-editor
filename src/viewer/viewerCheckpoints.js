@@ -99,23 +99,25 @@ class ViewerCheckpoints
 		let panel = this.window.addPanel("Checkpoints", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
 		
-		panel.addCheckbox(null, "Render vertical panels", this.viewer.cfg.checkpointsEnableVerticalPanels, (x) => this.viewer.cfg.checkpointsEnableVerticalPanels = x)
-		panel.addCheckbox(null, "Render respawn point links", this.viewer.cfg.checkpointsEnableRespawnPointLinks, (x) => this.viewer.cfg.checkpointsEnableRespawnPointLinks = x)
-		panel.addCheckbox(null, "Render direction indicators", this.viewer.cfg.checkpointsEnableDirectionArrows, (x) => this.viewer.cfg.checkpointsEnableDirectionArrows = x)
-		
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Checkpoint")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Extend Path")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
-		
+
+		panel.addCheckbox(null, "Render vertical panels", this.viewer.cfg.checkpointsEnableVerticalPanels, (x) => this.viewer.cfg.checkpointsEnableVerticalPanels = x)
+		panel.addCheckbox(null, "Render respawn point links", this.viewer.cfg.checkpointsEnableRespawnPointLinks, (x) => this.viewer.cfg.checkpointsEnableRespawnPointLinks = x)
+		panel.addCheckbox(null, "Render direction indicators", this.viewer.cfg.checkpointsEnableDirectionArrows, (x) => this.viewer.cfg.checkpointsEnableDirectionArrows = x)
+		panel.addSpacer(null)
+
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
 		panel.addButton(null, "(S) Toggle Show Loaded Checkpoints", () => this.toggleShowLoaded())
 		panel.addButton(null, "(E) Clear Respawn Point Assignment", () => this.clearRespawnPoints())
 		panel.addButton(null, "(R) Assign Selected Respawn Point", () => this.assignRespawnPoints())
-		
+		panel.addSpacer(null)
+
 		panel.addSelectionNumericInput(null, "Editing Y", -1000000, 1000000, -this.zTop, null, 100.0, true, false, (x, i) => { this.zTop = -x })
-		
+
 		let selectedPoints = this.data.checkpointPoints.nodes.filter(p => p.selected[0] || p.selected[1])
 		
 		let selectionGroup = panel.addGroup(null, "Selection:")

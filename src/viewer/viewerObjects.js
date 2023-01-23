@@ -342,17 +342,23 @@ class ViewerObjects extends PointViewer
 	{
 		let panel = this.window.addPanel("Objects", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
-	
-		panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
-		panel.addButton(null, "Open Object Database", () => this.window.openExternalLink("https://szs.wiimm.de/cgi/mkw/object"))
+		
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Object")
 		panel.addText(null, "<strong>Hold Alt + Drag Object:</strong> Duplicate Object")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
+		
+		panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
+		panel.addSpacer(null)
+
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(T) Select All With Same ID", () => this.toggleAllSelectionByID())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
+		panel.addSpacer(null, 2)
 		
+		panel.addButton(null, "Open Object Database", () => this.window.openExternalLink("https://szs.wiimm.de/cgi/mkw/object"))
+		panel.addSpacer(null)
+
 		let selectedPoints = this.data.objects.nodes.filter(p => p.selected)
 		
 		let selectionGroup = panel.addGroup(null, "Selection:")
