@@ -3,6 +3,43 @@ const { ModelBuilder } = require("./modelBuilder.js")
 const { Vec3 } = require("../math/vec3.js")
 
 
+const collisionTypeData =
+[
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 1.0, 1.0, 1.0], name: "Road"                      },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 0.9, 0.8, 1.0], name: "Slippery Road (sand/dirt)" },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.0, 0.8, 0.0, 1.0], name: "Weak Off-Road"             },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.0, 0.6, 0.0, 1.0], name: "Off-Road"                  },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.0, 0.4, 0.0, 1.0], name: "Heavy Off-Road"            },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.8, 0.9, 1.0, 1.0], name: "Slippery Road (ice)"       },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 0.5, 0.0, 1.0], name: "Boost Panel"               },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 0.6, 0.0, 1.0], name: "Boost Ramp"                },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 0.8, 0.0, 1.0], name: "Slow Ramp"                 },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: true,  c: [0.9, 0.9, 1.0, 0.5], name: "Item Road"                 },
+	{ isDeath: true,  isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.7, 0.1, 0.1, 1.0], name: "Solid Fall"                },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.0, 0.5, 1.0, 1.0], name: "Moving Water"              },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: true,  isItem: false, c: [0.6, 0.6, 0.6, 1.0], name: "Wall"                      },
+	{ isDeath: false, isInvis: true,  isEffect: false, isWall: true,  isItem: false, c: [0.0, 0.0, 0.6, 0.8], name: "Invisible Wall"            },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: true,  c: [0.6, 0.6, 0.7, 0.5], name: "Item Wall"                 },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: true,  isItem: false, c: [0.6, 0.6, 0.6, 1.0], name: "Wall 2"                    },
+	{ isDeath: true,  isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.8, 0.0, 0.0, 0.8], name: "Fall Boundary"             },
+	{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [1.0, 0.0, 0.5, 0.8], name: "Cannon Activator"          },
+	{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [0.5, 0.0, 1.0, 0.5], name: "Force Recalculation"       },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.0, 0.3, 1.0, 1.0], name: "Half-pipe Ramp"            },
+	{ isDeath: false, isInvis: true,  isEffect: false, isWall: true,  isItem: false, c: [0.8, 0.4, 0.0, 0.8], name: "Player-Only Wall"          },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.9, 0.9, 1.0, 1.0], name: "Moving Road"               },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.9, 0.7, 1.0, 1.0], name: "Sticky Road"               },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 1.0, 1.0, 1.0], name: "Road 2"                    },
+	{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [1.0, 0.0, 1.0, 0.8], name: "Sound Trigger"             },
+	{ isDeath: false, isInvis: true , isEffect: false, isWall: true,  isItem: false, c: [0.4, 0.6, 0.4, 0.8], name: "Weak Wall"                 },
+	{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [0.8, 0.0, 1.0, 0.8], name: "Effect Trigger"            },
+	{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [1.0, 0.0, 1.0, 0.5], name: "Item State Modifier"       },
+	{ isDeath: false, isInvis: true,  isEffect: false, isWall: true,  isItem: false, c: [0.0, 0.6, 0.0, 0.8], name: "Half-pipe Invis Wall"      },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.9, 0.9, 1.0, 1.0], name: "Rotating Road"             },
+	{ isDeath: false, isInvis: false, isEffect: false, isWall: true,  isItem: false, c: [0.8, 0.7, 0.8, 1.0], name: "Special Wall"              },
+	{ isDeath: false, isInvis: true,  isEffect: false, isWall: true,  isItem: false, c: [0.0, 0.0, 0.6, 0.8], name: "Invisible Wall 2"          },
+]
+
+
 class KclLoader
 {
 	static load(bytes, cfg, hl)
@@ -41,42 +78,6 @@ class KclLoader
 			model.addTri(new Vec3(0, 0, 0), new Vec3(1, 0, 0), new Vec3(0, 1, 0))
 			return model.calculateNormals()
 		}
-		
-		let collisionTypeData =
-		[
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 1.0, 1.0, 1.0] }, // Road
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 0.9, 0.8, 1.0] }, // Slippery Road (sand/dirt)
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.0, 0.8, 0.0, 1.0] }, // Weak Off-Road
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.0, 0.6, 0.0, 1.0] }, // Off-Road
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.0, 0.4, 0.0, 1.0] }, // Heavy Off-Road
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.8, 0.9, 1.0, 1.0] }, // Slippery Road (ice)
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 0.5, 0.0, 1.0] }, // Boost Panel
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 0.6, 0.0, 1.0] }, // Boost Ramp
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 0.8, 0.0, 1.0] }, // Slow Ramp
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: true,  c: [0.9, 0.9, 1.0, 0.5] }, // Item Road
-			{ isDeath: true,  isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.7, 0.1, 0.1, 1.0] }, // Solid Fall
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.0, 0.5, 1.0, 1.0] }, // Moving Water
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: true,  isItem: false, c: [0.6, 0.6, 0.6, 1.0] }, // Wall
-			{ isDeath: false, isInvis: true,  isEffect: false, isWall: true,  isItem: false, c: [0.0, 0.0, 0.6, 0.8] }, // Invisible Wall
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: true,  c: [0.6, 0.6, 0.7, 0.5] }, // Item Wall
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: true,  isItem: false, c: [0.6, 0.6, 0.6, 1.0] }, // Wall 2
-			{ isDeath: true,  isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.8, 0.0, 0.0, 0.8] }, // Fall Boundary
-			{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [1.0, 0.0, 0.5, 0.8] }, // Cannon Activator
-			{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [0.5, 0.0, 1.0, 0.5] }, // Force Recalculation
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.0, 0.3, 1.0, 1.0] }, // Half-pipe Ramp
-			{ isDeath: false, isInvis: true,  isEffect: false, isWall: true,  isItem: false, c: [0.8, 0.4, 0.0, 0.8] }, // Player-Only Wall
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.9, 0.9, 1.0, 1.0] }, // Moving Road
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.9, 0.7, 1.0, 1.0] }, // Sticky Road
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 1.0, 1.0, 1.0] }, // Road 2
-			{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [1.0, 0.0, 1.0, 0.8] }, // Sound Trigger
-			{ isDeath: false, isInvis: true , isEffect: false, isWall: true,  isItem: false, c: [0.4, 0.6, 0.4, 0.8] }, // Weak Wall
-			{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [0.8, 0.0, 1.0, 0.8] }, // Effect Trigger
-			{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [1.0, 0.0, 1.0, 0.5] }, // Item State Modifier
-			{ isDeath: false, isInvis: true,  isEffect: false, isWall: true,  isItem: false, c: [0.0, 0.6, 0.0, 0.8] }, // Half-pipe Invis Wall
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.9, 0.9, 1.0, 1.0] }, // Rotating Road
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: true,  isItem: false, c: [0.8, 0.7, 0.8, 1.0] }, // Special Wall
-			{ isDeath: false, isInvis: true,  isEffect: false, isWall: true,  isItem: false, c: [0.0, 0.0, 0.6, 0.8] }, // Invisible Wall 2
-		]
 		
 		parser.seek(section3Offset + 0x10)
 		while (parser.head < section4Offset)
@@ -182,4 +183,4 @@ class KclLoader
 
 
 if (module)
-	module.exports = { KclLoader }
+	module.exports = { KclLoader, collisionTypeData }

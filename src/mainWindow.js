@@ -3,6 +3,7 @@ const fs = require("fs")
 const { Viewer } = require("./viewer/viewer.js")
 const { ModelBuilder } = require("./util/modelBuilder.js")
 const { KmpData } = require("./util/kmpData.js")
+const { KclLoader, collisionTypeData } = require("./util/kclLoader.js")
 const { Vec3 } = require("./math/vec3.js")
 
 
@@ -242,10 +243,17 @@ class MainWindow
 				this.viewer.render()
 				return x
 			}
-			panel.addSelectionNumericInput(kclGroup, "Base Type", 		 -1, 0x1f, this.hl.baseType, 		1.0, 0.0, true, false, (x) => { this.hl.baseType = x 		}, onBlur)
+			
+			let flagOptions = [{ str: "None", value: -1 }]
+			for (let i = 0; i <= 0x1f; i++)
+				flagOptions.push({ str: "(0x" + i.toString(16) + ") " + collisionTypeData[i].name, value: i })
+
+			panel.addSelectionDropdown(kclGroup, "Base Type", this.hl.baseType, flagOptions, true, false, (x, i) => { this.hl.baseType = x; onBlur(null) })
+			
+			//panel.addSelectionNumericInput(kclGroup, "Base Type", 		 -1, 0x1f, this.hl.baseType, 		1.0, 0.0, true, false, (x) => { this.hl.baseType = x 		}, onBlur)
 			panel.addSelectionNumericInput(kclGroup, "Variant", 	 	 -1, 0x7,  this.hl.basicEffect, 	1.0, 0.0, true, false, (x) => { this.hl.basicEffect = x 	}, onBlur)
 			panel.addSelectionNumericInput(kclGroup, "BLIGHT Index", 	 -1, 0x7,  this.hl.blightEffect, 	1.0, 0.0, true, false, (x) => { this.hl.blightEffect = x 	}, onBlur)
-			panel.addSelectionNumericInput(kclGroup, "Intensity(?)", 	 -1, 0x3,  this.hl.intensity, 		1.0, 0.0, true, false, (x) => { this.hl.intensity = x	 	}, onBlur)
+			panel.addSelectionNumericInput(kclGroup, "Wheel Depth", 	 -1, 0x3,  this.hl.intensity, 		1.0, 0.0, true, false, (x) => { this.hl.intensity = x	 	}, onBlur)
 			panel.addSelectionNumericInput(kclGroup, "Collision Effect", -1, 0x7,  this.hl.collisionEffect, 1.0, 0.0, true, false, (x) => { this.hl.collisionEffect = x }, onBlur)
 		}
 		else
@@ -592,7 +600,7 @@ class MainWindow
 			return
 		
 		let kclData = fs.readFileSync(filename)
-		let modelBuilder = require("./util/kclLoader.js").KclLoader.load(kclData, this.cfg, this.hl)
+		let modelBuilder = KclLoader.load(kclData, this.cfg, this.hl)
 		this.viewer.setModel(modelBuilder)
 		this.currentKclFilename = filename
 		
