@@ -64,7 +64,7 @@ class KclLoader
 			{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [1.0, 0.0, 0.5, 0.8] }, // Cannon Activator
 			{ isDeath: false, isInvis: false, isEffect: true,  isWall: false, isItem: false, c: [0.5, 0.0, 1.0, 0.5] }, // Force Recalculation
 			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.0, 0.3, 1.0, 1.0] }, // Half-pipe Ramp
-			{ isDeath: false, isInvis: false, isEffect: false, isWall: true,  isItem: false, c: [0.8, 0.4, 0.0, 0.8] }, // Player-Only Wall
+			{ isDeath: false, isInvis: true,  isEffect: false, isWall: true,  isItem: false, c: [0.8, 0.4, 0.0, 0.8] }, // Player-Only Wall
 			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.9, 0.9, 1.0, 1.0] }, // Moving Road
 			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [0.9, 0.7, 1.0, 1.0] }, // Sticky Road
 			{ isDeath: false, isInvis: false, isEffect: false, isWall: false, isItem: false, c: [1.0, 1.0, 1.0, 1.0] }, // Road 2
