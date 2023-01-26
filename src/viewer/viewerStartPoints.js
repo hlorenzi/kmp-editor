@@ -127,6 +127,9 @@ class ViewerStartPoints extends PointViewer
 
 	onKeyDown(ev)
 	{
+		if (super.onKeyDown(ev))
+			return true
+			
 		switch (ev.key)
 		{
 			case "F":
