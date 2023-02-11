@@ -427,7 +427,7 @@ class ViewerObjects extends PointViewer
 		{
 			case "T":
 			case "t":
-				this.toggleAllSelectionByType()
+				this.toggleAllSelectionByID()
 				return true
 		}
 		
