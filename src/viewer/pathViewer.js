@@ -390,6 +390,7 @@ class PathViewer
 	
 	onMouseMove(ev, x, y, cameraPos, ray, hit, distToHit)
 	{
+		// Mouse not held
 		if (!this.viewer.mouseDown)
 		{
 			let lastHover = this.hoveringOverPoint
@@ -401,6 +402,7 @@ class PathViewer
 			if (this.hoveringOverPoint != lastHover)
 				this.viewer.render()
 		}
+		// Mouse held, ctrl held
 		else if (ev.ctrlKey)
 		{
 			let lastHover = this.hoveringOverPoint
@@ -416,6 +418,7 @@ class PathViewer
 			if (this.hoveringOverPoint != lastHover)
 				this.viewer.render()
 		}
+		// Mouse held, ctrl not held, holding point(s)
 		else if (!this.ctrlIsHeld && this.viewer.mouseAction == "move")
 		{
 			let linkToPoint = this.getHoveringOverElement(cameraPos, ray, distToHit, false)
@@ -427,7 +430,7 @@ class PathViewer
 					continue
 				selectedPoints.push(point)
 			}
-
+			// Creating new linked point
 			if (selectedPoints.length == 1 && ev.altKey && !this.altIsHeld)
 			{
 				if (this.points().nodes.length >= this.points().maxNodes)
@@ -477,7 +480,7 @@ class PathViewer
 					let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
 					
 					let hit = this.viewer.collision.raycast(pointRayMoved.origin, pointRayMoved.direction)
-					if (hit != null)
+					if (this.viewer.cfg.snapToCollision && hit != null)
 						point.pos = hit.position
 					else
 					{
@@ -485,7 +488,43 @@ class PathViewer
 						let pointRay = this.viewer.getScreenRay(screenPos.x, screenPos.y)
 						let origDistToScreen = point.moveOrigin.sub(pointRay.origin).magn()
 						
-						point.pos = pointRayMoved.origin.add(pointRayMoved.direction.scale(origDistToScreen))
+						let direction = pointRayMoved.direction
+
+						if (this.viewer.cfg.lockAxisX && this.viewer.cfg.lockAxisY && this.viewer.cfg.lockAxisZ)
+						{
+							return
+						}
+						else if (this.viewer.cfg.lockAxisX)
+						{
+							if (this.viewer.cfg.lockAxisY)
+								direction = Geometry.lineLineProjection(pointRayMoved.origin, direction, point.moveOrigin, new Vec3(0, 1, 0))
+							else if (this.viewer.cfg.lockAxisZ)
+								direction = Geometry.lineLineProjection(pointRayMoved.origin, direction, point.moveOrigin, new Vec3(0, 0, 1))
+							direction = direction.scale((point.moveOrigin.x - pointRayMoved.origin.x) / direction.x)
+						}
+						else if (this.viewer.cfg.lockAxisY)
+						{
+							if (this.viewer.cfg.lockAxisZ)
+								direction = Geometry.lineLineProjection(pointRayMoved.origin, direction, point.moveOrigin, new Vec3(1, 0, 0))
+							direction = direction.scale((point.moveOrigin.z - pointRayMoved.origin.z) / direction.z)
+						}
+						else if (this.viewer.cfg.lockAxisZ)
+						{
+							direction = direction.scale((point.moveOrigin.y - pointRayMoved.origin.y) / direction.y)
+						}
+						else
+						{
+							direction = direction.scale(origDistToScreen)
+						}
+
+						point.pos = pointRayMoved.origin.add(direction)
+
+						if (this.viewer.cfg.lockAxisX)
+							point.pos.x = point.moveOrigin.x
+						if (this.viewer.cfg.lockAxisY)
+							point.pos.z = point.moveOrigin.z
+						if (this.viewer.cfg.lockAxisZ)
+							point.pos.y = point.moveOrigin.y
 					}
 				}
 			}

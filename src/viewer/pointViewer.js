@@ -18,7 +18,6 @@ class PointViewer
 		this.sceneAfter = new GfxScene()
 		
 		this.hoveringOverPoint = null
-		this.linkingPoints = false
 		this.multiSelect = false
 		
 		this.modelPoint = new ModelBuilder()
@@ -220,6 +219,49 @@ class PointViewer
 	
 	onKeyDown(ev)
 	{
+		/*
+		let refreshMoveOrigin = () =>
+		{
+			for (let point of this.points().nodes)
+				if (point.selected)
+				{
+					//let compensation = point.pos.sub(point.moveOrigin).scale(0.5)
+					point.moveOrigin = point.pos //.sub(compensation)
+					//point.pos = point.pos.sub(point.moveOrigin)
+				}
+					
+		}
+
+		if (this.viewer.mouseAction == "move")
+		{
+			switch (ev.key)
+			{
+				case "X":
+				case "x":
+					refreshMoveOrigin()
+					this.viewer.cfg.lockAxisX = false
+					this.viewer.cfg.lockAxisY = true
+					this.viewer.cfg.lockAxisZ = true
+					return true
+
+				case "Y":
+				case "y":
+					refreshMoveOrigin()
+					this.viewer.cfg.lockAxisX = true
+					this.viewer.cfg.lockAxisY = false
+					this.viewer.cfg.lockAxisZ = true
+					return true
+				
+				case "Z":
+				case "z":
+					refreshMoveOrigin()
+					this.viewer.cfg.lockAxisX = true
+					this.viewer.cfg.lockAxisY = true
+					this.viewer.cfg.lockAxisZ = false
+					return true
+			}
+		}
+		*/
 		switch (ev.key)
 		{
 			case "A":
@@ -229,13 +271,11 @@ class PointViewer
 			
 			case "Backspace":
 			case "Delete":
-			case "X":
-			case "x":
 				this.deleteSelectedPoints()
 				return true
 
-			case "Y":
-			case "y":
+			case "C":
+			case "c":
 				this.snapSelectedToY()
 				return true
 		}
@@ -246,8 +286,6 @@ class PointViewer
 	
 	onMouseDown(ev, x, y, cameraPos, ray, hit, distToHit, mouse3DPos)
 	{
-		this.linkingPoints = false
-		
 		for (let point of this.points().nodes)
 			point.moveOrigin = point.pos
 		
@@ -306,6 +344,7 @@ class PointViewer
 	
 	onMouseMove(ev, x, y, cameraPos, ray, hit, distToHit)
 	{
+		// Mouse not held
 		if (!this.viewer.mouseDown)
 		{
 			let lastHover = this.hoveringOverPoint
@@ -317,6 +356,7 @@ class PointViewer
 			if (this.hoveringOverPoint != lastHover)
 				this.viewer.render()
 		}
+		// Mouse held, ctrl held
 		else if (ev.ctrlKey)
 		{
 			let lastHover = this.hoveringOverPoint
@@ -332,10 +372,9 @@ class PointViewer
 			if (this.hoveringOverPoint != lastHover)
 				this.viewer.render()
 		}
+		// Mouse held, ctrl not held, holding point(s)
 		else if (!this.multiSelect && this.viewer.mouseAction == "move")
 		{
-			let linkToPoint = this.getHoveringOverElement(cameraPos, ray, distToHit, false)
-			
 			for (let point of this.points().nodes)
 			{
 				if (!point.selected)
@@ -343,29 +382,58 @@ class PointViewer
 				
 				this.window.setNotSaved()
 				this.viewer.setCursor("-webkit-grabbing")
+								
+				let screenPosMoved = this.viewer.pointToScreen(point.moveOrigin)
+				screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
+				screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y
+				let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
 				
-				if (this.linkingPoints && linkToPoint != null)
-				{
-					point.pos = linkToPoint.pos
-				}
+				let hit = this.viewer.collision.raycast(pointRayMoved.origin, pointRayMoved.direction)
+				if (this.viewer.cfg.snapToCollision && hit != null)
+					point.pos = hit.position
 				else
-				{					
-					let screenPosMoved = this.viewer.pointToScreen(point.moveOrigin)
-					screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
-					screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y
-					let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
+				{
+					let screenPos = this.viewer.pointToScreen(point.moveOrigin)
+					let pointRay = this.viewer.getScreenRay(screenPos.x, screenPos.y)
+					let origDistToScreen = point.moveOrigin.sub(pointRay.origin).magn()
 					
-					let hit = this.viewer.collision.raycast(pointRayMoved.origin, pointRayMoved.direction)
-					if (hit != null)
-						point.pos = hit.position
+					let direction = pointRayMoved.direction
+
+					if (this.viewer.cfg.lockAxisX && this.viewer.cfg.lockAxisY && this.viewer.cfg.lockAxisZ)
+					{
+						return
+					}
+					else if (this.viewer.cfg.lockAxisX)
+					{
+						if (this.viewer.cfg.lockAxisY)
+							direction = Geometry.lineLineProjection(pointRayMoved.origin, direction, point.moveOrigin, new Vec3(0, 1, 0))
+						else if (this.viewer.cfg.lockAxisZ)
+							direction = Geometry.lineLineProjection(pointRayMoved.origin, direction, point.moveOrigin, new Vec3(0, 0, 1))
+						direction = direction.scale((point.moveOrigin.x - pointRayMoved.origin.x) / direction.x)
+					}
+					else if (this.viewer.cfg.lockAxisY)
+					{
+						if (this.viewer.cfg.lockAxisZ)
+							direction = Geometry.lineLineProjection(pointRayMoved.origin, direction, point.moveOrigin, new Vec3(1, 0, 0))
+						direction = direction.scale((point.moveOrigin.z - pointRayMoved.origin.z) / direction.z)
+					}
+					else if (this.viewer.cfg.lockAxisZ)
+					{
+						direction = direction.scale((point.moveOrigin.y - pointRayMoved.origin.y) / direction.y)
+					}
 					else
 					{
-						let screenPos = this.viewer.pointToScreen(point.moveOrigin)
-						let pointRay = this.viewer.getScreenRay(screenPos.x, screenPos.y)
-						let origDistToScreen = point.moveOrigin.sub(pointRay.origin).magn()
-						
-						point.pos = pointRayMoved.origin.add(pointRayMoved.direction.scale(origDistToScreen))
+						direction = direction.scale(origDistToScreen)
 					}
+
+					point.pos = pointRayMoved.origin.add(direction)
+
+					if (this.viewer.cfg.lockAxisX)
+						point.pos.x = point.moveOrigin.x
+					if (this.viewer.cfg.lockAxisY)
+						point.pos.z = point.moveOrigin.z
+					if (this.viewer.cfg.lockAxisZ)
+						point.pos.y = point.moveOrigin.y
 				}
 			}
 			

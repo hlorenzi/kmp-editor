@@ -107,6 +107,17 @@ class MainWindow
 
 			cannonsEnableDirectionRender: false,
 			cannonsEnableKclHighlight: true,
+
+			snapToCollision: true,
+			lockAxisX: false,
+			lockAxisY: false,
+			lockAxisZ: false,
+			unlockAxes() 
+			{
+				this.lockAxisX = false
+				this.lockAxisY = false
+				this.lockAxisZ = false
+			}
 		}
 
 		this.hl = 
@@ -215,6 +226,7 @@ class MainWindow
 		panel.addSlider(null, "Fog", 0.0000001, 0.0002, this.cfg.fogFactor, 0.0000001, (x) => this.cfg.fogFactor = x)
 		panel.addSlider(null, "Point Scale", 0.1, 5, this.cfg.pointScale, 0.1, (x) => this.cfg.pointScale = x)
 		panel.addSpacer(null)
+		
 		let kclGroup = panel.addGroup(null, "Collision data:")
 		//panel.addCheckbox(kclGroup, "Enable model", this.cfg.kclEnableModel, (x) => { this.cfg.kclEnableModel = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Use colors", this.cfg.kclEnableColors, (x) => { this.cfg.kclEnableColors = x; this.openKcl(this.currentKclFilename) })
@@ -261,6 +273,13 @@ class MainWindow
 			this.hl.reset()
 			this.openKcl(this.currentKclFilename)
 		}
+		panel.addSpacer(null)
+
+		let moveGroup = panel.addGroup(null, "Movement:")
+		panel.addCheckbox(moveGroup, "Snap to collision", this.cfg.snapToCollision, (x) => { this.cfg.snapToCollision = x; if (x) this.cfg.unlockAxes(); this.refreshPanels() })
+		panel.addCheckbox(moveGroup, "Lock X axis", this.cfg.lockAxisX, (x) => { this.cfg.lockAxisX = x; if (x) this.cfg.snapToCollision = false; this.refreshPanels() })
+		panel.addCheckbox(moveGroup, "Lock Y axis", this.cfg.lockAxisY, (x) => { this.cfg.lockAxisY = x; if (x) this.cfg.snapToCollision = false; this.refreshPanels() })
+		panel.addCheckbox(moveGroup, "Lock Z axis", this.cfg.lockAxisZ, (x) => { this.cfg.lockAxisZ = x; if (x) this.cfg.snapToCollision = false; this.refreshPanels() })
 		
 		this.refreshTitle()
 		this.viewer.refreshPanels()
