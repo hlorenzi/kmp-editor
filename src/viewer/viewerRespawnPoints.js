@@ -93,6 +93,30 @@ class ViewerRespawnPoints extends PointViewer
 		this.refreshPanels()
 	}
 	
+
+	deleteSelectedPoints()
+	{
+		let pointsToDelete = []
+		
+		for (let point of this.points().nodes)
+		{
+			if (!point.selected)
+				continue
+			
+			pointsToDelete.push(point)
+		}
+		
+		for (let point of pointsToDelete)
+		{
+			this.data.removeRespawnPointLinks(point)
+			this.points().removeNode(point)
+		}
+		
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
+	}
+
 	
 	drawAfterModel()
 	{
