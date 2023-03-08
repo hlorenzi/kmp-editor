@@ -347,6 +347,7 @@ class PathViewer
 				}
 
 				let newPoint = this.points().addNode()
+				this.points().onCloneNode(newPoint, hoveringOverElem)
 				newPoint.pos = hoveringOverElem.pos
 				newPoint.size = hoveringOverElem.size
 				
