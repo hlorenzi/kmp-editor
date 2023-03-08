@@ -171,11 +171,17 @@ class ViewerCheckpoints
 			panel.addCheckbox(selectionGroup, "Start new checkpoint group", selectedPoints[0].firstInPath, setPath)
 		}
 		
-		panel.addSelectionNumericInput(selectionGroup,    "X1", -1000000, 1000000, selectedPoints.map(p =>  p.pos[0].x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[0].x = x })
+		panel.addSelectionNumericInput(selectionGroup,    "X1", -1000000, 1000000, selectedPoints.map(p =>  p.pos[0].x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[0].x =  x })
 		panel.addSelectionNumericInput(selectionGroup,    "Z1", -1000000, 1000000, selectedPoints.map(p => -p.pos[0].y), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[0].y = -x })
-		panel.addSelectionNumericInput(selectionGroup,    "X2", -1000000, 1000000, selectedPoints.map(p =>  p.pos[1].x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[1].x = x })
+		panel.addSelectionNumericInput(selectionGroup,    "X2", -1000000, 1000000, selectedPoints.map(p =>  p.pos[1].x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[1].x =  x })
 		panel.addSelectionNumericInput(selectionGroup,    "Z2", -1000000, 1000000, selectedPoints.map(p => -p.pos[1].y), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[1].y = -x })
-		panel.addSelectionNumericInput(selectionGroup,  "Type",        0,     255, selectedPoints.map(p =>  p.type),     null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].type = x })
+		panel.addSelectionNumericInput(selectionGroup,  "Type",        0,     255, selectedPoints.map(p =>  p.type),     null, 1.0,   enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].type     =  x })
+		
+		let respawnCount = this.data.respawnPoints.nodes.length
+		const respawnIndex = (node) => { return this.data.respawnPoints.nodes.indexOf(node.respawnNode) }
+		panel.addSelectionNumericInput(selectionGroup, "Respawn", 0, respawnCount - 1, selectedPoints.map(p => respawnIndex(p)), null, 1.0, enabled, multiedit, (x, i) => 
+			{ this.window.setNotSaved(); selectedPoints[i].respawnNode = this.data.respawnPoints.nodes[x] })
+		
 		panel.addText(selectionGroup, "<strong>Type 0:</strong> Lap Counter")
 		panel.addText(selectionGroup, "<strong>Type 1-254:</strong> Key Checkpoints")
 		panel.addText(selectionGroup, "<strong>Type 255:</strong> Regular Checkpoint")

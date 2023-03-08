@@ -1127,7 +1127,9 @@ class KmpData
 		for (let checkpoint of this.checkpointPoints.nodes)
 		{
 			if (checkpoint.respawnNode === node)
-				checkpoint.respawnNode = null
+			{
+                checkpoint.respawnNode = this.respawnPoints.nodes.length > 0? this.respawnPoints.nodes[0] : null
+            }
 		}
 	}
 	
