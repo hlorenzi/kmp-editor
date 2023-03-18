@@ -391,20 +391,8 @@ class PathViewer
 	
 	onMouseMove(ev, x, y, cameraPos, ray, hit, distToHit)
 	{
-		// Mouse not held
-		if (!this.viewer.mouseDown)
-		{
-			let lastHover = this.hoveringOverPoint
-			this.hoveringOverPoint = this.getHoveringOverElement(cameraPos, ray, distToHit)
-			
-			if (this.hoveringOverPoint != null)
-				this.viewer.setCursor("-webkit-grab")
-			
-			if (this.hoveringOverPoint != lastHover)
-				this.viewer.render()
-		}
-		// Mouse held, ctrl held
-		else if (ev.ctrlKey)
+		// Mouse not held OR mouse held, ctrl held
+		if (!this.viewer.mouseDown || this.ctrlIsHeld)
 		{
 			let lastHover = this.hoveringOverPoint
 			this.hoveringOverPoint = this.getHoveringOverElement(cameraPos, ray, distToHit)
@@ -412,15 +400,18 @@ class PathViewer
 			if (this.hoveringOverPoint != null)
 			{
 				this.viewer.setCursor("-webkit-grab")
-				this.hoveringOverPoint.selected = true
-				this.refreshPanels()
+				if (this.ctrlIsHeld)
+				{
+					this.hoveringOverPoint.selected = true
+					this.refreshPanels()
+				}
 			}
-
+			
 			if (this.hoveringOverPoint != lastHover)
 				this.viewer.render()
 		}
 		// Mouse held, ctrl not held, holding point(s)
-		else if (!this.ctrlIsHeld && this.viewer.mouseAction == "move")
+		else if (this.viewer.mouseAction == "move")
 		{
 			let linkToPoint = this.getHoveringOverElement(cameraPos, ray, distToHit, false)
 			let selectedPoints = []

@@ -18,7 +18,7 @@ class PointViewer
 		this.sceneAfter = new GfxScene()
 		
 		this.hoveringOverPoint = null
-		this.multiSelect = false
+		this.ctrlIsHeld = false
 		
 		this.modelPoint = new ModelBuilder()
 			.addSphere(-150, -150, -150, 150, 150, 150)
@@ -295,7 +295,7 @@ class PointViewer
 			this.unselectAll()
 
 		if (ev.ctrlKey)
-			this.multiSelect = true
+			this.ctrlIsHeld = true
 		
 		if (hoveringOverElem != null)
 		{
@@ -345,19 +345,7 @@ class PointViewer
 	onMouseMove(ev, x, y, cameraPos, ray, hit, distToHit)
 	{
 		// Mouse not held
-		if (!this.viewer.mouseDown)
-		{
-			let lastHover = this.hoveringOverPoint
-			this.hoveringOverPoint = this.getHoveringOverElement(cameraPos, ray, distToHit)
-			
-			if (this.hoveringOverPoint != null)
-				this.viewer.setCursor("-webkit-grab")
-			
-			if (this.hoveringOverPoint != lastHover)
-				this.viewer.render()
-		}
-		// Mouse held, ctrl held
-		else if (ev.ctrlKey)
+		if (!this.viewer.mouseDown || this.ctrlIsHeld)
 		{
 			let lastHover = this.hoveringOverPoint
 			this.hoveringOverPoint = this.getHoveringOverElement(cameraPos, ray, distToHit)
@@ -365,15 +353,18 @@ class PointViewer
 			if (this.hoveringOverPoint != null)
 			{
 				this.viewer.setCursor("-webkit-grab")
-				this.hoveringOverPoint.selected = true
-				this.refreshPanels()
+				if (this.ctrlIsHeld)
+				{
+					this.hoveringOverPoint.selected = true
+					this.refreshPanels()
+				}
 			}
-
+			
 			if (this.hoveringOverPoint != lastHover)
 				this.viewer.render()
 		}
 		// Mouse held, ctrl not held, holding point(s)
-		else if (!this.multiSelect && this.viewer.mouseAction == "move")
+		else if (this.viewer.mouseAction == "move")
 		{
 			for (let point of this.points().nodes)
 			{
@@ -444,7 +435,7 @@ class PointViewer
 
     onMouseUp(ev, x, y)
 	{
-		this.multiSelect = false
+		this.ctrlIsHeld = false
 	}
 }
 
