@@ -191,7 +191,7 @@ class KmpData
 					for (let i = 0; i < entryNum; i++)
 					{
 						let id = parser.readUInt16()
-						parser.readUInt16()
+						let padding = parser.readUInt16()
 						let pos = parser.readVec3()
 						let rotation = parser.readVec3()
 						let scale = parser.readVec3()
@@ -199,7 +199,7 @@ class KmpData
 						let settings = parser.readUInt16s(8)
 						let presence = parser.readUInt16()
 						
-						objects.push({ id, pos, rotation, scale, routeIndex, settings, presence })
+						objects.push({ id, padding, pos, rotation, scale, routeIndex, settings, presence })
 					}
 					break
 				}
@@ -504,6 +504,7 @@ class KmpData
 			let kmpObj = loadedKmp.objects[i]
 			
 			let node = data.objects.addNode()
+			node.padding = kmpObj.padding
 			node.pos = new Vec3(kmpObj.pos.x, -kmpObj.pos.z, -kmpObj.pos.y)
 			node.rotation = new Vec3(kmpObj.rotation.x, kmpObj.rotation.y, kmpObj.rotation.z)
 			node.scale = new Vec3(kmpObj.scale.x, kmpObj.scale.z, kmpObj.scale.y)
@@ -962,7 +963,7 @@ class KmpData
 			let obj = this.objects.nodes[i]
 			
 			w.writeUInt16(obj.id)
-			w.writeUInt16(0)
+			w.writeUInt16(obj.padding)
 			w.writeFloat32(obj.pos.x)
 			w.writeFloat32(-obj.pos.z)
 			w.writeFloat32(-obj.pos.y)
@@ -1263,6 +1264,7 @@ class KmpData
 		this.objects.maxNodes = 0xffff
 		this.objects.onAddNode = (node) =>
 		{
+			node.padding = 0
 			node.pos = new Vec3(0, 0, 0)
 			node.rotation = new Vec3(0, 0, 0)
 			node.scale = new Vec3(1, 1, 1)
@@ -1274,6 +1276,7 @@ class KmpData
 		}
 		this.objects.onCloneNode = (newNode, oldNode) =>
 		{
+			newNode.padding = oldNode.padding
 			newNode.pos = oldNode.pos.clone()
 			newNode.rotation = oldNode.rotation.clone()
 			newNode.scale = oldNode.scale.clone()
