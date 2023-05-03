@@ -68,6 +68,11 @@ class Mat4
 	{
 		const axis = fromVec.cross(toVec).normalize()
 		const angle = Math.acos(fromVec.dot(toVec))
+
+		if (angle == 0)
+			return Mat4.identity()
+		if (angle == Math.PI)
+			return Mat4.scale(1, 1, -1)
 		
 		return Mat4.rotation(axis, -angle)
 	}
