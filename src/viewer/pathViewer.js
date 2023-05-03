@@ -286,7 +286,7 @@ class PathViewer
 	
 	onKeyDown(ev)
 	{
-		if (this.viewer.mouseDown && this.viewer.mouseAction == "move")
+		if (this.viewer.mouseDown && !ev.ctrlKey && this.viewer.mouseAction == "move")
 		{
 			const setAxisLocks = (s, x, y, z) =>
 			{
