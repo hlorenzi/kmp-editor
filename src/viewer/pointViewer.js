@@ -226,7 +226,7 @@ class PointViewer
 	
 	onKeyDown(ev)
 	{
-		if (this.viewer.mouseAction == "move")
+		if (this.viewer.mouseDown && this.viewer.mouseAction == "move")
 		{
 			const setAxisLocks = (s, x, y, z) =>
 			{
@@ -296,8 +296,8 @@ class PointViewer
 				this.deleteSelectedPoints()
 				return true
 
-			case "C":
-			case "c":
+			case "Y":
+			case "y":
 				this.snapSelectedToY()
 				return true
 		}

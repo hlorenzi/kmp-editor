@@ -20,8 +20,15 @@ class PathViewer
 		
 		this.hoveringOverPoint = null
 		this.linkingPoints = false
+		this.targetPos = null
 		this.ctrlIsHeld = false
 		this.altIsHeld = false
+		
+		this.lastAxisHotkey = ""
+		this.snapCollision = this.viewer.cfg.snapToCollision
+		this.lockX = this.viewer.cfg.lockAxisX
+		this.lockY = this.viewer.cfg.lockAxisY
+		this.lockZ = this.viewer.cfg.lockAxisZ
 		
 		this.modelPoint = new ModelBuilder()
 			.addSphere(-150, -150, -150, 150, 150, 150)
@@ -279,6 +286,64 @@ class PathViewer
 	
 	onKeyDown(ev)
 	{
+		if (this.viewer.mouseDown && this.viewer.mouseAction == "move")
+		{
+			const setAxisLocks = (s, x, y, z) =>
+			{
+				if (this.lastAxisHotkey === s)
+					return false
+
+				if (!this.lastAxisHotkey)
+				{
+					// save old state
+					this.snapCollision = this.viewer.cfg.snapToCollision
+					this.lockX = this.viewer.cfg.lockAxisX
+					this.lockY = this.viewer.cfg.lockAxisY
+					this.lockZ = this.viewer.cfg.lockAxisZ
+				}
+
+				this.lastAxisHotkey = s
+
+				if (this.hoveringOverPoint != null)
+					this.targetPos = this.hoveringOverPoint.pos
+
+				if (x || y || z)
+					this.viewer.cfg.snapToCollision = false
+				this.viewer.cfg.lockAxisX = x
+				this.viewer.cfg.lockAxisY = y
+				this.viewer.cfg.lockAxisZ = z
+
+				this.window.refreshPanels()
+			}
+
+			switch (ev.key)
+			{
+				case "X":
+					setAxisLocks("X", true, false, false)
+					return true
+
+				case "x":
+					setAxisLocks("x", false, true, true)
+					return true
+
+				case "Y":
+					setAxisLocks("Y", false, true, false)
+					return true
+
+				case "y":
+					setAxisLocks("y", true, false, true)
+					return true
+				
+				case "Z":
+					setAxisLocks("Z", false, false, true)
+					return true
+
+				case "z":
+					setAxisLocks("z", true, true, false)
+					return true
+			}
+		}
+
 		switch (ev.key)
 		{
 			case "A":
@@ -540,6 +605,15 @@ class PathViewer
 		this.ctrlIsHeld = false
 		this.altIsHeld = false
 		
+		if (this.lastAxisHotkey) {
+			this.lastAxisHotkey = ""
+			this.viewer.cfg.snapToCollision = this.snapCollision
+			this.viewer.cfg.lockAxisX = this.lockX
+			this.viewer.cfg.lockAxisY = this.lockY
+			this.viewer.cfg.lockAxisZ = this.lockZ
+			this.window.refreshPanels()
+		}
+
 		if (this.viewer.mouseAction == "move")
 		{
 			if (this.linkingPoints)
