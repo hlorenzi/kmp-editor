@@ -64,7 +64,7 @@ class Mat4
 	}
 	
 	
-	static rotationFromTo(fromVec, toVec)
+	static rotationFromTo(fromVec, toVec, backupAxis = new Vec3(1, 0, 0))
 	{
 		const axis = fromVec.cross(toVec).normalize()
 		const angle = Math.acos(fromVec.dot(toVec))
@@ -72,7 +72,7 @@ class Mat4
 		if (angle == 0)
 			return Mat4.identity()
 		if (angle == Math.PI)
-			return Mat4.scale(1, 1, -1)
+			return Mat4.rotation(backupAxis, Math.PI)
 		
 		return Mat4.rotation(axis, -angle)
 	}

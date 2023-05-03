@@ -840,7 +840,7 @@ class ViewerCheckpoints
 			let facing = v2.sub(v1).normalize().cross(new Vec3(0, 0, -1))
 
 			let matrixScale = Mat4.scale(scale, scale, scale)
-			let matrixAlign = Mat4.rotationFromTo(new Vec3(1, 0, 0), facing)
+			let matrixAlign = Mat4.rotationFromTo(new Vec3(1, 0, 0), facing, new Vec3(0, 0, 1))
 			let matrixTranslate = Mat4.translation(midpoint.x, midpoint.y, midpoint.z)
 
 			renderer.setCustomMatrix(matrixScale.mul(matrixAlign.mul(matrixTranslate)))
