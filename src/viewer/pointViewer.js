@@ -213,8 +213,14 @@ class PointViewer
 			if (point.selected)
 			{
 				let hit = this.viewer.collision.raycast(point.pos, new Vec3(0, 0, 1))
-				if (hit != null)
-					point.pos = hit.position
+				if (hit != null && point.pos.sub(hit.position).magn() > 1)
+				{
+					let check = this.viewer.collision.raycast(hit.position, new Vec3(0, 0, 1))
+					if (check != null && check.position.sub(hit.position).magn() > 1)
+						point.pos = hit.position.sub(point.pos.mul(new Vec3(0, 0, 2))).mul(new Vec3(1, 1, -1))
+					else 
+						point.pos = hit.position
+				}
 			}
 		}
 		
