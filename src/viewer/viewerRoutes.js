@@ -32,11 +32,14 @@ class ViewerRoutes extends PathViewer
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Extend Path")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
+		panel.addSpacer(null)
+		
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
-		
+		panel.addSpacer(null)
+
 		let routeOptions = []
 		for (let i = 0; i < this.data.routes.length; i++)
 			routeOptions.push({ str: "Route " + i + " (0x" + i.toString(16) + ")", value: i })
@@ -45,6 +48,7 @@ class ViewerRoutes extends PathViewer
 		panel.addSelectionDropdown(null, "Current", this.currentRouteIndex, routeOptions, true, false, (x, i) => { this.currentRouteIndex = x; this.refresh() })
 		panel.addButton(null, "Create New Route", () => this.createRoute())
 		panel.addButton(null, "Delete Current Route", () => this.deleteRoute())
+		panel.addSpacer(null)
 		
 		if (this.currentRouteIndex < 0 || this.currentRouteIndex >= this.data.routes.length)
 			return

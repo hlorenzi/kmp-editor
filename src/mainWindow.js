@@ -3,6 +3,7 @@ const fs = require("fs")
 const { Viewer } = require("./viewer/viewer.js")
 const { ModelBuilder } = require("./util/modelBuilder.js")
 const { KmpData } = require("./util/kmpData.js")
+const { KclLoader, collisionTypeData } = require("./util/kclLoader.js")
 const { Vec3 } = require("./math/vec3.js")
 
 
@@ -82,21 +83,41 @@ class MainWindow
 			pointScale: 1,
 			shadingFactor: 0.3,
 			fogFactor: 0.0000025,
+
 			kclEnableModel: true,
 			kclEnableColors: true,
 			kclEnableWalls: true,
 			kclEnableDeathBarriers: true,
 			kclEnableInvisible: true,
+			kclEnableItemRoad: false,
 			kclEnableEffects: false,
 			kclHighlighter: 0,
+
+			enableRotationRender: true,
+
+			startPointsEnableZoneRender: true,
+
 			enemyPathsEnableSizeRender: true,
+
 			checkpointsEnableVerticalPanels: true,
 			checkpointsEnableRespawnPointLinks: true,
-			enableRotationRender: true,
+			checkpointsEnableDirectionArrows: true,
+
+			respawnsEnablePlayerSlots: true,
+
 			cannonsEnableDirectionRender: false,
 			cannonsEnableKclHighlight: true,
-			respawnsEnablePlayerSlots: true,
-			startPointsEnableZoneRender: true,
+
+			snapToCollision: true,
+			lockAxisX: false,
+			lockAxisY: false,
+			lockAxisZ: false,
+			unlockAxes() 
+			{
+				this.lockAxisX = false
+				this.lockAxisY = false
+				this.lockAxisZ = false
+			}
 		}
 
 		this.hl = 
@@ -195,6 +216,7 @@ class MainWindow
 		panel.addText(null, "<strong>Hold Shift + Right Mouse:</strong> Pan Camera")
 		panel.addText(null, "<strong>Mouse Wheel:</strong> Zoom")
 		panel.addText(null, "<strong>Double Right Click:</strong> Focus Camera")
+		panel.addSpacer(null)
 		//panel.addButton(null, "Load course_model.brres", () => this.openCourseBrres())
 		//panel.addButton(null, "Load course.kcl", () => this.openCourseKcl())
 		panel.addButton(null, "Load Model", () => this.openCustomModel())
@@ -203,14 +225,18 @@ class MainWindow
 		panel.addSlider(null, "Shading", 0, 1, this.cfg.shadingFactor, 0.05, (x) => this.cfg.shadingFactor = x)
 		panel.addSlider(null, "Fog", 0.0000001, 0.0002, this.cfg.fogFactor, 0.0000001, (x) => this.cfg.fogFactor = x)
 		panel.addSlider(null, "Point Scale", 0.1, 5, this.cfg.pointScale, 0.1, (x) => this.cfg.pointScale = x)
+		panel.addSpacer(null)
+		
 		let kclGroup = panel.addGroup(null, "Collision data:")
 		//panel.addCheckbox(kclGroup, "Enable model", this.cfg.kclEnableModel, (x) => { this.cfg.kclEnableModel = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Use colors", this.cfg.kclEnableColors, (x) => { this.cfg.kclEnableColors = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show walls", this.cfg.kclEnableWalls, (x) => { this.cfg.kclEnableWalls = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show death barriers", this.cfg.kclEnableDeathBarriers, (x) => { this.cfg.kclEnableDeathBarriers = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show invisible walls", this.cfg.kclEnableInvisible, (x) => { this.cfg.kclEnableInvisible = x; this.openKcl(this.currentKclFilename) })
+		panel.addCheckbox(kclGroup, "Show item road/wall", this.cfg.kclEnableItemRoad, (x) => { this.cfg.kclEnableItemRoad = x; this.openKcl(this.currentKclFilename) })
 		panel.addCheckbox(kclGroup, "Show effects/triggers", this.cfg.kclEnableEffects, (x) => { this.cfg.kclEnableEffects = x; this.openKcl(this.currentKclFilename) })
-		
+		panel.addSpacer(kclGroup)
+
 		let hlOptions =
 		[
 			{ str: "None", value: 0 },
@@ -229,10 +255,17 @@ class MainWindow
 				this.viewer.render()
 				return x
 			}
-			panel.addSelectionNumericInput(kclGroup, "Base Type", 		 -1, 0x1f, this.hl.baseType, 		1.0, 0.0, true, false, (x) => { this.hl.baseType = x 		}, onBlur)
+			
+			let flagOptions = [{ str: "None", value: -1 }]
+			for (let i = 0; i <= 0x1f; i++)
+				flagOptions.push({ str: "(0x" + i.toString(16) + ") " + collisionTypeData[i].name, value: i })
+
+			panel.addSelectionDropdown(kclGroup, "Base Type", this.hl.baseType, flagOptions, true, false, (x, i) => { this.hl.baseType = x; onBlur(null) })
+			
+			//panel.addSelectionNumericInput(kclGroup, "Base Type", 		 -1, 0x1f, this.hl.baseType, 		1.0, 0.0, true, false, (x) => { this.hl.baseType = x 		}, onBlur)
 			panel.addSelectionNumericInput(kclGroup, "Variant", 	 	 -1, 0x7,  this.hl.basicEffect, 	1.0, 0.0, true, false, (x) => { this.hl.basicEffect = x 	}, onBlur)
 			panel.addSelectionNumericInput(kclGroup, "BLIGHT Index", 	 -1, 0x7,  this.hl.blightEffect, 	1.0, 0.0, true, false, (x) => { this.hl.blightEffect = x 	}, onBlur)
-			panel.addSelectionNumericInput(kclGroup, "Intensity(?)", 	 -1, 0x3,  this.hl.intensity, 		1.0, 0.0, true, false, (x) => { this.hl.intensity = x	 	}, onBlur)
+			panel.addSelectionNumericInput(kclGroup, "Wheel Depth", 	 -1, 0x3,  this.hl.intensity, 		1.0, 0.0, true, false, (x) => { this.hl.intensity = x	 	}, onBlur)
 			panel.addSelectionNumericInput(kclGroup, "Collision Effect", -1, 0x7,  this.hl.collisionEffect, 1.0, 0.0, true, false, (x) => { this.hl.collisionEffect = x }, onBlur)
 		}
 		else
@@ -240,6 +273,13 @@ class MainWindow
 			this.hl.reset()
 			this.openKcl(this.currentKclFilename)
 		}
+		panel.addSpacer(null)
+
+		let moveGroup = panel.addGroup(null, "Movement:")
+		panel.addCheckbox(moveGroup, "Snap to collision", this.cfg.snapToCollision, (x) => { this.cfg.snapToCollision = x; if (x) this.cfg.unlockAxes(); this.refreshPanels() })
+		panel.addCheckbox(moveGroup, "Lock X axis", this.cfg.lockAxisX, (x) => { this.cfg.lockAxisX = x; if (x) this.cfg.snapToCollision = false; this.refreshPanels() })
+		panel.addCheckbox(moveGroup, "Lock Y axis", this.cfg.lockAxisY, (x) => { this.cfg.lockAxisY = x; if (x) this.cfg.snapToCollision = false; this.refreshPanels() })
+		panel.addCheckbox(moveGroup, "Lock Z axis", this.cfg.lockAxisZ, (x) => { this.cfg.lockAxisZ = x; if (x) this.cfg.snapToCollision = false; this.refreshPanels() })
 		
 		this.refreshTitle()
 		this.viewer.refreshPanels()
@@ -487,11 +527,11 @@ class MainWindow
 		let model = new ModelBuilder()
 			.addCube(-5000, -5000, -3, 5000, 5000, 3)
 			.calculateNormals()
-			
+		
+		this.noModelLoaded = true
 		this.viewer.setModel(model)
 		this.viewer.centerView()
 		this.currentKclFilename = null
-		this.noModelLoaded = true
 	}
 	
 	
@@ -579,7 +619,7 @@ class MainWindow
 			return
 		
 		let kclData = fs.readFileSync(filename)
-		let modelBuilder = require("./util/kclLoader.js").KclLoader.load(kclData, this.cfg, this.hl)
+		let modelBuilder = KclLoader.load(kclData, this.cfg, this.hl)
 		this.viewer.setModel(modelBuilder)
 		this.currentKclFilename = filename
 		
@@ -709,6 +749,22 @@ class Panel
 	}
 	
 	
+	addSpacer(group, n=1)
+	{
+		for (let i=0; i < n; i++)
+		{
+			let div = document.createElement("div")
+			div.className = "panelRowElement"
+			
+			if (group == null)
+				this.contentDiv.appendChild(div)
+			else
+				group.appendChild(div)
+		}
+		return null
+	}
+
+
 	addText(group, str)
 	{
 		let div = document.createElement("div")

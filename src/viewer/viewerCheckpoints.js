@@ -44,6 +44,11 @@ class ViewerCheckpoints
 			.addCone(-250, -250, -500, 250, 250, 0)
 			.calculateNormals()
 			.makeModel(viewer.gl)
+
+		this.modelDirArrow = new ModelBuilder()
+			.addCone(-100, -200, 0, 100, 200, 400, 8, new Vec3(1, 0, 0))
+			.calculateNormals()
+			.makeModel(viewer.gl)
 		
 		let panelFrontColor = [1, 1, 1, 1]
 		let panelBackColor = [1, 1, 1, 0.5]
@@ -64,9 +69,12 @@ class ViewerCheckpoints
 	
 	setModel(model)
 	{
-		let bbox = model.getBoundingBox()
-		this.zTop = bbox.zMin - 1000
-		this.zBottom = bbox.zMax + 1000
+		if (this.window.noModelLoaded)
+		{
+			let bbox = model.getBoundingBox()
+			this.zTop = bbox.zMin - 1000
+			this.refreshPanels()
+		}
 	}
 	
 	
@@ -91,21 +99,25 @@ class ViewerCheckpoints
 		let panel = this.window.addPanel("Checkpoints", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
 		
-		panel.addCheckbox(null, "Render vertical panels", this.viewer.cfg.checkpointsEnableVerticalPanels, (x) => this.viewer.cfg.checkpointsEnableVerticalPanels = x)
-		panel.addText(null, "⚠️ <strong>The correct orientation for checkpoints is towards the rendered vertical panel (the wrong/backwards direction has no panel rendered)!</strong>")
-		panel.addCheckbox(null, "Render respawn point links", this.viewer.cfg.checkpointsEnableRespawnPointLinks, (x) => this.viewer.cfg.checkpointsEnableRespawnPointLinks = x)
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Checkpoint")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Extend Path")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
+
+		panel.addCheckbox(null, "Render vertical panels", this.viewer.cfg.checkpointsEnableVerticalPanels, (x) => this.viewer.cfg.checkpointsEnableVerticalPanels = x)
+		panel.addCheckbox(null, "Render respawn point links", this.viewer.cfg.checkpointsEnableRespawnPointLinks, (x) => this.viewer.cfg.checkpointsEnableRespawnPointLinks = x)
+		panel.addCheckbox(null, "Render direction indicators", this.viewer.cfg.checkpointsEnableDirectionArrows, (x) => this.viewer.cfg.checkpointsEnableDirectionArrows = x)
+		panel.addSpacer(null)
+
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(U) Unlink Selected", () => this.unlinkSelectedPoints())
 		panel.addButton(null, "(S) Toggle Show Loaded Checkpoints", () => this.toggleShowLoaded())
 		panel.addButton(null, "(E) Clear Respawn Point Assignment", () => this.clearRespawnPoints())
-		panel.addButton(null, "(R) Assign Selected Respawn Point to Selected Checkpoints", () => this.assignRespawnPoints())
-		
-		panel.addSelectionNumericInput(null, "Editing Y", -1000000, 1000000, -this.zTop, null, 1.0, true, false, (x, i) => { this.zTop = -x })
-		
+		panel.addButton(null, "(R) Assign Selected Respawn Point", () => this.assignRespawnPoints())
+		panel.addSpacer(null)
+
+		panel.addSelectionNumericInput(null, "Editing Y", -1000000, 1000000, -this.zTop, null, 100.0, true, false, (x, i) => { this.zTop = -x })
+
 		let selectedPoints = this.data.checkpointPoints.nodes.filter(p => p.selected[0] || p.selected[1])
 		
 		let selectionGroup = panel.addGroup(null, "Selection:")
@@ -159,11 +171,17 @@ class ViewerCheckpoints
 			panel.addCheckbox(selectionGroup, "Start new checkpoint group", selectedPoints[0].firstInPath, setPath)
 		}
 		
-		panel.addSelectionNumericInput(selectionGroup,    "X1", -1000000, 1000000, selectedPoints.map(p =>  p.pos[0].x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[0].x = x })
+		panel.addSelectionNumericInput(selectionGroup,    "X1", -1000000, 1000000, selectedPoints.map(p =>  p.pos[0].x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[0].x =  x })
 		panel.addSelectionNumericInput(selectionGroup,    "Z1", -1000000, 1000000, selectedPoints.map(p => -p.pos[0].y), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[0].y = -x })
-		panel.addSelectionNumericInput(selectionGroup,    "X2", -1000000, 1000000, selectedPoints.map(p =>  p.pos[1].x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[1].x = x })
+		panel.addSelectionNumericInput(selectionGroup,    "X2", -1000000, 1000000, selectedPoints.map(p =>  p.pos[1].x), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[1].x =  x })
 		panel.addSelectionNumericInput(selectionGroup,    "Z2", -1000000, 1000000, selectedPoints.map(p => -p.pos[1].y), null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos[1].y = -x })
-		panel.addSelectionNumericInput(selectionGroup,  "Type",        0,     255, selectedPoints.map(p =>  p.type),     null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].type = x })
+		panel.addSelectionNumericInput(selectionGroup,  "Type",        0,     255, selectedPoints.map(p =>  p.type),     null, 1.0,   enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].type     =  x })
+		
+		let respawnCount = this.data.respawnPoints.nodes.length
+		const respawnIndex = (node) => { return this.data.respawnPoints.nodes.indexOf(node.respawnNode) }
+		panel.addSelectionNumericInput(selectionGroup, "Respawn", 0, respawnCount - 1, selectedPoints.map(p => respawnIndex(p)), null, 1.0, enabled, multiedit, (x, i) => 
+			{ this.window.setNotSaved(); selectedPoints[i].respawnNode = this.data.respawnPoints.nodes[x] })
+		
 		panel.addText(selectionGroup, "<strong>Type 0:</strong> Lap Counter")
 		panel.addText(selectionGroup, "<strong>Type 1-254:</strong> Key Checkpoints")
 		panel.addText(selectionGroup, "<strong>Type 255:</strong> Regular Checkpoint")
@@ -200,6 +218,11 @@ class ViewerCheckpoints
 			point.rendererCheckbar = new GfxNodeRendererTransform()
 				.attach(this.scene.root)
 				.setModel(this.modelPath)
+				.setMaterial(this.viewer.material)
+
+			point.rendererDirArrow = new GfxNodeRendererTransform()
+				.attach(this.scene.root)
+				.setModel(this.modelDirArrow)
 				.setMaterial(this.viewer.material)
 				
 			point.rendererCheckpanel = new GfxNodeRendererTransform()
@@ -242,6 +265,7 @@ class ViewerCheckpoints
 			this.renderers.push(rendererSelected1)
 			this.renderers.push(rendererSelected2)
 			this.renderers.push(point.rendererCheckbar)
+			this.renderers.push(point.rendererDirArrow)
 			this.renderers.push(point.rendererCheckpanel)
 			this.renderers.push(point.rendererRespawnLink)
 				
@@ -809,6 +833,18 @@ class ViewerCheckpoints
 			
 			renderer.setCustomMatrix(matrixScale.mul(matrixAlign.mul(matrixTranslate)))
 		}
+
+		let setupArrowMatrices = (renderer, scale, v1, v2) =>
+		{
+			let midpoint = v1.add(v2).scale(0.5)
+			let facing = v2.sub(v1).normalize().cross(new Vec3(0, 0, -1))
+
+			let matrixScale = Mat4.scale(scale, scale, scale)
+			let matrixAlign = Mat4.rotationFromTo(new Vec3(1, 0, 0), facing)
+			let matrixTranslate = Mat4.translation(midpoint.x, midpoint.y, midpoint.z)
+
+			renderer.setCustomMatrix(matrixScale.mul(matrixAlign.mul(matrixTranslate)))
+		}
 		
 		for (let point of this.data.checkpointPoints.nodes)
 		{
@@ -871,12 +907,19 @@ class ViewerCheckpoints
 			let barScale = (this.hoveringOverPoint != null && this.hoveringOverPoint.point == point ? 1.5 : 1) * Math.min(scales[0], scales[1]) / 1.5
 			
 			setupPathMatrices(point.rendererCheckbar, barScale, point.pos[0], point.pos[1])
-			point.rendererCheckbar.setDiffuseColor(point.type == 0 ? [1, 0.5, 1, 1] : point.type != 0xff ? [1, 0, 1, 1] : [0, 0, 1, 1])
+			point.rendererCheckbar
+				.setDiffuseColor(point.type == 0 ? [1, 0.5, 1, 1] : point.type != 0xff ? [1, 0, 1, 1] : [0, 0, 1, 1])
 				.setEnabled(point.isRendered || prevIsRendered)
 			
 			setupPanelMatrices(point.rendererCheckpanel, point.pos[0], point.pos[1])
-			point.rendererCheckpanel.setDiffuseColor(point.type == 0 ? [1, 0.5, 1, 0.6] : point.type != 0xff ? [1, 0.25, 1, 0.6] : [0, 0.25, 1, 0.6])
+			point.rendererCheckpanel
+				.setDiffuseColor(point.type == 0 ? [1, 0.5, 1, 0.6] : point.type != 0xff ? [1, 0.25, 1, 0.6] : [0, 0.25, 1, 0.6])
 				.setEnabled(point.isRendered || prevIsRendered)
+			
+			setupArrowMatrices(point.rendererDirArrow, barScale, point.pos[0], point.pos[1])
+			point.rendererDirArrow
+				.setDiffuseColor(point.type == 0 ? [1, 0.5, 1, 1] : point.type != 0xff ? [1, 0, 1, 1] : [0, 0, 1, 1])
+				.setEnabled(this.viewer.cfg.checkpointsEnableDirectionArrows && (point.isRendered || prevIsRendered))
 			
 			let respawnNode = point.respawnNode
 			if (respawnNode == null && this.data.respawnPoints.nodes.length > 0)

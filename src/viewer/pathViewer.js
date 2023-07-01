@@ -20,8 +20,15 @@ class PathViewer
 		
 		this.hoveringOverPoint = null
 		this.linkingPoints = false
+		this.targetPos = null
 		this.ctrlIsHeld = false
 		this.altIsHeld = false
+		
+		this.lastAxisHotkey = ""
+		this.snapCollision = this.viewer.cfg.snapToCollision
+		this.lockX = this.viewer.cfg.lockAxisX
+		this.lockY = this.viewer.cfg.lockAxisY
+		this.lockZ = this.viewer.cfg.lockAxisZ
 		
 		this.modelPoint = new ModelBuilder()
 			.addSphere(-150, -150, -150, 150, 150, 150)
@@ -270,6 +277,7 @@ class PathViewer
 			this.points().nodes.unshift(point)
 		}
 		
+		this.data.refreshIndices(this.viewer.cfg.isBattleTrack)
 		this.refresh()
 		this.window.setNotSaved()
 		this.window.setUndoPoint()
@@ -278,6 +286,64 @@ class PathViewer
 	
 	onKeyDown(ev)
 	{
+		if (this.viewer.mouseDown && !ev.ctrlKey && this.viewer.mouseAction == "move")
+		{
+			const setAxisLocks = (s, x, y, z) =>
+			{
+				if (this.lastAxisHotkey === s)
+					return false
+
+				if (!this.lastAxisHotkey)
+				{
+					// save old state
+					this.snapCollision = this.viewer.cfg.snapToCollision
+					this.lockX = this.viewer.cfg.lockAxisX
+					this.lockY = this.viewer.cfg.lockAxisY
+					this.lockZ = this.viewer.cfg.lockAxisZ
+				}
+
+				this.lastAxisHotkey = s
+
+				if (this.hoveringOverPoint != null)
+					this.targetPos = this.hoveringOverPoint.pos
+
+				if (x || y || z)
+					this.viewer.cfg.snapToCollision = false
+				this.viewer.cfg.lockAxisX = x
+				this.viewer.cfg.lockAxisY = y
+				this.viewer.cfg.lockAxisZ = z
+
+				this.window.refreshPanels()
+			}
+
+			switch (ev.key)
+			{
+				case "X":
+					setAxisLocks("X", true, false, false)
+					return true
+
+				case "x":
+					setAxisLocks("x", false, true, true)
+					return true
+
+				case "Y":
+					setAxisLocks("Y", false, true, false)
+					return true
+
+				case "y":
+					setAxisLocks("y", true, false, true)
+					return true
+				
+				case "Z":
+					setAxisLocks("Z", false, false, true)
+					return true
+
+				case "z":
+					setAxisLocks("z", true, true, false)
+					return true
+			}
+		}
+
 		switch (ev.key)
 		{
 			case "A":
@@ -346,6 +412,7 @@ class PathViewer
 				}
 
 				let newPoint = this.points().addNode()
+				this.points().onCloneNode(newPoint, hoveringOverElem)
 				newPoint.pos = hoveringOverElem.pos
 				newPoint.size = hoveringOverElem.size
 				
@@ -354,6 +421,7 @@ class PathViewer
 				this.refresh()
 				
 				newPoint.selected = true
+				this.targetPos = newPoint.moveOrigin.clone()
 				this.linkingPoints = true
 				this.data.refreshIndices(this.viewer.cfg.isBattleTrack)
 				this.viewer.setCursor("-webkit-grabbing")
@@ -363,6 +431,7 @@ class PathViewer
 			else
 			{
 				hoveringOverElem.selected = true
+				this.targetPos = hoveringOverElem.moveOrigin.clone()
 				this.refreshPanels()
 				this.viewer.setCursor("-webkit-grabbing")
 			}
@@ -379,6 +448,7 @@ class PathViewer
 			
 			this.refresh()
 			newPoint.selected = true
+			this.targetPos = newPoint.moveOrigin.clone()
 			this.data.refreshIndices(this.viewer.cfg.isBattleTrack)
 			this.viewer.setCursor("-webkit-grabbing")
 			this.refreshPanels()
@@ -389,18 +459,8 @@ class PathViewer
 	
 	onMouseMove(ev, x, y, cameraPos, ray, hit, distToHit)
 	{
-		if (!this.viewer.mouseDown)
-		{
-			let lastHover = this.hoveringOverPoint
-			this.hoveringOverPoint = this.getHoveringOverElement(cameraPos, ray, distToHit)
-			
-			if (this.hoveringOverPoint != null)
-				this.viewer.setCursor("-webkit-grab")
-			
-			if (this.hoveringOverPoint != lastHover)
-				this.viewer.render()
-		}
-		else if (ev.ctrlKey)
+		// Mouse not held OR mouse held, ctrl held
+		if (!this.viewer.mouseDown || this.ctrlIsHeld)
 		{
 			let lastHover = this.hoveringOverPoint
 			this.hoveringOverPoint = this.getHoveringOverElement(cameraPos, ray, distToHit)
@@ -408,14 +468,18 @@ class PathViewer
 			if (this.hoveringOverPoint != null)
 			{
 				this.viewer.setCursor("-webkit-grab")
-				this.hoveringOverPoint.selected = true
-				this.refreshPanels()
+				if (this.ctrlIsHeld)
+				{
+					this.hoveringOverPoint.selected = true
+					this.refreshPanels()
+				}
 			}
-
+			
 			if (this.hoveringOverPoint != lastHover)
 				this.viewer.render()
 		}
-		else if (!this.ctrlIsHeld && this.viewer.mouseAction == "move")
+		// Mouse held, ctrl not held, holding point(s)
+		else if (this.viewer.mouseAction == "move")
 		{
 			let linkToPoint = this.getHoveringOverElement(cameraPos, ray, distToHit, false)
 			let selectedPoints = []
@@ -426,7 +490,7 @@ class PathViewer
 					continue
 				selectedPoints.push(point)
 			}
-
+			// Creating new linked point
 			if (selectedPoints.length == 1 && ev.altKey && !this.altIsHeld)
 			{
 				if (this.points().nodes.length >= this.points().maxNodes)
@@ -446,6 +510,7 @@ class PathViewer
 				
 				point.selected = false
 				newPoint.selected = true
+				this.targetPos = newPoint.moveOrigin.clone()
 				this.linkingPoints = true
 				this.altIsHeld = true
 				this.data.refreshIndices(this.viewer.cfg.isBattleTrack)
@@ -459,34 +524,75 @@ class PathViewer
 				this.altIsHeld = false
 			}
 
-			for (let point of selectedPoints)
-			{	
-				this.window.setNotSaved()
-				this.viewer.setCursor("-webkit-grabbing")
+			this.window.setNotSaved()
+			this.viewer.setCursor("-webkit-grabbing")
+
+			let moveVector = null
+							
+			let screenPosMoved = this.viewer.pointToScreen(this.targetPos)
+			screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
+			screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y
+			let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
+			
+			let hit = this.viewer.collision.raycast(pointRayMoved.origin, pointRayMoved.direction)
+			if (this.viewer.cfg.snapToCollision && hit != null)
+				moveVector = hit.position.sub(this.targetPos)
+			else
+			{
+				let screenPos = this.viewer.pointToScreen(this.targetPos)
+				let pointRay = this.viewer.getScreenRay(screenPos.x, screenPos.y)
+				let origDistToScreen = this.targetPos.sub(pointRay.origin).magn()
 				
-				if (this.linkingPoints && linkToPoint != null && linkToPoint.pos != point.moveOrigin)
+				let direction = pointRayMoved.direction
+
+				if (this.viewer.cfg.lockAxisX && this.viewer.cfg.lockAxisY && this.viewer.cfg.lockAxisZ)
 				{
-					point.pos = linkToPoint.pos
+					return
+				}
+				else if (this.viewer.cfg.lockAxisX)
+				{
+					if (this.viewer.cfg.lockAxisY)
+						direction = Geometry.lineLineProjection(pointRayMoved.origin, direction, this.targetPos, new Vec3(0, 1, 0))
+					else if (this.viewer.cfg.lockAxisZ)
+						direction = Geometry.lineLineProjection(pointRayMoved.origin, direction, this.targetPos, new Vec3(0, 0, 1))
+					direction = direction.scale((this.targetPos.x - pointRayMoved.origin.x) / direction.x)
+				}
+				else if (this.viewer.cfg.lockAxisY)
+				{
+					if (this.viewer.cfg.lockAxisZ)
+						direction = Geometry.lineLineProjection(pointRayMoved.origin, direction, this.targetPos, new Vec3(1, 0, 0))
+					direction = direction.scale((this.targetPos.z - pointRayMoved.origin.z) / direction.z)
+				}
+				else if (this.viewer.cfg.lockAxisZ)
+				{
+					direction = direction.scale((this.targetPos.y - pointRayMoved.origin.y) / direction.y)
 				}
 				else
-				{					
-					let screenPosMoved = this.viewer.pointToScreen(point.moveOrigin)
-					screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
-					screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y
-					let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
-					
-					let hit = this.viewer.collision.raycast(pointRayMoved.origin, pointRayMoved.direction)
-					if (hit != null)
-						point.pos = hit.position
-					else
-					{
-						let screenPos = this.viewer.pointToScreen(point.moveOrigin)
-						let pointRay = this.viewer.getScreenRay(screenPos.x, screenPos.y)
-						let origDistToScreen = point.moveOrigin.sub(pointRay.origin).magn()
-						
-						point.pos = pointRayMoved.origin.add(pointRayMoved.direction.scale(origDistToScreen))
-					}
+				{
+					direction = direction.scale(origDistToScreen)
 				}
+
+				let newPos = pointRayMoved.origin.add(direction)
+
+				if (this.viewer.cfg.lockAxisX)
+					newPos.x = this.targetPos.x
+				if (this.viewer.cfg.lockAxisY)
+					newPos.z = this.targetPos.z
+				if (this.viewer.cfg.lockAxisZ)
+					newPos.y = this.targetPos.y
+				
+				moveVector = newPos.sub(this.targetPos)
+			}
+
+			for (let point of this.points().nodes)
+			{
+				if (!point.selected)
+					continue
+				
+				if (this.linkingPoints && linkToPoint != null && linkToPoint.pos != point.moveOrigin)
+					point.pos = linkToPoint.pos
+				else
+					point.pos = point.moveOrigin.add(moveVector)
 			}
 			
 			this.refreshPanels()
@@ -499,6 +605,15 @@ class PathViewer
 		this.ctrlIsHeld = false
 		this.altIsHeld = false
 		
+		if (this.lastAxisHotkey) {
+			this.lastAxisHotkey = ""
+			this.viewer.cfg.snapToCollision = this.snapCollision
+			this.viewer.cfg.lockAxisX = this.lockX
+			this.viewer.cfg.lockAxisY = this.lockY
+			this.viewer.cfg.lockAxisZ = this.lockZ
+			this.window.refreshPanels()
+		}
+
 		if (this.viewer.mouseAction == "move")
 		{
 			if (this.linkingPoints)

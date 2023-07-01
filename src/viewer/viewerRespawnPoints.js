@@ -31,15 +31,19 @@ class ViewerRespawnPoints extends PointViewer
 		let panel = this.window.addPanel("Respawn Points", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
 	
-		panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
-		panel.addCheckbox(null, "Draw player respawn positions", this.viewer.cfg.respawnsEnablePlayerSlots, (x) => this.viewer.cfg.respawnsEnablePlayerSlots = x)
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
 		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Duplicate Point")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
+
+		panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
+		panel.addCheckbox(null, "Draw player respawn positions", this.viewer.cfg.respawnsEnablePlayerSlots, (x) => this.viewer.cfg.respawnsEnablePlayerSlots = x)
+		panel.addSpacer(null)
+
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
-		
+		panel.addSpacer(null)
+
 		let selectedPoints = this.data.respawnPoints.nodes.filter(p => p.selected)
 		
 		let selectionGroup = panel.addGroup(null, "Selection:")
@@ -52,13 +56,17 @@ class ViewerRespawnPoints extends PointViewer
 			panel.addText(selectionGroup, "<strong>JGPT Index:</strong> " + i.toString() + " (0x" + i.toString(16) + ")")
 		}
 
-		panel.addSelectionNumericInput(selectionGroup,      "X", -1000000, 1000000, selectedPoints.map(p =>  p.pos.x),       null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.x = x })
-		panel.addSelectionNumericInput(selectionGroup,      "Y", -1000000, 1000000, selectedPoints.map(p => -p.pos.z),       null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.z = -x })
-		panel.addSelectionNumericInput(selectionGroup,      "Z", -1000000, 1000000, selectedPoints.map(p => -p.pos.y),       null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.y = -x })
+		panel.addSelectionNumericInput(selectionGroup,      "X", -1000000, 1000000, selectedPoints.map(p =>  p.pos.x),     null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.x = x })
+		panel.addSelectionNumericInput(selectionGroup,      "Y", -1000000, 1000000, selectedPoints.map(p => -p.pos.z),     null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.z = -x })
+		panel.addSelectionNumericInput(selectionGroup,      "Z", -1000000, 1000000, selectedPoints.map(p => -p.pos.y),     null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.y = -x })
 		panel.addSelectionNumericInput(selectionGroup, "Rot. X", -1000000, 1000000, selectedPoints.map(p =>  p.rotation.x),  null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].rotation.x = x % 360 }, x => { return x % 360 })
 		panel.addSelectionNumericInput(selectionGroup, "Rot. Y", -1000000, 1000000, selectedPoints.map(p =>  p.rotation.y),  null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].rotation.y = x % 360 }, x => { return x % 360 })
 		panel.addSelectionNumericInput(selectionGroup, "Rot. Z", -1000000, 1000000, selectedPoints.map(p =>  p.rotation.z),  null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].rotation.z = x % 360 }, x => { return x % 360 })
-		//panel.addSelectionNumericInput(selectionGroup, "Range(?)",      1,    1000, selectedPoints.map(p =>  p.size),         1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].size = x })
+		panel.addSelectionNumericInput(selectionGroup,     "ID",        0,  0xffff, selectedPoints.map(p =>  p.id),          null, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].id = x })
+		
+		const toSoundTrig   = (soundData) => { if (soundData == 0xffff) return -1; else return ((soundData - 199) / 100) | 0 }
+		const fromSoundTrig = (soundTrig) => { if (soundTrig == -1) return 0xffff; else return (soundTrig * 100) + 199 }
+		panel.addSelectionNumericInput(selectionGroup, "Sound Trig.", -1, 7, selectedPoints.map(p => toSoundTrig(p.soundData)), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].soundData = fromSoundTrig(x) })
 	}
 	
 	
@@ -85,6 +93,30 @@ class ViewerRespawnPoints extends PointViewer
 		this.refreshPanels()
 	}
 	
+
+	deleteSelectedPoints()
+	{
+		let pointsToDelete = []
+		
+		for (let point of this.points().nodes)
+		{
+			if (!point.selected)
+				continue
+			
+			pointsToDelete.push(point)
+		}
+		
+		for (let point of pointsToDelete)
+		{
+			this.data.removeRespawnPointLinks(point)
+			this.points().removeNode(point)
+		}
+		
+		this.refresh()
+		this.window.setNotSaved()
+		this.window.setUndoPoint()
+	}
+
 	
 	drawAfterModel()
 	{
