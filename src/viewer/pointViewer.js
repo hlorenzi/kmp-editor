@@ -293,6 +293,8 @@ class PointViewer
 			
 			case "Backspace":
 			case "Delete":
+			case "X":
+			case "x":
 				this.deleteSelectedPoints()
 				return true
 
