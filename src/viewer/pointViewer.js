@@ -18,8 +18,14 @@ class PointViewer
 		this.sceneAfter = new GfxScene()
 		
 		this.hoveringOverPoint = null
-		this.linkingPoints = false
-		this.multiSelect = false
+		this.targetPos = null
+		this.ctrlIsHeld = false
+
+		this.lastAxisHotkey = ""
+		this.snapCollision = this.viewer.cfg.snapToCollision
+		this.lockX = this.viewer.cfg.lockAxisX
+		this.lockY = this.viewer.cfg.lockAxisY
+		this.lockZ = this.viewer.cfg.lockAxisZ
 		
 		this.modelPoint = new ModelBuilder()
 			.addSphere(-150, -150, -150, 150, 150, 150)
@@ -220,6 +226,64 @@ class PointViewer
 	
 	onKeyDown(ev)
 	{
+		if (this.viewer.mouseDown && !ev.ctrlKey && this.viewer.mouseAction == "move")
+		{
+			const setAxisLocks = (s, x, y, z) =>
+			{
+				if (this.lastAxisHotkey === s)
+					return false
+
+				if (!this.lastAxisHotkey)
+				{
+					// save old state
+					this.snapCollision = this.viewer.cfg.snapToCollision
+					this.lockX = this.viewer.cfg.lockAxisX
+					this.lockY = this.viewer.cfg.lockAxisY
+					this.lockZ = this.viewer.cfg.lockAxisZ
+				}
+
+				this.lastAxisHotkey = s
+
+				if (this.hoveringOverPoint != null)
+					this.targetPos = this.hoveringOverPoint.pos
+
+				if (x || y || z)
+					this.viewer.cfg.snapToCollision = false
+				this.viewer.cfg.lockAxisX = x
+				this.viewer.cfg.lockAxisY = y
+				this.viewer.cfg.lockAxisZ = z
+
+				this.window.refreshPanels()
+			}
+
+			switch (ev.key)
+			{
+				case "X":
+					setAxisLocks("X", true, false, false)
+					return true
+
+				case "x":
+					setAxisLocks("x", false, true, true)
+					return true
+
+				case "Y":
+					setAxisLocks("Y", false, true, false)
+					return true
+
+				case "y":
+					setAxisLocks("y", true, false, true)
+					return true
+				
+				case "Z":
+					setAxisLocks("Z", false, false, true)
+					return true
+
+				case "z":
+					setAxisLocks("z", true, true, false)
+					return true
+			}
+		}
+		
 		switch (ev.key)
 		{
 			case "A":
@@ -229,8 +293,6 @@ class PointViewer
 			
 			case "Backspace":
 			case "Delete":
-			case "X":
-			case "x":
 				this.deleteSelectedPoints()
 				return true
 
@@ -246,8 +308,6 @@ class PointViewer
 	
 	onMouseDown(ev, x, y, cameraPos, ray, hit, distToHit, mouse3DPos)
 	{
-		this.linkingPoints = false
-		
 		for (let point of this.points().nodes)
 			point.moveOrigin = point.pos
 		
@@ -257,7 +317,7 @@ class PointViewer
 			this.unselectAll()
 
 		if (ev.ctrlKey)
-			this.multiSelect = true
+			this.ctrlIsHeld = true
 		
 		if (hoveringOverElem != null)
 		{
@@ -274,6 +334,7 @@ class PointViewer
 				this.refresh()
 				
 				newPoint.selected = true
+				this.targetPos = newPoint.moveOrigin.clone()
 				this.viewer.setCursor("-webkit-grabbing")
 				this.refreshPanels()
 				this.window.setNotSaved()
@@ -281,6 +342,7 @@ class PointViewer
 			else
 			{
 				hoveringOverElem.selected = true
+				this.targetPos = hoveringOverElem.moveOrigin.clone()
 				this.refreshPanels()
 				this.viewer.setCursor("-webkit-grabbing")
 			}
@@ -297,6 +359,7 @@ class PointViewer
 			
 			this.refresh()
 			newPoint.selected = true
+			this.targetPos = newPoint.moveOrigin.clone()
 			this.viewer.setCursor("-webkit-grabbing")
 			this.refreshPanels()
 			this.window.setNotSaved()
@@ -306,18 +369,8 @@ class PointViewer
 	
 	onMouseMove(ev, x, y, cameraPos, ray, hit, distToHit)
 	{
-		if (!this.viewer.mouseDown)
-		{
-			let lastHover = this.hoveringOverPoint
-			this.hoveringOverPoint = this.getHoveringOverElement(cameraPos, ray, distToHit)
-			
-			if (this.hoveringOverPoint != null)
-				this.viewer.setCursor("-webkit-grab")
-			
-			if (this.hoveringOverPoint != lastHover)
-				this.viewer.render()
-		}
-		else if (ev.ctrlKey)
+		// Mouse not held OR mouse held, ctrl held
+		if (!this.viewer.mouseDown || this.ctrlIsHeld)
 		{
 			let lastHover = this.hoveringOverPoint
 			this.hoveringOverPoint = this.getHoveringOverElement(cameraPos, ray, distToHit)
@@ -325,48 +378,85 @@ class PointViewer
 			if (this.hoveringOverPoint != null)
 			{
 				this.viewer.setCursor("-webkit-grab")
-				this.hoveringOverPoint.selected = true
-				this.refreshPanels()
+				if (this.ctrlIsHeld)
+				{
+					this.hoveringOverPoint.selected = true
+					this.refreshPanels()
+				}
 			}
-
+			
 			if (this.hoveringOverPoint != lastHover)
 				this.viewer.render()
 		}
-		else if (!this.multiSelect && this.viewer.mouseAction == "move")
+		// Mouse held, ctrl not held, holding point(s)
+		else if (this.viewer.mouseAction == "move")
 		{
-			let linkToPoint = this.getHoveringOverElement(cameraPos, ray, distToHit, false)
+			this.window.setNotSaved()
+			this.viewer.setCursor("-webkit-grabbing")
+
+			let moveVector = null
+							
+			let screenPosMoved = this.viewer.pointToScreen(this.targetPos)
+			screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
+			screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y
+			let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
 			
+			let hit = this.viewer.collision.raycast(pointRayMoved.origin, pointRayMoved.direction)
+			if (this.viewer.cfg.snapToCollision && hit != null)
+				moveVector = hit.position.sub(this.targetPos)
+			else
+			{
+				let screenPos = this.viewer.pointToScreen(this.targetPos)
+				let pointRay = this.viewer.getScreenRay(screenPos.x, screenPos.y)
+				let origDistToScreen = this.targetPos.sub(pointRay.origin).magn()
+				
+				let direction = pointRayMoved.direction
+
+				if (this.viewer.cfg.lockAxisX && this.viewer.cfg.lockAxisY && this.viewer.cfg.lockAxisZ)
+				{
+					return
+				}
+				else if (this.viewer.cfg.lockAxisX)
+				{
+					if (this.viewer.cfg.lockAxisY)
+						direction = Geometry.lineLineProjection(pointRayMoved.origin, direction, this.targetPos, new Vec3(0, 1, 0))
+					else if (this.viewer.cfg.lockAxisZ)
+						direction = Geometry.lineLineProjection(pointRayMoved.origin, direction, this.targetPos, new Vec3(0, 0, 1))
+					direction = direction.scale((this.targetPos.x - pointRayMoved.origin.x) / direction.x)
+				}
+				else if (this.viewer.cfg.lockAxisY)
+				{
+					if (this.viewer.cfg.lockAxisZ)
+						direction = Geometry.lineLineProjection(pointRayMoved.origin, direction, this.targetPos, new Vec3(1, 0, 0))
+					direction = direction.scale((this.targetPos.z - pointRayMoved.origin.z) / direction.z)
+				}
+				else if (this.viewer.cfg.lockAxisZ)
+				{
+					direction = direction.scale((this.targetPos.y - pointRayMoved.origin.y) / direction.y)
+				}
+				else
+				{
+					direction = direction.scale(origDistToScreen)
+				}
+
+				let newPos = pointRayMoved.origin.add(direction)
+
+				if (this.viewer.cfg.lockAxisX)
+					newPos.x = this.targetPos.x
+				if (this.viewer.cfg.lockAxisY)
+					newPos.z = this.targetPos.z
+				if (this.viewer.cfg.lockAxisZ)
+					newPos.y = this.targetPos.y
+				
+				moveVector = newPos.sub(this.targetPos)
+			}
+
 			for (let point of this.points().nodes)
 			{
 				if (!point.selected)
 					continue
 				
-				this.window.setNotSaved()
-				this.viewer.setCursor("-webkit-grabbing")
-				
-				if (this.linkingPoints && linkToPoint != null)
-				{
-					point.pos = linkToPoint.pos
-				}
-				else
-				{					
-					let screenPosMoved = this.viewer.pointToScreen(point.moveOrigin)
-					screenPosMoved.x += this.viewer.mouseMoveOffsetPixels.x
-					screenPosMoved.y += this.viewer.mouseMoveOffsetPixels.y
-					let pointRayMoved = this.viewer.getScreenRay(screenPosMoved.x, screenPosMoved.y)
-					
-					let hit = this.viewer.collision.raycast(pointRayMoved.origin, pointRayMoved.direction)
-					if (hit != null)
-						point.pos = hit.position
-					else
-					{
-						let screenPos = this.viewer.pointToScreen(point.moveOrigin)
-						let pointRay = this.viewer.getScreenRay(screenPos.x, screenPos.y)
-						let origDistToScreen = point.moveOrigin.sub(pointRay.origin).magn()
-						
-						point.pos = pointRayMoved.origin.add(pointRayMoved.direction.scale(origDistToScreen))
-					}
-				}
+				point.pos = point.moveOrigin.add(moveVector)
 			}
 			
 			this.refreshPanels()
@@ -376,7 +466,16 @@ class PointViewer
 
     onMouseUp(ev, x, y)
 	{
-		this.multiSelect = false
+		this.ctrlIsHeld = false
+
+		if (this.lastAxisHotkey) {
+			this.lastAxisHotkey = ""
+			this.viewer.cfg.snapToCollision = this.snapCollision
+			this.viewer.cfg.lockAxisX = this.lockX
+			this.viewer.cfg.lockAxisY = this.lockY
+			this.viewer.cfg.lockAxisZ = this.lockZ
+			this.window.refreshPanels()
+		}
 	}
 }
 

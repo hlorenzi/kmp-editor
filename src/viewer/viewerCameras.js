@@ -25,20 +25,23 @@ class ViewerCameras extends PointViewer
 		let panel = this.window.addPanel("Cameras", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
         
-        panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Camera")
 		panel.addText(null, "<strong>Hold Alt + Drag Object:</strong> Duplicate Camera")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
+
+        panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
+		panel.addSpacer(null)
+
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(T) Select All With Same Type", () => this.toggleAllSelectionByType())
         panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
+		panel.addSpacer(null)
 
         let firstOptions = []
 		for (let i = 0; i < this.data.cameras.nodes.length; i++)
             firstOptions.push({ str: "Camera " + i + " (0x" + i.toString(16) + ")", value: i })
 		panel.addSelectionDropdown(null, "Intro Start", this.data.firstIntroCam, firstOptions, true, false, (x, i) => { this.window.setNotSaved(); this.data.firstIntroCam = x })
-        
 
         let selectedPoints = this.data.cameras.nodes.filter(p => p.selected)
 		

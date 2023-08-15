@@ -35,14 +35,18 @@ class ViewerAreas extends PointViewer
 		let panel = this.window.addPanel("Area", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
         
-        panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Area")
 		panel.addText(null, "<strong>Hold Alt + Drag Object:</strong> Duplicate Area")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
+
+        panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
+		panel.addSpacer(null)
+
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
 		panel.addButton(null, "(T) Select All With Same Type", () => this.toggleAllSelectionByType())
         panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
+		panel.addSpacer(null)
 
         let selectedPoints = this.data.areaPoints.nodes.filter(p => p.selected)
 		
@@ -255,7 +259,9 @@ class ViewerAreas extends PointViewer
 				.setDiffuseColor([1, 0.5, 0, 1])
 				
             let pointScale = Mat4.scale(scale, scale / 1.5, scale / 1.5)
-            let areaScale = Mat4.scale(point.scale.y, point.scale.x, point.scale.z)
+            let areaScale = 
+				Mat4.scale(point.scale.x, point.scale.z, point.scale.y)
+				.mul(Mat4.rotation(new Vec3(0, 0, 1), 90 * Math.PI / 180))
 			let matrixDirection =
 				Mat4.rotation(new Vec3(0, 0, 1), 90 * Math.PI / 180)
 				.mul(Mat4.rotation(new Vec3(1, 0, 0), point.rotation.x * Math.PI / 180))
