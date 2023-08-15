@@ -371,13 +371,13 @@ class ViewerObjects extends PointViewer
 			panel.addText(selectionGroup, "<strong>GOBJ Index:</strong> " + i.toString() + " (0x" + i.toString(16) + ")")
 		}
 		
-		let objName = panel.addText(selectionGroup, "<strong>Name:</strong> " + (selectedPoints.length > 0 ? objectNames[selectedPoints[0].id] : ""))
+		let objName = panel.addText(selectionGroup, "<strong>Name:</strong> " + (selectedPoints.length > 0 ? objectNames[selectedPoints[0].id&0x3ff] : ""))
 		panel.addSelectionNumericInput(selectionGroup,      "ID",        0,  0xffff, selectedPoints.map(p =>  p.id),           1.0, 1.0, enabled, multiedit, (x, i) => {
 			this.window.setNotSaved()
 			selectedPoints[i].id = x
-			objName.innerHTML = "<strong>Name:</strong> " + objectNames[x]
+			objName.innerHTML = "<strong>Name:</strong> " + objectNames[(x&0x3ff)]
 		})
-		
+		panel.addSelectionNumericInput(selectionGroup, "Padding",        0,  0xffff, selectedPoints.map(p =>  p.padding),      1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].padding = x })
 		panel.addSelectionNumericInput(selectionGroup,       "X", -1000000, 1000000, selectedPoints.map(p =>  p.pos.x),       null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.x = x })
 		panel.addSelectionNumericInput(selectionGroup,       "Y", -1000000, 1000000, selectedPoints.map(p => -p.pos.z),       null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.z = -x })
 		panel.addSelectionNumericInput(selectionGroup,       "Z", -1000000, 1000000, selectedPoints.map(p => -p.pos.y),       null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.y = -x })
