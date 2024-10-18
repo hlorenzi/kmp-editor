@@ -1,10 +1,15 @@
 const { remote, ipcRenderer, screen, shell } = require("electron")
 const fs = require("fs")
+const path = require("path")
 const { Viewer } = require("./viewer/viewer.js")
 const { ModelBuilder } = require("./util/modelBuilder.js")
 const { KmpData } = require("./util/kmpData.js")
+const { BrresLoader } = require("./util/brresLoader.js")
+const { ObjLoader } = require("./util/objLoader.js")
 const { KclLoader, collisionTypeData } = require("./util/kclLoader.js")
 const { Vec3 } = require("./math/vec3.js")
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 
 
 let gMainWindow = null
@@ -29,7 +34,8 @@ class MainWindow
 				submenu:
 				[
 					{ label: "New", accelerator: "CmdOrCtrl+N", click: () => this.newKmp() },
-					{ label: "Open...", accelerator: "CmdOrCtrl+O", click: () => this.askOpenKmp() },
+					{ label: "Open KMP...", accelerator: "CmdOrCtrl+O", click: () => this.askOpenKmp() },
+					{ label: "Open SZS...", accelerator: "CmdOrCtrl+F", click: () => this.askOpenSZS() },
 					{ type: "separator" },
 					{ label: "Save", accelerator: "CmdOrCtrl+S", click: () => this.saveKmp(this.currentKmpFilename) },
 					{ label: "Save as...", click: () => this.saveKmpAs() },
@@ -142,6 +148,7 @@ class MainWindow
 		this.currentKclFilename = null
 		this.currentKmpData = new KmpData()
 		this.currentNotSaved = false
+		this.szsOutFolder = null
 		
 		this.undoNeedsNewSlot = false
 		this.undoStack = []
@@ -184,6 +191,14 @@ class MainWindow
 			return
 		
 		ev.returnValue = false
+
+		fs.rmdirSync(this.szsOutFolder, { recursive: true, force: true }, (err) => {
+			if (err) {
+				console.error("Error deleting folder:", err);
+				return;
+			}
+			console.log("Folder deleted successfully:", this.szsOutFolder);
+		});
 		
 		// Working around an Electron bug
 		window.setTimeout(() =>
@@ -447,7 +462,15 @@ class MainWindow
 		if (result)
 			this.openKmp(result[0])
 	}
-	
+
+	askOpenSZS() {
+		if (!this.askSaveChanges())
+			return
+		
+		let result = remote.dialog.showOpenDialog(remote.getCurrentWindow(), { properties: ["openFile"], filters: [{ name: "SZS Files (*.szs)", extensions: ["szs"] }] })
+		if (result)
+			this.openSZS(result[0])
+	}
 	
 	openKmp(filename)
 	{
@@ -558,29 +581,33 @@ class MainWindow
 	openCustomModel()
 	{
 		let filters =
-			[ { name: "Supported model formats (*.obj, *.brres, *.kcl)", extensions: ["obj", "brres", "kcl"] } ]
+			[ { name: "Supported model formats (*.szs, *.obj, *.brres, *.kcl)", extensions: ["szs", "obj", "brres", "kcl"] } ]
 			
 		let result = remote.dialog.showOpenDialog({ properties: ["openFile"], filters })
-		if (result)
-		{
+		if (result) {
 			let filename = result[0]
 			let ext = filename.substr(filename.lastIndexOf("."))
 			
-			if (ext == ".brres")
-				this.openBrres(filename)
-			else if (ext == ".kcl")
-				this.openKcl(filename)
-			else
-			{
-				let data = fs.readFileSync(filename)
-				let modelBuilder = require("./util/objLoader.js").ObjLoader.makeModelBuilder(data)
-				this.viewer.setModel(modelBuilder)
-				this.currentKclFilename = null
-				
-				if (this.noModelLoaded)
-					this.viewer.centerView()
-				
-				this.noModelLoaded = false
+			switch (ext) {
+				case ".szs":
+					this.openSZS(filename)
+					break
+				case ".brres":
+					this.openBrres(filename)
+					break
+				case ".kcl":
+					this.openKcl(filename)
+					break
+				case ".obj":
+					let data = fs.readFileSync(filename)
+					let modelBuilder = ObjLoader.makeModelBuilder(data)
+					this.viewer.setModel(modelBuilder)
+					this.currentKclFilename = null
+					
+					if (this.noModelLoaded)
+						this.viewer.centerView()
+					
+					this.noModelLoaded = false
 			}
 		}
 	}
@@ -595,7 +622,7 @@ class MainWindow
 		let modelBuilder = null
 		try
 		{
-			modelBuilder = require("./util/brresLoader.js").BrresLoader.load(brresData)
+			modelBuilder = BrresLoader.load(brresData)
 		}
 		catch (e)
 		{
@@ -627,6 +654,48 @@ class MainWindow
 			this.viewer.centerView()
 		
 		this.noModelLoaded = false
+	}
+
+	async openSZS(filepath) {
+		if (filepath == null) return;
+		
+		console.log(`Extracting SZS file: ${filepath}`);
+
+		this.szsOutFolder = path.join(path.dirname(filepath), `${path.basename(filepath).split(".").slice(-2, -1)}.d`);
+		console.log(this.szsOutFolder)
+
+		/* let opt;
+		if (fs.existsSync(this.szsOutFolder)) opt = "--rm-dest --overwrite";
+		else opt = ""; */
+
+		try {
+			const { stdout, stderr } = await exec(`wszst x --rm-dest --overwrite ${filepath}`);
+			if (stderr) {
+				console.error(`stderr: ${stderr}`);
+				return;
+			}
+			console.log(stdout);
+
+			fs.readdirSync(this.szsOutFolder, (err, files) => {
+				if (err) {
+					return console.error("Error reading directory:", err);
+				}
+
+				const kmpFilter = files.find(file => file === 'course.kmp');
+				let kmpFile;
+
+				if (kmpFilter) {
+					kmpFile = path.join(this.szsOutFolder, kmpFilter);
+					console.log("KMP path:", kmpFile);
+					this.openKmp(kmpFile);
+				} else {
+					return console.error("course.kmp not found.");
+				}
+			});
+
+		} catch (error) {
+			console.error(`Error during extraction: ${error.message}`);
+		}
 	}
 }
 

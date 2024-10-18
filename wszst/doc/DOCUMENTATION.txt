@@ -1,0 +1,84 @@
+
+*******************************************************************************
+*******               Wiimms SZS Tools v2.42a - 2024-03-26              *******
+*******************************************************************************
+
+Wiimms SZS Tools (SZS) is a command line tool set for linux and for other
+unix like operating systems including Cygwin. The tools manage SZS files.
+
+The software is developed under the GPL 2.0 license. See file gpl-2.0.txt
+or http://www.gnu.org/licenses/gpl-2.0.txt for details.
+
+The most current source is available under:
+  https://download.wiimm.de/source/wiimms-szs-tools//
+
+See https://szs.wiimm.de/ for announcements and discussions.
+
+
+*******************************************************************************
+*******                            Motivation                         *********
+*******************************************************************************
+
+The motives for writing a new tool are simple:
+
+I want to automate the creation of SZS files. I need this for Custom Mario
+Kart Distributions.
+
+Visit https://szs.wiimm.de/ for more information.
+
+
+*******************************************************************************
+*******                             Features                          *********
+*******************************************************************************
+
+Features:
+
+ - SZS (Wiimms SZS Toolset) is a set of command line tools.
+ - wszst (Wiimms SZS Tool) is the main SZS manipulation tool.
+ - wimgt (Wiimms IMG Tool) is a graphics conversion tool.
+ - wkclt (Wiimms KCL Tool) is a KCL creation and modification tool.
+ - wkmpt (Wiimms KMP Tool) is a KMP creation and modification tool.
+ - wbmgt (Wiimms BMG Tool) is a BMG manipulation tool.
+ - wstrt (Wiimms STATIC.REL Tool) is a staric.rel and main.dol manipulation tool.
+ - wctct (Wiimms CT-CODE Tool) manage CT-CODE extensions.
+ - Advanced shell support.
+
+Visit https://szs.wiimm.de/features.html for more details.
+
+
+*******************************************************************************
+*******                             HISTORY                             *******
+*******************************************************************************
+
+For the complete history see file 'HISTORY.txt'. The last changes:
+
+szs v2.42a r8989 - 2024-03-26
+
+ - Updated prefix database: Added CTGPS, EX, EXTR, GK2, GK3, GK7, HGSS, HWTA,
+   SBSPLCP, SKK, TGO. Removed LPC.
+ - Bug fix for option --lex-purge: The tools occasionally crashed when
+   attempting to delete an existing but unneeded LEX file.
+ - Added support for compression methods YBZ and YLZ (Yaz0 header, but
+   alternative compressions bzip2 or LZMA). Use one of the new options --cybz,
+   --ybz, --cylz or --ylz to select the new methods. LE-CODE supports YLZ.
+ - New option --zero (-z): This option affects the exit status of the
+   programs. Instead of an exit status, the value 0 is returned for OK. This
+   happens for notices (-v, status<15), warnings (-vv, status<29), errors
+   (-vvv, status<115) and fatal errors (-vvvv). The exit status for INTERRUPT
+   (112) is never replaced.
+ - Information only: wszst now knows 243 different options.
+
+
+Known bugs:
+
+ - Minimaps with an additional bones layer above 'posLD' and 'posRU' (e.g. for
+   scaling) are handled incorrect on auto adjusting the minimap.
+ - The tools try always to find the optimal PNG format by analyzing the main
+   image. The bug is, that mipmaps (or following images in TPL) may need a
+   different output format (for example colors instead of grayscale).
+   SOLUTION: Force an output format with for example --transform RGBA32.
+
+
+*******************************************************************************
+*******                              END                                *******
+*******************************************************************************
