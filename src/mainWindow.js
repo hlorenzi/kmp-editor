@@ -1,38 +1,31 @@
-const { remote, ipcRenderer, screen, shell } = require("electron")
+const { remote, ipcRenderer, screen, shell, Menu } = require("electron")
 const fs = require("fs")
 const path = require("path")
-const { Viewer } = require("./viewer/viewer.js")
-const { ModelBuilder } = require("./util/modelBuilder.js")
-const { KmpData } = require("./util/kmpData.js")
-const { BrresLoader } = require("./util/brresLoader.js")
-const { ObjLoader } = require("./util/objLoader.js")
-const { KclLoader, collisionTypeData } = require("./util/kclLoader.js")
-const { Vec3 } = require("./math/vec3.js")
+// getting the absolute path to require because somehow electron doesnt recognize "./x/y.js"
+const { Viewer } = require(path.join(__dirname, "src", "viewer", "viewer.js"))
+const { ModelBuilder } = require(path.join(__dirname, "src", "util", "modelBuilder.js"))
+const { KmpData } = require(path.join(__dirname, "src", "util", "kmpData.js"))
+const { BrresLoader } = require(path.join(__dirname, "src", "util", "brresLoader.js"))
+const { ObjLoader } = require(path.join(__dirname, "src", "util", "objLoader.js"))
+const { KclLoader, collisionTypeData } = require(path.join(__dirname, "src", "util", "kclLoader.js"))
+const { Vec3 } = require(path.join(__dirname, "src", "math", "vec3.js"))
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
-
 
 let gMainWindow = null
 let askBeforeClosing = true
 let isReloading = false
 
-
-function main()
-{
+function main() {
 	gMainWindow = new MainWindow()	
 }
 
-
-class MainWindow
-{
-	constructor()
-	{
-		let menuTemplate =
-		[
+class MainWindow {
+	constructor() {
+		let menuTemplate = [
 			{
 				label: "File",
-				submenu:
-				[
+				submenu: [
 					{ label: "New", accelerator: "CmdOrCtrl+N", click: () => this.newKmp() },
 					{ label: "Open KMP...", accelerator: "CmdOrCtrl+O", click: () => this.askOpenKmp() },
 					{ label: "Open SZS...", accelerator: "CmdOrCtrl+F", click: () => this.askOpenSZS() },
@@ -61,7 +54,8 @@ class MainWindow
 			}
 		]
 		
-		remote.getCurrentWindow().setMenu(remote.Menu.buildFromTemplate(menuTemplate))
+		const menu = Menu.buildFromTemplate(menuTemplate)
+		Menu.setApplicationMenu(menu)
 		
 		document.body.onresize = () => this.onResize()
 		window.addEventListener("beforeunload", (ev) => this.onClose(ev))
@@ -1159,5 +1153,4 @@ class Panel
 	}
 }
 
-
-module.exports = { main, MainWindow, gMainWindow }
+main()
