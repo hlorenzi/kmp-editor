@@ -1,4 +1,5 @@
-const { remote, ipcRenderer, screen, shell, Menu } = require("electron")
+const { ipcRenderer, screen, shell } = require("electron")
+const remote = require("@electron/remote")
 const fs = require("fs")
 const path = require("path")
 // getting the absolute path to require because somehow electron doesnt recognize "./x/y.js"
@@ -54,15 +55,14 @@ class MainWindow {
 			}
 		]
 		
-		const menu = Menu.buildFromTemplate(menuTemplate)
-		Menu.setApplicationMenu(menu)
+		const menu = remote.Menu.buildFromTemplate(menuTemplate)
+		remote.Menu.setApplicationMenu(menu)
 		
 		document.body.onresize = () => this.onResize()
 		window.addEventListener("beforeunload", (ev) => this.onClose(ev))
 		
 		// To prevent strange bug with the browser undoing/redoing changes in destroyed input elements
-		document.body.onkeydown = (ev) =>
-		{
+		document.body.onkeydown = (ev) => {
 			if (ev.ctrlKey && (ev.key == "Z" || ev.key == "z"))
 			{
 				ev.preventDefault()
@@ -76,8 +76,7 @@ class MainWindow {
 		
 		this.noModelLoaded = true
 		
-		this.cfg =
-		{
+		this.cfg = {
 			isBattleTrack: false,
 			useOrthoProjection: false,
 			pointScale: 1,
@@ -112,24 +111,21 @@ class MainWindow {
 			lockAxisX: false,
 			lockAxisY: false,
 			lockAxisZ: false,
-			unlockAxes() 
-			{
+			unlockAxes() {
 				this.lockAxisX = false
 				this.lockAxisY = false
 				this.lockAxisZ = false
 			}
 		}
 
-		this.hl = 
-		{
+		this.hl = {
 			baseType: -1,
 			basicEffect: -1,
 			blightEffect: -1,
 			intensity: -1,
 			collisionEffect: -1
 		}
-		this.hl.reset = () =>
-		{
+		this.hl.reset = () => {
 			this.hl.baseType = -1,
 			this.hl.basicEffect = -1,
 			this.hl.blightEffect = -1,

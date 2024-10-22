@@ -19,5 +19,8 @@
         "portable"
       ]
     }
+  },
+  "dependencies": {
+    "@electron/remote": "^2.1.2"
   }
 }
