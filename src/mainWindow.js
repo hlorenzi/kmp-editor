@@ -1,4 +1,4 @@
-const { ipcRenderer, screen, shell } = require("electron")
+const { shell } = require("electron")
 const remote = require("@electron/remote")
 const fs = require("fs")
 const path = require("path")
