@@ -8,10 +8,8 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "devDependencies": {
-    "@electron/remote": "^2.1.2",
     "electron": "^33.0.1",
-    "electron-builder": "^25.1.8",
-    "electron-updater": "^6.3.9"
+    "electron-builder": "^25.1.8"
   },
   "build": {
     "appId": "com.hlorenzi.kmp-editor",
@@ -21,5 +19,8 @@
         "portable"
       ]
     }
+  },
+  "dependencies": {
+    "@electron/remote": "^2.1.2"
   }
 }

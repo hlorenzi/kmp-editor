@@ -22,7 +22,9 @@ The tool will keep other sections intact when saving.
 :warning: This is an early release, so use at your own risk! Remember to always backup your files
 beforehand.
 
-## Running from source
+![Screenshot](/doc/screenshot1.png)
+
+## Running from source / Dev environment
 
 Clone or download the repository, then use [Node.js](https://nodejs.org) to run.
 
@@ -33,4 +35,9 @@ npm install
 npm start
 ```
 
-![Screenshot](/doc/screenshot1.png)
+### Building
+To build, just run
+```
+npm run dist
+```
+It will create a dist folder where inside is the updated `.exe` of electron.

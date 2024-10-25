@@ -15,7 +15,6 @@ function createWindow() {
   });
   mainWindow.loadFile('index.html');
 	mainWindow.maximize();
-  mainWindow.webContents.openDevTools();
 	require('@electron/remote/main').enable(mainWindow.webContents)
 }
 
