@@ -1,0 +1,98 @@
+html, body {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: Segoe UI, Verdana, sans-serif;
+  overflow: hidden;
+}
+
+#divGrid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 18em auto;
+  grid-template-rows: auto;
+}
+
+#divSidePanel {
+  width: 100%;
+  grid-column: 1;
+  grid-row: 1;
+  background-color: #eee;
+  font-size: 0.75em;
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+#canvasMain {
+  width: 100%;
+  height: 100%;
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.panel {
+  width: 100%;
+}
+
+.panelTitle {
+  width: 100%;
+  height: 1.75em;
+}
+
+.panelContent {
+  width: 100%;
+}
+
+.panelRowElement {
+  width: 100%;
+  padding: 0.25em;
+}
+
+.panelGroupTitle {
+  font-weight: bold;
+}
+
+.panelGroup {
+  width: 100%;
+  margin: 0.25em;
+  padding: 0;
+}
+
+.panelLabel {
+}
+
+.panelButton {
+}
+
+.panelCheckbox {
+  margin-top: 0.2em;
+  margin-bottom: 0.05em;
+}
+
+.panelInputLabel {
+  float: left;
+  width: 6em;
+  margin-top: 0.15em;
+  margin-right: 0.25em;
+  text-align: right;
+}
+
+.panelNumericInputLabel {
+  float: left;
+  width: 6em;
+  margin-top: 0.15em;
+  margin-right: 0.25em;
+  text-align: right;
+  cursor: ns-resize;
+}
+
+.panelNumericInput {
+  width: 10em;
+}
+
+.panelSelect {
+  width: 11em;
+}

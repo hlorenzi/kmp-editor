@@ -1,0 +1,972 @@
+
+*******************************************************************************
+*******               Wiimms SZS Tools v2.42a - 2024-03-26              *******
+*******************************************************************************
+
+Wiimms SZS Tools (SZS) is a command line tool set for linux and for other
+unix like operating systems including Cygwin. The tools manage SZS files.
+
+The software is developed under the GPL 2.0 license. See file gpl-2.0.txt
+or http://www.gnu.org/licenses/gpl-2.0.txt for details.
+
+The most current source is available under:
+  https://download.wiimm.de/source/wiimms-szs-tools//
+
+See https://szs.wiimm.de/ for announcements and discussions.
+
+
+*******************************************************************************
+*******                           HISTORY v2.*                          *******
+*******************************************************************************
+
+szs v2.00a r7754 - 2019-02-22
+
+ - Windows version only: Update to Cygwin DLL 3.0.0 / 2019-02-16.
+ - A binary KCL with different section order is accepted now (like KMP before).
+ - The new option --repair-magics[=MODE] controls the reparing of missing or
+   wrong magics of files and sub-files  by analysing file path and file
+   extension. MODE is one of OFF, ANALYSE or REPAIR.
+ - Command FLOAT accepts '+' and '-' to print the nearest successor and
+   predecessor of the previous value.
+ - New command: wszst VR-CALC: Calculate a VR increment for each given delta
+   value (=VR_winner-VR_loser). Print results as table.
+ - New command: wszst VR-RACE: Print a table with VR calculations for a race.
+   Each VR is the current rating of a player.
+ - wstrt analyse StaticR.rel: Detect modifications of cannon parameters.
+ - wstrt: New option: --cannon=IDX,P1,P2,P3,P4: Define parameters of cannon
+   with index IDX (0..2).
+ - New mode for option --patch-bmg: 'REGEX=list', where LIST is a semicolon
+   separated list of "/REGEX/REPLACE/" expressions (POSIX Extended Regex).
+   See https://szs.wiimm.de/opt/patch-bmg for details.
+ - New command: wbmgt REGEXP: Test implementation of regular expressions.
+ - New tool: wlect: Manage the LE-CODE (Leserattes CT-CODE) extension.
+   TOOL IS EXPERIMENTAL AND CAN'T BE USED WITHOUT ADDITIONAL FILES!
+ - Tool wctct accept LE-BIN files (LE-CODE binaries) as input.
+ - Global option --le-code: Enable LE-CODE (Leserattes CT-CODE) support for all
+   tools. It includes option --ct-code.
+
+
+szs v2.01a r7798 - 2019-03-16
+
+ - Bug fix for BMG processing: Tools ran into endless loop, if an incorrect
+   1A-escape tells a length of zero.
+ - BMG Filter option --msg renamed to the more meaningful name --filter-bmg.
+   The old name is still available.
+ - BMG Filter option --filter-bmg=modes supports more keywords now.
+   See https://szs.wiimm.de/opt/filter-bmg for details.
+ - Option --patch-bmg=mode[cond][=param]: The new optional condition COND is
+   either '?MID' or '!MID'. In case of '?MID', the patch is only applied if
+   the message id MID already exists. In case of '!MID', the patch is only
+   applied if the message id MID does not exists.
+ - New command: wszst NAME-REF: For each BRRES file or subfile, create a name
+   based cross reference and print the result as list in selectable order.
+ - Some minor bugs on arena name replication to CT/LE slots fixed.
+ - New option: --links: Support hardlinks if creating U8 and WU8 archives.
+   Keep hardlinks if normalizing U8 and WU8 archives. On extracting, search
+   hardlinks in every archive and try to create hardlinks at local file system.
+ - KMP object database updated by CT-Wiiki.
+ - LE-CODE support completed for the moment.
+ - Support for new file format LEX (LE-CODE extension).
+   Commands for tool wlect: CREATE, CAT, DECODE, ENCODE.
+   See https://wiki.tockdom.com/wiki/LEX for LEX details.
+
+
+szs v2.01b r7802 - 2019-03-21
+
+ - Bug fix for v2.01a: The string support of the text parser had an memory
+   allocation bug. wctct uses the new string functions since v2.01 and
+   produces occasional (~25%) wrong CT-CODE files (strap files).
+
+
+szs v2.02a r7827 - 2019-05-04
+
+ - New option for wlect: --move1-tracks: Files with more than one hard link
+   are copied and removed and not moved to create an unique version of the
+   file.
+ - New assigning operator for BMG text files: "MID1 : MID2": Copy attributes
+   and text of message MID2 to message MID1. Forward and chained references
+   are allowed. Multi message ids like 'T12' are supported on both sides.
+ - New escape sequence for BMG text files: \m{a,b,...}: Each parameter is
+   interpreted as message id. If a message with given ID exists (must be
+   defined before and must not have an assigned value), then insert the text
+   of the message.
+ - New option for wszst EXTRACT: --basedir=DIRECTORY: Extract only files from
+   archives, that are below the DIRECTORY. Leading points and slashes and
+   trailing slahes are removed from the parameter. --bdir is short cut.
+ - New command: wszst XCOMMON: Scan archives and extract files from archives,
+   that are below directory 'common'. Command XCOMMON is a short cut for
+   EXTRACT --basedir=common.
+ - New command: wszst ANALYZE: Analyse track files and print result in
+   machine readable format.
+
+
+szs v2.03a r7854 - 2019-05-25
+ - Command wszst CHECK: Hints about special files in subdirectory ./Common/.
+ - Command wszst/wkmpt CHECK: Hints about special GOBJ settings, that are
+   recognized by LE-CODE only.
+ - Bug fix for wszst ANALYZE --json: Object names are enclosed by quotes now.
+ - New option: --macro-bmg=file: Load a BMG file and add or overwrite the
+   messages to the macro library. The macro library is accessed by escape
+   sequence \m{MID} as fallback.
+ - New escape sequence for BMG text files: \M{a,b,...}: Each parameter is
+   interpreted as message id. If a message with given ID is defined by the
+   macro library, then insert the text of the message.
+ - New command: wkmpt KTPT: Analyse the start positions (KMP:KTPT) and lap
+   counters (KMP:CKPT) and print a simple information list. Use enemy points
+   (KMP:ENPT) to find recommendations. This command is dedicated to LE-CODE,
+   which supports an alternative position for the finish line at the minimap.
+ - New patch option for wszst and wkmpt: --ktpt2=vector
+   Insert or replace a second KTPT. Use VECTOR as new position. Then find
+   nearest lap counter (CKPT with mode 0) and adjust position and direction.
+
+
+szs v2.04a r7864 - 2019-06-02
+
+ - New option for wszst and wimgt: --cmpr-default=rgb1[,rgb2]
+   Define 2 colors for the case, that all 16 pixels of a CMPR block are
+   transparent. The default is to calculate an average color of all
+   transparent pixels. Before v2.04 white was used.
+ - Command wszst DISTRIBUTION: Added battle arena support.
+ - Option --bmg-inline removed. It is deprecated since 2015.
+
+
+szs v2.05a r7879 - 2019-06-09
+
+ - Warnings for not supported versions and for wrong number of sections of
+   BRRES sub files (CHR, CLR, MDL, PAT, SCN, SHP, SRT and TEX) implemented.
+   Some of these invalid sub files will freeze the Wii:
+    - New command: wszst BRSUB: If no file is defined, print a table with
+      known BRRES sub files consisting of file format, version, number of
+      sections and warn message. Otherwise analyse the version number and
+      number of sections of each BRRES sub file of each source and print
+      warnings about invalid sub files. This is like command CHECK, but only
+      for BRRES sub files.
+    - Command wszst CHECK will check BRRES files now. For SZS files, all BRRES
+      sub files are checked. At the moment only valid version numbers and
+      number of sections are tested.
+    - Command wszst LIST: If displaying version numbers, invalid version
+      numbers for BRRES sub files will be marked by an appended "!" and
+      highlighted by magenta background if colors are activated.
+ - Bug fix for wszst DISTRIBUTION: Scanning of slot numbers failed.
+ - Option --ktpt2 accepts keyword AUTO now and calculates the position
+   automatically. The result is the recommendation of command wkmpt KTPT.
+
+
+szs v2.06a r7905 - 2019-07-01
+
+ - Bug fix for wszst CHECK: The summary will include BRRES error counters now.
+   A summary line is also printed, if a standalone BRRES file is checked.
+ - New command: wlect DL: Short cut for: wlect DUMP --long
+ - New command: wlect DLL: Short cut for: wlect DUMP --long --long
+ - Tool wlect: Option --perf-mon=FORCE enables performance counter for Dolphin.
+ - Command wlect DUMP --verbose: Slot usage map is colored now.
+ - Command wszst ANALYZE prints more details now.
+ - CT-CODE definition files: Added additional and optional field IDENTIFIER to
+   optimize track-to-cup references.
+ - Support for outdated LE-CODE phase 1 removed.
+ - Bug fix for option --ktpt2: KMP is marked as modified now, so that the
+   KMP of the source file is updated..
+ - Support of files ObjFlow.bin and GeoHitTable*.bin (binary and text).
+ - New commands: wszst BINARY and wszst TEXT: Both commands work like the
+   ENCODE and DECODE commands of the other tools. The main idea is to support
+   simple text-to-binary and binary-to-text conversions of new file formats by
+   tool wszst instead of creating own tools for every new file format.
+    - Command wszst BINARY: Read each source file (binary or text, but not an
+      archive) and write it as binary file.
+    - Command wszst TEXT: Read each source file (binary or text, but not an
+      archive) and write it as text file.
+    - Currently supported file formats are BMG, GEOHIT, KCL, KMP, LEX,
+      OBJFLOW, PAT and the related text formats.
+ - New option: wszst --delta: Print only modified records on text output.
+   Supported file formats until now: GEOHIT, OBJFLOW
+
+
+szs v2.07a r7960 - 2019-08-30
+
+ - New file formats to distinguish GeoHitTable*.bin (standard variant) from
+   GeoHitTable*Obj.bin ("Obj" variant).
+ - Command wszst TEXT for OBJFLOW and GEOHIT updated to support new file
+   formats and new features.
+ - If extracting an U8 or WU8 archive, then course.kcl.*, course.kmp.txt and
+   course.lex.txt are always added to the exclude list of control file
+   wszst-setup.txt. Files course.kcl, course.kmp and course.lex are added to
+   the encode list. Before the files were only added, if the binary file
+   exists and option --decode was set.
+ - Command wlect CREATE CANNON: Create a LEX text file with cannon section
+   only.
+ - Command wszst ANALYZE updated to support calculated attributes of tracks
+   for web site https://ct.wiimm.de/
+ - BMG section INF1: Maximum attribute length increased from 16 to 32 bytes.
+ - BMG: The tools support only BMG encoding #2 (UTF-16/be) fully. Encoding #1
+   (CP1252) can be read, but not be stored as binary BMG file. Error messages
+   are printed for unsupported encodings.
+ - BMG: Unknown parameters of sections INF1 and MID1 are scanned and written.
+ - New BMG option: --bmg-encoding=NAME: Force a BMG encoding. It is only
+   relevant if creating a BMG file. Accepted encoding names are: CP-1252,
+   UTF-16BE (or UTF-16), SHIFT-JIS, UTF-8 and AUTO for automatic detection
+   (default). Same keywords without minus signs are accepted too.
+   At the moment, only encodings CP-1252 and UTF-16BE are supported on reading
+   and only encoding UTF-16BE on writing a binary BMG. MKWii uses UTF-16BE.
+ - New command: wbmgt EXTRACT name source: Extract BMG section NAME of file
+   SOURCE and write the binary data to standard output. If NAME consists of
+   less than 4 characters, then the first section that starts with these
+   characters is dumped.
+ - New command: wbmgt SECTIONS source...: List all sections of each binary
+   BMG file. Print offset, size, magic and a short info. If known, print
+   number and size of elements too.
+
+
+szs v2.08a r7979 - 2019-09-05
+
+ - BMG: Encoding of types CP1252, UTF-16be, Shift-JIS and UTF-8 are fully
+   supported now.
+ - New command: wbmgt SLOTS source...: Print a slot ordered list with slot
+   number, message id, delta and attributes.
+ - BMG supports predifined slots now. These slot assignments are detected
+   automatically while reading binary BMG files. Slot assignments are saved to
+   and scanned from BMG text files.
+ - BMG text files: Each message ID can be followed by '@SLOT' to force a slot
+   number for the message.
+ - BMG: Unknown sections are stored as hex dumps into BMG text files. The hex
+   dumps can be edited and are scanned on reading. Each section is started by
+   parameter "@SECTION NAME".
+ - BMG section INF1: Maximum attribute length increased from 32 to 40 bytes.
+
+
+szs v2.09a r8000 - 2019-09-24
+
+ - BMG section "STR1" detected, but not supported. Metrics are displayed.
+ - Commands wszst BINARY/TEXT: Full support of files minigame.kmg and
+   ItemSlot.bin (binary and text).
+ - Command wszst ANALYZE returns 5 different SHA1 checksums now.
+
+
+szs v2.10a r8023 - 2019-11-23
+
+ - Command wszst TRACKS: More options.
+ - Command wszst ANALYZE: More results.
+ - wszst ANALYSE + Check KMP: Analysis of KTPT, ENPT and ITPT to find values
+   outside range +-131071 where items can not be used online.
+ - Text export of ItemSlot.bin: A comment column with row summaries added.
+ - Cygwin (Windows) version: Updated color support again.
+
+
+szs v2.11a r8074 - 2020-01-18
+
+ - wszst ANALYSE --sh --array: Output format fixed.
+ - New keywords for option --filter-bmg: ALLCODE, ALLCUPS, ALLTRACKS,
+   ALLARENAS and ALLREFS.
+ - The optional parameter of option --le-code (LE-CODE phase) is deprecated
+   and ignored. From now on, option --le-code always enables LE-CODE (phase 2)
+   and CT-CODE support.
+ - Deprecated and useless option --smart removed.
+ - KMP/GOBJ, ID: Support of objects flags in bits 10-15 (0xfc00) for LE-CODE.
+ - File course.lex: Support of new section TEST. It forces game modes like
+   "Online, 12 players, itemrain" to test them in standard offline versus.
+ - wlect CREATE: New keywords. Call the command without keyword to get a list.
+ - wszst+wlect: New options to create, modify or delete course.lex and/or LEX
+   section TEST: --lt-clear, --lt-online, --lt-n-players and --lt-game-mode.
+   So patching a track file to test special conditions becomes easy.
+ - General support of 'extended presence flags'.
+    - KMP/GOBJ: Detect definition-objects and references.
+    - New commands for KMP/GOBJ for easier handling: $DEFOBJ-RACE and
+      $DEFOBJ-BATTLE define a definition-objects. $REFERENCE defines a
+      reference (ref_id and mode=1) for the previous defined object.
+    - Hints and warnings about extended objects.
+ - New command: wkmpt GAMEMODES: Analyze the presence flags combinations with
+   and without extension support and print a list.
+ - New command: wszst DUPLICATE: It reads a single track file and duplicates
+   it several times. Therefor it analyzes the presence flags combinations with
+   and without extension support and creates one file for each relevant
+   scenario. A LEX section TEST will be inserted to force the execution mode
+   for offline tests.
+ - New option for commands wkmpt GAMEMODES and wszst DUPLICATE:
+   --gamemodes=list: Select game modes for the list.
+ - See https://wiki.tockdom.com/wiki/Extension_of_Presence_Flags for details
+   about the new Extension of Presence Flags.
+ - Scanning a KMP file now takes into account the new information about the
+   length of the file header.
+
+
+szs v2.11b r8079 - 2020-01-20
+
+ - XPF, hard coded conditions: New conditions added. Gaps in list removed.
+   Order changed. These changes invalidate binary KMP files with hard coded
+   conditions created by previous v2.11a.
+ - Small text corrections in the new texts of the previous version.
+
+
+szs v2.12a r8129 - 2020-02-07
+
+ - Parser: Bug fix for shift-right operator if shifted value is an integer.
+ - If using --force or --kmp=force, the KMP scanner ignores the size stored in
+   the file header and uses the file size instead.
+ - New command: wkmpt diff: Compare the KMP of two or more sources (KMP,
+   KMP-text or SZS). Each KMP will be converted into the internal format,
+   fixed and patched controlled by options. The known sections are compared,
+   some of them sorted before.
+ - New option to support wkmpt diff: --diff=list: List of KMP sections names
+   that should be compared. Additional keywords possible.
+ - New option to support wkmpt diff: --epsilon=float: When comparing floating
+   point numbers, 2 numbers are considered identical if their difference is
+   less than or equal to epsilon.
+ - New option: --repair-xpflags: Load a KMP file and use it to repair the
+   settings of the extended presence flags, if they are destroyed by another
+   KMP tool. --repxpf is a short cut for this option.
+ - Option --auto-add was broken for objects, if flags (bits 10-12) were set.
+   Bit 12 is used by extended presence flags (XPF).
+ - Support of random selections of KMP/GOBJ objects:
+    - 6 random scenarios supported.
+    - New keyword for option --gamemodes: RANDOM.
+    - Command wkmpt GAMEMODES can list and command wszst DUPLICATE can create
+      up to 1573 variants now.
+    - Added a LEX/TEST parameter to force a random mode for testing.
+ - New LEX section SET1 for various settings. The first parameter defines 3
+   factors to increase the range for items outside -131071 and +131071.
+ - New LEX section HIPT: Define places, where the position tracker is hidden.
+
+
+szs v2.12b r8135 - 2020-02-09
+
+ - Bug fixes for LEX parser:
+    - Section TEST: Parameter @ENGINE wasn't implemented.
+    - Symbols LEX$OO_AUTO and LEX$GM_AUTO were not defined.
+ - New option: --lex-purge: Delete LEX sections without any impact. Delete
+   sub-file course.lex if it no longer contains a section.
+ - Tool wstrt option --clean-dol: HTTPS modifications are now also reset.
+
+
+szs v2.13a r8146 - 2020-02-15
+
+ - XPF: Added support for negation flag of references to definition objects.
+ - New keywords for option --kmp:
+    - RM-LECODE: Remove all objects from section GOBJ, that are only relevant
+      for LE-CODE. The result is a minimized section for standard code.
+    - PURGE-GOBJ: Remove all objects from section GOBJ that are neither a
+      valid object nor a definiton object for LE-CODE.
+ - wszst ANALYSE + Check KMP: Analysis of KTPT, ENPT and ITPT to find values
+   outside range +-131071 where items can not be used online. Additionally a
+   recommendation for using option --shift and/or LEX section SET1 is printed.
+
+
+szs v2.14a r8160 - 2020-02-29
+
+ - KMP text processor: Settings of definition objects are printed in hex now.
+ - Bug fix for KMP text parser: It created incorrect conditions if definition
+   objects were defined in combination with $DISABLE or $ENABLE commands.
+ - Bug fix for wstrt option --add-section=GCT: Crashed for some invalid cheat
+   codes (Cygwin only).
+ - Recommendation for option --shift item pos factors (LEX:SET1) optimized.
+ - wimgt COPY: Option --overwrite is set implicitly now.
+
+
+szs v2.15a r8176 - 2020-04-03
+
+ - KTPT is not longer used to find values outside range +-131071 where items
+   can not be used online.
+ - Text parser: Fixed different bugs for data type 'string'.
+ - Slot recommendations now ignore the objects deactivated by presence flags.
+ - Chat in private rooms: Each special function can be assigned to any chat
+   message, and also to more than 1 message. Before, the function werde hard
+   coded to some messages. Current modes:
+    - Host selects track.
+    - Karts or bikes only.
+    - Force engine class.
+    - Select number of races between 1 and 512.
+ - Support of new text file format LPAR to manage LE-CODE parameters by file
+   instead of options. This includes the support of the new parameters for
+   chat message modes:
+    - wlect CREATE lpar: Create a standard LPAR text file.
+    - wlect LPAR: Read LE-CODE binary and export the parameters as LPAR file.
+    - wlect DUMP: New section for "Special chat messages".
+    - Option --lpar: Read a LPAR file to patch the current settings.
+
+
+szs v2.16a r8184 - 2020-04-09
+
+ - All commands, that create LPAR files, accept option --no-header (-H) and
+   option --brief (-B) now.
+ - More built-in explanations in new LPAR files.
+
+
+szs v2.17a r8204 - 2020-05-12
+
+ - Command wszst DISTRIBUTION: New track attribute FILL to mark a track as
+   filler (some tracks are needed to fill the last cups).
+ - LPAR BLOCK-TRACK: Block previously used tracks for the next 0-50 races.
+ - LPAR: More chat messages and up to 2 modes for each chat message.
+ - Object files of CommonObj*.szs are included into the internal object
+   library and added to auto-add library.
+ - Objects 'VolcanoPiece', 'bblock' and 'RM_ring1': Setting #1 is evaluated to
+   find missed files. This has impact to command CHECK and option --auto-add.
+
+
+szs v2.18a r8217 - 2020-06-28
+
+ - wszst/wkmpt CHECK: Hints about self linked item routes and item routes with
+   exact 1 point. A warning is printed when both events apply for same route.
+ - Bug fix: The number of tables is set to 6 if writing a short binary
+   item-slot file (without tables for battles).
+ - wszst TEXT/BINARY: New options to patch KMG files: --kmg-limit=seconds to
+   limit the run time of battles and --kmg-copy=id to copy one slot definition
+   to the 9 other slots.
+ - Leseratte and I analysed the MKW internal VR calculations and adapted the
+   results into the tools. So the calculations are 100% identical now.
+ - Command wszst VR-RACE supports now up to 30 players for the VR calculation.
+ - KMP/CAME type 6 and the related route is excluded from any transformation.
+
+
+szs v2.19a r8237 - 2020-08-01
+
+ - Bug fix: Tool wlect didn't read the second chat message functions from
+   binary LE-CODE files.
+ - Support of an old GameCube BMG variant (internally named "legacy").
+ - Check minimap: Bones 'posRU' and 'posLD' are detected even if the root bone
+   is renamed. This suppresses wrong warnings.
+
+
+szs v2.19b r8243 - 2020-08-03
+
+ - Bug fix for wlect LPAR: Message functions are not longer printed twice.
+
+
+szs v2.20a r8279 - 2020-10-03
+
+ - Time stamps of the files are now managed in nanoseconds instead of seconds.
+ - wszst ANALYSE: New result "warn=": Print warnings about Item Position Bug
+   and self linked item routes with 1 point.
+ - wszst CHECK: Hints about unusual TEX version 1 are suppressed now if option
+   --verbose is not set.
+ - Fewer program crashes when reading faulty SZS files.
+
+
+szs v2.21a r8311 - 2020-11-30
+
+ - Windows only: 32 bit and 64 bit versions of Cygwin are supported now.
+   The 64 bit version is recommended.
+    - 32 bit version: Cygwin DLL 3.0.7 / 2019-04-30
+    - 64 bit version: Cygwin DLL 3.1.7 / 2020-08-22
+ - Support of LE-CODE build 25:
+    - Speedometer support for LPAR-files.
+    - New option for wlect: --speedometer=off/on
+ - Again fewer program crashes when reading faulty SZS files.
+ - BMG supports little endian files now, but only encoding UTF-8 was checked.
+   I need example files to verify other encodings (CP-1252,UTF-16,SHIFT-JIS).
+ - KCL/OBJ: Faces with any number of vertices are accepted now. Before there
+   was a limit of 50 vertices.
+ - Bug fix for CT-CODE/LE-CODE configuration file: Command 'S' stored a slot
+   number as single byte, so that only values between 0 and 255 were possible.
+
+
+szs v2.22a r8323 - 2020-12-26
+
+ - KMP/AREA: The table layout of text output changed. Therefor parameter
+   @REVISION is important to select the correct scanning mode.
+ - KMP/AREA: Detection of "Conditional Out of Bounds".
+ - Bug fix for tool wlect: Coping/Moving/Linking source file with options
+   --copy-tracks, --move-tracks and --link-tracks failed for *_d.files.
+
+
+szs v2.23a r8357 - 2021-02-03
+
+ - Bug fix for option --le-define=FILE, if FILE is a lecode binary. In this
+   case, the special functions of chat messages are copied now.
+ - wszst ANALYSE: Detection of additional files (like ObjFlow.bin) that have
+   not been changed.
+ - MAC support improved.
+
+
+szs v2.24a r8414 - 2021-04-07
+
+ - The tools support a configuration file now to define different paths.
+   Therefor the file "wiimms-szs-tools.conf" is searched in different
+   directories.
+    - Option --config=file allows to define a specific config file.
+    - Command CONFIG (available for all tools) prints an information about
+      searching and the final settings.
+    - wszst CONFIG can export configuration settings for scripts.
+    - wszst CONFIG can create new or updated configuration files.
+ - wszst ANALYZE:
+    - Behavior changed for item position bug.
+    - Print item position factors.
+    - New warning if minimap is missed.
+    - Detect AIParam.
+ - Support of LE-CODE build 28.
+ - Speedometer settings changed. It is either disabled or enabled with or
+   without fraction (up to 3 digits).
+ - wlect option --speedometer=modus accpets now parameters OFF, AUTO, ON,
+   FRACTION (=1DIGIT), 2DIGITS and 3DIGITS.
+ - LE-CODE supports debug output while racing. LPAR parameter DEBUG, LPAR
+   sections [DEBUG-*] and wlect option --debug define the output format.
+   See https://wiki.tockdom.com/wiki/LPAR#debug for details.
+ - Wiimm's Item Cheat has been integrated into LE-CODE. It is enabled by a
+   LPAR setting and supports Wiimote+Nunchuk, Classic Controller and GCN
+   Controller for all 4 regions.
+ - Bug fix for CT-CODE/LE-CODE configuration file: In v2.21a command 'S' was
+   modified to accept 16 bit slot numbers. And here a copy bug is fixed now.
+ - Mac: Universal binaries for i386, x86_64 and arm64.
+
+
+szs v2.25a r8443 - 2021-04-24
+
+ - Bug fix: If creating a LPAR file, a parameter with name ITEM-CHEATS was
+   printed. But tool wlect accepted only ITEM-CHEAT (without leading 'S').
+ - Bug fix: Since previous version the tools recomended slots 3.1 + 6.2 + 7.1
+   for some tracks.
+ - New command: wstrt WHERE address...: The segment in which the specified
+   addresses are located is calculated for each region.
+ - New command: wstrt PORT ...: Port addresses from one region to all others.
+ - Mac support improved. Universal binaries for x86_64 and arm64.
+ - Support of LE-CODE build 29.
+
+
+szs v2.26a r8462 - 2021-05-08
+
+ - wstrt PORT & wstrt WHERE:
+    - Address scanning: If an address starts with letter 'm' or 'M' (main.dol)
+      or 's' or 'S' (staticr.rel), then it is interpreted as file offset.
+      If an address without prefix is exact 6 characters long, then value
+      0x80000000 is added. This makes cut+paste from cheat codes easier.
+    - New option: --no-0x (short: -0): Suppress 0x prefix for hex numbers.
+    - New option: --long (short: -l): Print file offsets too.
+ - wstrt PORT:
+    - Bug fix: Wrong column was highlighted when region order was changed by
+      option --order.
+    - Internal porting database updated.
+    - New option: --port-db=file: Load the specified update file and replace
+      the internal porting database.
+ - wstrt DUMP: More details for StaticR.rel files.
+ - New command: wszst INSTALL: Install files to the shared directory.
+
+
+szs v2.27a r8529 - 2022-05-13
+
+ - New parameter for LEX section SET1: START-ITEM: Declare that a player can
+   get an item through an item box before race start.
+ - wszst ANALYSE: LEX:SET1:START-ITEM is recognized and evaluated.
+ - wstrt PORT+WHERE: Use new option --upper (-U) to force upper case digits in
+   hex numbers.
+ - wstrt PORT: Ported cheat codes are always printed with upper case digits
+   and without 0x prefix.
+ - wstrt PORT: Porting database updated. Many false records removed by
+   updated generator script.
+ - Fewer program crashes when reading faulty SZS files.
+ - New section [SETUP-ARENA] for LE-CODE definition files: Define music and
+   property slots for battle arenas.
+ - New global option: --warn=LIST (short -W LIST): Enable or disable warnings.
+ - New command: wkclt SHA1: Print a SHA1 checksum of the KCL for each source.
+   The checksum is calculated after patching.
+ - New command: wkclt TYPES: Scan KCL types from command line in different
+   variants and print the result as flag, type, value and groups W, X, Y & Z.
+ - New command: wszst IS-TEXTURE: Test tracks to see if it's a texture hack.
+ - wszst ANALYZE: Detect goombas with scale other than 1.00.
+
+
+szs v2.27b r8534 - 2022-05-22
+
+ - Bug fix for scanning DEBUG-* sections of LPAR.txt: Parameters ITEM-POINT and
+   KCL-TYPE were not recognized.
+
+
+szs v2.28a.beta r8612 - 2022-07-09
+
+ - There is a new property for parsing the command line. In a preliminary
+   step, the options "-@FILENAME" (1 argument) and "-@ FILENAME" (2 arguments)
+   are searched. Each occurrence is replaced by the contents of file FILENAME,
+   which again may contain "-@...". The maximum recursion depth is 10.
+   Wildcard patterns are not resolved.
+ - New command for all tools: EXPAND: All parameters are treated as a filename
+   with wildcards and all matching files are searched.
+ - New command: wszst SPLIT: Analyse (file) names and split them into the
+   different parts. Print the results in machine readable format.
+ - Command wlect CREATE re-implemented. Type 'wlect create help' for details.
+ - New command: wlect DISTRIBUTION: The command manages data for LE-CODE track
+   distributions. It reads any number of source files with different file
+   types, collects the data and creates any number of files with different
+   file types. Type 'wlect distribution' without arguments to get details.
+ - New file formats to support wlect DISTRIBUTION: LE-DEF, LE-DIS, LE-REF,
+   LE-STR, SHA1REF and PREFIX.
+
+
+szs v2.28a.beta2 r8627 - 2022-08-06
+
+ - There is a new LEX section called "FEAT". It declares the special features
+   of a track file. CTGP-R uses this declaration to manage ghost.
+    - Command "wszst FEATURES" prints the feature list to standard output.
+    - Command "wlect CREATE FEAT" creates a LEX template with section FEAT.
+    - Patching option --lex-features adds or updates LEX section FEAT if any
+      relevant feature is set.
+    - Patching option --lex-rm-features removes LEX section FEAT.
+ - Continuing the implementation of wlect DISTRIBUTION:
+    - Fixed a use after free bug (Cygwin only, fixed with r8614).
+    - Export of prefix list supports color_index now.
+    - Improved filename normalisation (Cygwin only).
+    - The file formats LE-REF and LE-DIS changed. They are *NOT* compatible
+      to v2.28a.beta.
+    - Support of lap count and speed factor for file formats LE-DEF and LE-REF.
+    - New instruction: SEPARATOR=string. Define a separator that is used by
+      other instructions (e.g. COPY=).
+    - New instruction: SPLIT=DEST,SRC,FORMAT.
+      Visit https://szs.wiimm.de/opt/printf for details.
+ - New option: wszst SPLIT --printf=format: Use the split filename to create
+   a formatted string. See https://szs.wiimm.de/opt/printf for details.
+
+
+szs v2.28a r8636 - 2022-08-27
+
+ - Continuing the implementation of LEX/FEAT:
+    - Command wszst FEATURES: Options for value 3 (impact) are printed always.
+    - Option --print-modes removed.
+    - Option --long (-l and -ll) used to append human readable flags.
+ - wlect DISTRIBUTION: Minor optimizations.
+ - Updated internal prefix database.
+ - Tool wstrt: Option --add-section=PATH supports now wildcards. In this case
+   PATH is used as search pattern and all found files are added. In order to
+   use this variant, the calling shell must not interpret the wildcards.
+   Therefore, PATH must usually be enclosed in single or double quotes.
+ - Bug fix: Option --all-ranks accepts keyword RESTORE now. Due to a spelling
+   mistake, only RETORE was recognized so far.
+
+
+szs v2.29a r8691 - 2022-10-27
+
+ - Updated prefix, object and porting databases.
+ - Updated integrated LE-CODE binaries to v4 build 34.
+ - Support of LE-CODE v4.b34 with 8-bits flags and v5.b35 with 16-bits flags.
+ - Added LE-CODE protection against changes by SZS tools that are too old.
+ - LPAR: Support of new features BT-TEXTURES, VS-TEXTURES and BLOCK-TEXTURES.
+ - Bug fix: If creating a LPAR file (by "wlect create lpar" or by decoding),
+   some lines are terminated by LF instead of CR+LF. This could lead to
+   problems with some Windows editors and other Windows programs.
+ - Bug fix: The wildcard ** did not work correctly. The recursion depth was
+   always 1 level higher than specified. So level 0 was never possible.
+   See https://szs.wiimm.de/doc/wildcards#2stars for details.
+ - wszst ANALYZE:
+    - Added support for LE-CODE binaries.
+    - A track can be valid, even if vrcorn_model.brres is missed.
+    - Support of edit-slot ('e12' or 'ea12').
+ - wszst SPLIT: Added support for "(author1,author2,,editor1,editor2)",
+   LE-CODE flags + group, order by attribute, and for track category.
+ - New file type: MTCAT: Import and export 'MKW Track Category' files.
+
+
+szs v2.29b r8696 - 2022-10-28
+
+ - Removed a forgotten debug instruction, that created file _trace-wszst.tmp
+   when reading a LE-CODE binary file of version 4 (builds up to 34).
+ - wszst ANALYZE lecode: Changed output names.
+
+
+szs v2.30a r8708 - 2022-11-11
+
+ - Command "wlect DUMP":
+    - Accept option --brief to print file header of LE-CODE binaries only.
+    - New command "wlect DB" is a short cut for "wlect DUMP --brief".
+    - New command "wlect DLLL" is a short cut for "wlect DUMP -lll".
+    - Fixed some issues if displaying LE-CODE v5 dates.
+    - Dump of LE-CODE binaries improved.
+ - Command "wlect DISTRIB":
+    - Fixed support for random slots in cups.
+    - Updated distribution generator "distrib=...".
+    - New processing option: +CUT-ALL.
+ - File format #LE-DEF:
+    - Section [TRACK-LIST]: New instruction IGNORE-SLOT to ignore SLOT
+      instructions. When exporting, SLOT instructions are now inserted so that
+      an identical track distribution is achieved when reading in.
+    - Section [CUP-LIST]: New instructions APPEND-BT and APPEND-VS to force
+      the cup type (battle or versus). This is important for random tracks.
+
+
+szs v2.31a r8725 - 2022-12-16
+
+ - Updated integrated LE-CODE binaries to v5 build 36.
+ - LPAR: Official support of new features BT-WORLDWIDE and VS-WORLDWIDE. This
+   was already implemented hidden in version v2.29a.
+ - File format LE-DEF: Instructions STANDARD-BATTLE-ARENAS and/or
+   STANDARD-VERSUS-TRACKS will be executed automatically if no other battle
+   arena or no other versus track are defined.
+ - wlect DISTRIB:
+    - Bug fix: Random slots are ignored now if adding missed tracks to cups.
+    - Fixed import of LE-CODE binaries without standard tracks.
+    - New instructions: CUP-ICONS, CUP-INFO (both are experimental).
+    - New processing option OUT-DUMMY to accept/ignore generic dummy names.
+ - Tool wimgt supports generic images. The main application is the creation of
+   cup-icons, as used e.g. by MKW-Fun. At the moment only an incomplete
+   documentation is available at https://szs.wiimm.de/doc/genericimg .
+
+
+szs v2.32a r8742 - 2022-12-25
+
+ - wszst SPLIT: New output record: distrib_flags="number flags".
+ - wlect DISTRIB:
+    - Instructions cup-icons= and cup-info=:
+       - By default, 5 characters are used for the name part. The source can
+	 now be specified as an optional storage indicator.
+       - Fixed some issues.
+    - Instruction distrib=: Improved track list.
+    - New instruction report=: Analyse the distribution and print a report.
+ - Tool wimgt: Improved generic images.
+ - Fixed some pager and color issues.
+
+
+szs v2.33a r8773 - 2023-01-14
+
+ - Fixed a bug that probably exists since v2.29a: Using option --auto-add with
+   SZS files with unusal or empty sub-files could cause a crash in certain
+   circumstances.
+ - Updated prefix database (added MP7).
+ - Optimized spacing of fonts for cup icons.
+ - wszst LIST including all short cuts like 'wszst LLL':
+    - Wildcards are accepted as source. See https://szs.wiimm.de/doc/wildcards
+      for details. After evaluating the wildcards, all input files are sorted
+      according to their path. Duplicates are remove from the list.
+    - Option --in-order: Display the input files in order of the command line
+      and don't delete duplicates.
+    - Tuned table output.
+ - wszst PATCH:
+    - Wildcards are accepted as source. See https://szs.wiimm.de/doc/wildcards
+      for details.
+    - New option --no-copy: Don't copy a file if it was not modified.
+    - New option --le-menu: Patch SZS files from directory .../Scene/UI/ to
+      change the menu as required by LE-CODE to be able to select tracks from
+      more than 8 cups.
+    - New option --title-screen=dir: Specify a directory from which to search
+      and replace title screens. Title screens only appear in the file
+      'Title.szs' and there in the sub-directory './title/timg/'.
+    - New option --cup-icons=file: Load given image, convert it to TPL.CMPR
+      and add the result as sub-files 'button/timg/ct_icons.tpl' and as
+      'control/timg/ct_icons.tpl' to files 'Channel.szs', 'MenuMulti.szs' and
+      'MenuSingle.szs'.
+ - wlect DISTRIB:
+    - If a filename beginns with a plus sign, the plus sign is removed and the
+      output file is opened in append mode.
+    - If an output file is opened for the second time, then it is
+      automatically opened in append mode.
+    - Instruction report=: Added methods of analysis: CLASSES, XCLASSES.
+ - New command: wszst UI-CHECK: Classify SZS files from directory ./Scene/UI/.
+   For the analysis, the filename is ignored and only the content is examined.
+   Wildcards and option --in-order are supported.
+ - New option: wszst --parallel: Tell the tool that it will be called multiple
+   times in parallel. Currently it only has an effect if --cache is enabled.
+ - New LPAR setting: STATICR-POINTS.
+ - All tools: Command V is a well defined short cut for command VERSION.
+
+
+szs v2.34a r8786 - 2023-05-28
+
+ - Windows only: Updated 64 bit version of Cygwin to DLL 3.4.3 / 2022-12-16.
+ - GNU Compiler (GNUC) upto version 13 supported.
+ - wstrt PORT: Updated porting database.
+ - Updated prefix database:
+    - Added LBPK, M&SOWG, MP5, MP6, MSS, S1, S2, S3 and WFUS.
+    - Renamed RV to Re-Volt
+ - wszst PATCH --ignore: Keep silent if a wildcard pattern matches no file.
+ - New command: wszst WILDCARDS: Each parameter is treated as a file name and
+   wildcards are expanded. Finally, one line is printed for each matched name.
+ - Tool wszst: New otpion --log-cache=file: Log some cache activities to FILE.
+ - Improved detection of invalid references in KCL octree (avoid crash).
+
+
+szs v2.35a r8801 - 2023-07-11
+
+ - Updated prefix database: Added MK8DX (alias of SW), MK8S, SBSPBfBB, SMB,
+   SMBM, TFR, ZeldaWW (alias of WW).
+ - Support for online-time-limit by LPAR and LEX:SET1.
+ - Support for new LEX section RITP (Random next-links @KMP:ITPH).
+ - Fixed end-of-line bugs in LEX text output (CR+LF required for Windows).
+ - wlect dump: Colored flags.
+
+
+szs v2.36a r8834 - 2023-07-22
+
+ - Wildcard parsing has been reworked. In particular, the pipe character is
+   now used as a special control character. In addition, the combined use with
+   sub-files has been implemented for some commands. See built-in help and
+   https://szs.wiimm.de/doc/wildcards for details.
+ - New global option --no-wildcards: Disable wildcard parsing and use each
+   filename exactly as specified.
+ - The 114 commands of the following list including their short cuts accept
+   wildcards as source now:
+    - wszst: ANALYZE AUTOADD BINARY BMG BRSUB CAT CHECK COMPRESS COPY CREATE
+	     DECOMPRESS DISTRIBUTION DUMP ENCODE EXTRACT FEATURES FILETYPE
+	     GHOST ILIST INFO INSTALL IS-ARENA IS-TEXTURE KCL KMP LEX MEMORY
+	     MINIMAP NAME-REF NORMALIZE PATCH SHA1 SLOTS SPLIT STGI TEXT
+	     UPDATE XALL XCOMMON XDECODE XEXPORT YAZDUMP
+    - wbmgt: CAT DECODE ENCODE FILETYPE LIST MIX SECTIONS PATCH SLOTS
+    - wctct: CAT CREATE DECODE DUMP FILETYPE PATCH
+    - wimgt: CONVERT COPY DECODE ENCODE FILETYPE LIST
+    - wkclt: ANALYZE BLOW CAT CFF CHECK COPY DECODE DUMP ENCODE FILETYPE
+	     FLAGS LIST SHA1 TRIANGLES
+    - wkmpt: CAT CHECK DECODE DRAW ENCODE FILETYPE GAMEMODES GOBJ KTPT ROUTES
+	     STGI
+    - wlect: CAT DECODE DUMP ENCODE FILETYPE LPAR PATCH TIMESTAMP
+    - wmdlt: CAT DECODE ENCODE FILETYPE GEOMETRY STRINGS XTEST
+    - wpatt: CAT DECODE ENCODE FILETYPE
+    - wstrt: ANALYZE DUMP EXTRACT FILETYPE HEXDUMP HTTPS PATCH
+ - Tool wszst: New option --9laps patches files Race*.szs to enable lap 9.
+   It is based on https://wiki.tockdom.com/wiki/Lap_Texture_Fix by Wingcapman.
+ - For LE-CODE developers only:
+    - LPAR:DEVELOPER-MODES can allow or forbid different developer modes.
+    - LPAR:DEV-MODE1 .. LPAR:DEV-MODE3: Define some global developer modes.
+    - New LEX section DEV1: Define some track dependent developer modes.
+
+
+szs v2.37a r8863 - 2023-09-09
+
+ - Option --max-file-size=SIZE now accepts sizes up to 2 GiB. For LTA files
+   it is automatically set to 2 GiB.
+ - New file format: LTA = LE-CODE Track Archive.
+   Sometime in the future such archives will replace the individual track
+   files to save space (smaller file list) in LE-CODE distributions. In
+   addition, common files are to be managed so that the extraction of these
+   files by the distribution creator is no longer necessary.
+ - New file format: LFL = LE-CODE File List
+   The file format was developed to store the common files in LTA files in
+   a way that LE-CODE can use easily.
+ - wlect distrib:
+    - New string type 'PATH', which manages paths to the track files.
+    - New instructions LTA=DIRECTORY and LTA-RM=DIRECTORY, which will create
+      LE-CODE Track Archives.
+ - wszst XCOMMON: If at least 1 file is extracted, then file "avail.txt" is
+   created. This helps LE-CODE to detect extracted common files, because we
+   don't know how to detect directories by LE-CODE.
+ - New LPAR setting: USE-AVAIL-TXT.
+
+
+szs v2.38a r8889 - 2023-09-22
+
+ - Windows only: Updated 64 bit version of Cygwin to DLL 3.4.9 / 2023-09-06.
+ - Bug fix for wszst COPY: All format conversion options are now evaluated.
+ - Fixed a bug that caused distribution files to be read incorrectly.
+ - New compression formats:
+    LZ:   Read and create LZ compressed files. LZ is like YAZ0 and BZ, but
+	  with LZMA compression.
+    LZMA: Read and create LZMA compressed files. Tracks compressed with LZMA
+	  are approx 40% smaller than the YAZ0 compressed tracks.
+    XZ:   Detect XZ compressed files.
+ - Formats BZIP2, LZMA and XZ are compatible with external tools like 'bzip2',
+   'lzma' and 'xz'.
+ - Files compressed with BZ, BZIP2, LZ or LZMA are transparently decompressed.
+   This means that they can be processed by all commands.
+ - New options --lz, --lzma and --wlz to force compression with new formats.
+ - LTA: Optionally, the compression method for the track files can be forced.
+   Methods YAZ0, BZ, BZIP2, LZ and LZMA are available.
+ - LTA: Maximum number of supported slots increased from 1024 to 4096.
+ - wszst --cache=dir: Cache supports YAZ0, BZIP2 and LZMA compressed files now.
+ - wlect DISTRIB --cache=dir: Use the cache if creating an LTA file when new
+   compression is forced.
+ - wszst XCOMMON: File "avail.txt" is no longer created.
+ - Removed LPAR setting USE-AVAIL-TXT.
+
+
+szs v2.39a r8904 - 2023-10-24
+
+ - Updated prefix database: Added DK, FK3D.
+ - wstrt PORT: Updated porting database.
+ - Option --cache=dir: Cache supports YAZ0, BZ (new), BZIP2, LZ (new) and LZMA
+   compressed files now.
+ - wlect distrib: New options for scanning track files. Both options make it
+   easier to import third-party distributions to create a distribution file:
+    - HEX2SLOT: If a filename of a track is a hex number with exact 3 digits,
+      then use it as slot number and force the slot for the track.
+    - NAME2SLOT: If a filename of a track is a known name like 'farm_course',
+      then use the related slot number and force the slot for the track.
+    - CT-SLOTS: The availability of slots for CT-CODE is examined.
+ - Support for cup icons with a size of 8x8 to 248x248 pixels in increments
+   of 8. Default is 128x128 pixels. 64x64 saves 75% storage space.
+ - New LEX section CTDN: Define settings for game mode countdown.
+
+
+szs v2.40a r8917 - 2023-12-31
+
+ - Updated prefix database: Added AEPP, FFPS, FNaF1..FNaF4, GDL, GM, LTR.
+ - Support of command "@? !MID" in BMG text files.
+ - wkmpt DIFF: The 16-bit value at offset 6 in all KMP section headers is now
+   also compared.
+ - The output of wszst distribution and wlect distrib distrib= have been
+   rearranged so that the most important information about the distribution
+   is now at the beginning of the file. @REFERENCE-NAME has been removed.
+ - wstrt --add-lecode: A new LE-CODE starter has been implemented to avoid
+   multiple linking when using additional REL files.
+ - New option: wstrt --add-old-lecode: Add the old LE-CODE starter.
+
+
+szs v2.40b r8923 - 2024-01-02
+
+ - Bug fix for option --add-lecode: Due to an implementation error, the option
+   was ignored.
+
+
+szs v2.41a r8953 - 2024-02-17
+ - Update to LE-CODE build 40.
+ - Updated prefix database: Added LEGO_Racers, Muppet_RM, POD, PP2WB, SR,
+   Spyro_1, Wii_U, Zelda_OoT, Zelda_TP, Zelda_WW.
+ - wszst ANALYSE prints attribute "license" if file "license.txt" is detected.
+ - File format LTA supports now an optional list with file extensions. The
+   idea is that tools show the correct file extensions without having to load
+   the entire LTA file for analysis.
+ - Command wlect DISTRIB:
+    - WU8, WBZ and WLZ files are accepted now.
+    - Support of new file type USE-LTA (redirection file for LE-CODE).
+      Instruction lta= of command wlect DISTRIB creates such a file with
+      filename lta.szs if option REDIR is set.
+    - The new processing options +PR0, +PR1 to +PR60 control the output of
+      progress messages.
+    - New options for instruction lta=: EXT, REDIR, PR0, PR1 .. PR60.
+ - Command wszst WILDCARDS supports options --sh and --bash to quote results.
+ - Command wstrt PATCH and option --add-section:
+    - GCT text files are now accepted now and converted to binary data if the
+      very first 4 characters are "#GCT".
+    - The memory map output with options -vv has been completely revised.
+ - Bug fix for commands wszst NORMALIZE and wszst PATCH: If the content has
+   not been changed, then the compression has not been checked. Therefore the
+   file was not always normalized.
+ - Bug fix for wszst PATCH: A copy to the non existing cache was created even
+   if --cache was not set.
+ - Implemented support for LE-CODE with 8192 tracks and 2048 cups. For this
+   purpose, the BMG messages for mkw-ana had to be moved to other areas.
+ - wlect dump: Warnings are issued if the tool can manage fewer LPAR settings
+   or fewer track slots than the LE-CODE image offers.
+ - New global option --le-04x: Use format %04x instead of %03x for LE-CODE
+   slots to enable uniform slot numbers if slots >4095 are used.
+ - New LPAR setting: SLOT-04X.
+
+
+szs v2.41b r8971 - 2024-02-23
+ - Cygwin only: Fixed a silent stack overflow if reordering the tracks.
+ - New image format TPLx: Technically, TPLx is a TPL file with 2 extensions.
+   The main feature is the conversion of width and height so that images with
+   a height >65535 lines can be used. Cup icons are an example of this.
+ - New virtual image type CUPICON: Alias for TPLx.CMPR.
+
+
+szs v2.42a r8989 - 2024-03-26
+
+ - Updated prefix database: Added CTGPS, EX, EXTR, GK2, GK3, GK7, HGSS, HWTA,
+   SBSPLCP, SKK, TGO. Removed LPC.
+ - Bug fix for option --lex-purge: The tools occasionally crashed when
+   attempting to delete an existing but unneeded LEX file.
+ - Added support for compression methods YBZ and YLZ (Yaz0 header, but
+   alternative compressions bzip2 or LZMA). Use one of the new options --cybz,
+   --ybz, --cylz or --ylz to select the new methods. LE-CODE supports YLZ.
+ - New option --zero (-z): This option affects the exit status of the
+   programs. Instead of an exit status, the value 0 is returned for OK. This
+   happens for notices (-v, status<15), warnings (-vv, status<29), errors
+   (-vvv, status<115) and fatal errors (-vvvv). The exit status for INTERRUPT
+   (112) is never replaced.
+ - Information only: wszst now knows 243 different options.
+
+
+Known bugs:
+
+ - Minimaps with an additional bones layer above 'posLD' and 'posRU' (e.g. for
+   scaling) are handled incorrect on auto adjusting the minimap.
+ - The tools try always to find the optimal PNG format by analyzing the main
+   image. The bug is, that mipmaps (or following images in TPL) may need a
+   different output format (for example colors instead of grayscale).
+   SOLUTION: Force an output format with for example --transform RGBA32.
+
+
+*******************************************************************************
+*******                              END                                *******
+*******************************************************************************
