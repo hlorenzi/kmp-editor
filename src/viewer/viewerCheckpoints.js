@@ -99,8 +99,8 @@ class ViewerCheckpoints
 		let panel = this.window.addPanel("Checkpoints", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
 		
-		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Checkpoint")
-		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Extend Path")
+		panel.addText(null, "<strong>Hold Shift + Click:</strong> Create Checkpoint")
+		panel.addText(null, "<strong>Hold Shift + Drag Point:</strong> Extend Path")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
 
 		panel.addCheckbox(null, "Render vertical panels", this.viewer.cfg.checkpointsEnableVerticalPanels, (x) => this.viewer.cfg.checkpointsEnableVerticalPanels = x)
@@ -625,7 +625,7 @@ class ViewerCheckpoints
 		
 		let hoveringOverElem = this.getHoveringOverElement(cameraPos, ray, distToHit)
 		
-		if (ev.altKey || (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.point.selected[hoveringOverElem.which])))
+		if (ev.shiftKey || (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.point.selected[hoveringOverElem.which])))
 			this.unselectAll()
 
 		if (ev.ctrlKey)
@@ -633,7 +633,7 @@ class ViewerCheckpoints
 		
 		if (hoveringOverElem != null)
 		{
-			if (ev.altKey)
+			if (ev.shiftKey)
 			{
 				if (hoveringOverElem.point.next.length >= this.data.checkpointPoints.maxNextNodes)
 				{
@@ -666,7 +666,7 @@ class ViewerCheckpoints
 				this.viewer.setCursor("-webkit-grabbing")
 			}
 		}
-		else if (ev.altKey)
+		else if (ev.shiftKey)
 		{
 			let newPoint = this.data.checkpointPoints.addNode()
 			

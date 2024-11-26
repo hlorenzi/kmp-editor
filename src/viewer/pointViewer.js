@@ -313,7 +313,7 @@ class PointViewer
 		
 		let hoveringOverElem = this.getHoveringOverElement(cameraPos, ray, distToHit)
 		
-		if (ev.altKey || (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.selected)))
+		if (ev.shiftKey || (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.selected)))
 			this.unselectAll()
 
 		if (ev.ctrlKey)
@@ -321,7 +321,7 @@ class PointViewer
 		
 		if (hoveringOverElem != null)
 		{
-			if (ev.altKey)
+			if (ev.shiftKey)
 			{
 				if (this.points().nodes.length >= this.points().maxNodes)
 				{
@@ -347,7 +347,7 @@ class PointViewer
 				this.viewer.setCursor("-webkit-grabbing")
 			}
 		}
-		else if (ev.altKey)
+		else if (ev.shiftKey)
 		{
 			if (this.points().nodes.length >= this.points().maxNodes)
 			{
