@@ -4,7 +4,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder",
+    "dist-unix": "electron-builder",
+    "dist-win": "electron-builder --win",
     "postinstall": "electron-builder install-app-deps"
   },
   "devDependencies": {
