@@ -35,8 +35,8 @@ class ViewerAreas extends PointViewer
 		let panel = this.window.addPanel("Area", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
         
-		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Area")
-		panel.addText(null, "<strong>Hold Alt + Drag Object:</strong> Duplicate Area")
+		panel.addText(null, "<strong>Hold Shift + Click:</strong> Create Area")
+		panel.addText(null, "<strong>Hold Shift + Drag Object:</strong> Duplicate Area")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
 
         panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
@@ -226,7 +226,7 @@ class ViewerAreas extends PointViewer
 	{
 		super.onMouseDown(ev, x, y, cameraPos, ray, hit, distToHit, mouse3DPos)
 
-		if (ev.altKey)
+		if (ev.shiftKey)
 		{
 			let newPointIndex = this.data.areaPoints.nodes.findIndex(p => p.selected)
 			if (newPointIndex > 0)

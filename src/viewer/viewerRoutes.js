@@ -29,8 +29,8 @@ class ViewerRoutes extends PathViewer
 		let panel = this.window.addPanel("Routes", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
 	
-		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Point")
-		panel.addText(null, "<strong>Hold Alt + Drag Point:</strong> Extend Path")
+		panel.addText(null, "<strong>Hold Shift + Click:</strong> Create Point")
+		panel.addText(null, "<strong>Hold Shift + Drag Point:</strong> Extend Path")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
 		panel.addSpacer(null)
 		

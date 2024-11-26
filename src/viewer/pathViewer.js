@@ -387,18 +387,18 @@ class PathViewer
 		
 		let hoveringOverElem = this.getHoveringOverElement(cameraPos, ray, distToHit)
 		
-		if (ev.altKey || (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.selected)))
+		if (ev.shiftKey || (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.selected)))
 			this.unselectAll()
 
 		if (ev.ctrlKey)
 			this.ctrlIsHeld = true
 
-		if (ev.altKey)
+		if (ev.shiftKey)
 			this.altIsHeld = true
 		
 		if (hoveringOverElem != null)
 		{
-			if (ev.altKey)
+			if (ev.shiftKey)
 			{
 				if (this.points().nodes.length >= this.points().maxNodes)
 				{
@@ -436,7 +436,7 @@ class PathViewer
 				this.viewer.setCursor("-webkit-grabbing")
 			}
 		}
-		else if (ev.altKey)
+		else if (ev.shiftKey)
 		{
 			if (this.points().nodes.length >= this.points().maxNodes)
 			{
@@ -491,7 +491,7 @@ class PathViewer
 				selectedPoints.push(point)
 			}
 			// Creating new linked point
-			if (selectedPoints.length == 1 && ev.altKey && !this.altIsHeld)
+			if (selectedPoints.length == 1 && ev.shiftKey && !this.altIsHeld)
 			{
 				if (this.points().nodes.length >= this.points().maxNodes)
 				{
@@ -519,7 +519,7 @@ class PathViewer
 				this.window.setNotSaved()
 				return
 			}
-			else if (!ev.altKey)
+			else if (!ev.shiftKey)
 			{
 				this.altIsHeld = false
 			}
