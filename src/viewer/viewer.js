@@ -366,7 +366,8 @@ class Viewer
 		let ray = this.getScreenRay(mouse.x, mouse.y)
 		let cameraPos = this.getCurrentCameraPosition()
 		
-		let doubleClick = (new Date().getTime() - this.mouseLastClickDate.getTime()) < 300
+		let clickDelta = new Date().getTime() - this.mouseLastClickDate.getTime()
+		let doubleClick = clickDelta > 5 && clickDelta < 300
 		
 		let hit = this.collision.raycast(ray.origin, ray.direction)
 		let distToHit = (hit == null ? 1000000 : hit.distScaled)
