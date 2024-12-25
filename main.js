@@ -1,16 +1,23 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
 const remoteMain = require('@electron/remote/main')
 
 const path = require('path')
 const url = require('url')
 
-let mainWindow = null
+let latestWindow = null
+
+// macOS: open file from Finder
+app.on('open-file', (ev, path) => {
+	process.argv[1] = path
+	if (latestWindow !== null)
+		createWindow()
+})
 
 remoteMain.initialize()
 
 function createWindow()
 {
-	mainWindow = new BrowserWindow({
+	latestWindow = new BrowserWindow({
 		width: 1800,
 		height: 900,
 		webPreferences: {
@@ -19,27 +26,22 @@ function createWindow()
 		}
 	})
 
-	remoteMain.enable(mainWindow.webContents)
+	remoteMain.enable(latestWindow.webContents)
 
-	mainWindow.loadURL(url.format({
+	latestWindow.loadURL(url.format({
 		pathname: path.join(__dirname, 'index.html'),
 		protocol: 'file:',
 		slashes: true
 	}))
-
-	mainWindow.on('closed', () => mainWindow = null)
 }
 
 app.on('ready', createWindow)
+ipcMain.on('new', () => {
+	process.argv.length = 1
+	createWindow()
+})
 
 app.on('window-all-closed', function()
 {
-	//if (process.platform !== "darwin")
-		app.quit()
-})
-
-app.on('activate', function()
-{
-	if (mainWindow === null)
-		createWindow()
+	app.quit()
 })

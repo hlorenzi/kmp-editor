@@ -25,7 +25,7 @@ class MainWindow
 	{
 		let menuTemplate = []
 
-		if (process.platform === "darwin") // macOS
+		if (process.platform === "darwin")
 		{
 			menuTemplate.push({ role: "appMenu" })
 		}
@@ -35,7 +35,12 @@ class MainWindow
 				label: "File",
 				submenu:
 				[
-					{ label: "New", accelerator: "CmdOrCtrl+N", click: () => this.newKmp() },
+					{ label: "New", accelerator: "CmdOrCtrl+N", click: () => {
+						if (process.platform === "darwin")
+							ipcRenderer.send('new')
+						else
+							this.newKmp()
+					}},
 					{ label: "Open...", accelerator: "CmdOrCtrl+O", click: () => this.askOpenKmp() },
 					{ type: "separator" },
 					{ label: "Save", accelerator: "CmdOrCtrl+S", click: () => this.saveKmp(this.currentKmpFilename) },
@@ -62,7 +67,13 @@ class MainWindow
 			}
 		])
 		
-		remote.Menu.setApplicationMenu(remote.Menu.buildFromTemplate(menuTemplate))
+		this.menu = remote.Menu.buildFromTemplate(menuTemplate)
+		remote.Menu.setApplicationMenu(this.menu)
+
+		if (process.platform === "darwin")
+		{
+			window.addEventListener("focus", (ev) => remote.Menu.setApplicationMenu(this.menu))
+		}
 		
 		document.body.onresize = () => this.onResize()
 		window.addEventListener("beforeunload", (ev) => this.onClose(ev))
