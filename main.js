@@ -1,14 +1,25 @@
-const { app, BrowserWindow, Menu, MenuItem, ipcMain } = require('electron')
+const { app, BrowserWindow } = require('electron')
+const remoteMain = require('@electron/remote/main')
 
 const path = require('path')
 const url = require('url')
 
 let mainWindow = null
 
+remoteMain.initialize()
 
 function createWindow()
 {
-	mainWindow = new BrowserWindow({width: 1800, height: 900})
+	mainWindow = new BrowserWindow({
+		width: 1800,
+		height: 900,
+		webPreferences: {
+			nodeIntegration: true,
+			contextIsolation: false
+		}
+	})
+
+	remoteMain.enable(mainWindow.webContents)
 
 	mainWindow.loadURL(url.format({
 		pathname: path.join(__dirname, 'index.html'),

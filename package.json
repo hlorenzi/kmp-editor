@@ -5,11 +5,12 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win",
+    "dist-unix": "electron-builder",
     "postinstall": "electron-builder install-app-deps"
   },
   "devDependencies": {
-    "electron": "^1.8.8",
-    "electron-builder": "^20.43.0"
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
   },
   "build": {
     "appId": "com.hlorenzi.kmp-editor",
@@ -20,5 +21,8 @@
         "portable"
       ]
     }
+  },
+  "dependencies": {
+    "@electron/remote": "^2.1.2"
   }
 }

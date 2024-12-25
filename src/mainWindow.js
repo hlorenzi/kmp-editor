@@ -1,4 +1,5 @@
-const { remote, ipcRenderer, screen, shell } = require("electron")
+const { ipcRenderer, screen, shell } = require("electron")
+const remote = require("@electron/remote")
 const fs = require("fs")
 const { Viewer } = require("./viewer/viewer.js")
 const { ModelBuilder } = require("./util/modelBuilder.js")
@@ -22,8 +23,14 @@ class MainWindow
 {
 	constructor()
 	{
-		let menuTemplate =
-		[
+		let menuTemplate = []
+
+		if (process.platform === "darwin") // macOS
+		{
+			menuTemplate.push({ role: "appMenu" })
+		}
+		
+		menuTemplate.push(...[
 			{
 				label: "File",
 				submenu:
@@ -53,9 +60,9 @@ class MainWindow
 					{ label: "Reload app", accelerator: "CmdOrCtrl+R", click: () => this.onReload() }
 				]
 			}
-		]
+		])
 		
-		remote.getCurrentWindow().setMenu(remote.Menu.buildFromTemplate(menuTemplate))
+		remote.Menu.setApplicationMenu(remote.Menu.buildFromTemplate(menuTemplate))
 		
 		document.body.onresize = () => this.onResize()
 		window.addEventListener("beforeunload", (ev) => this.onClose(ev))
@@ -443,7 +450,7 @@ class MainWindow
 		if (!this.askSaveChanges())
 			return
 		
-		let result = remote.dialog.showOpenDialog(remote.getCurrentWindow(), { properties: ["openFile"], filters: [{ name: "KMP Files (*.kmp)", extensions: ["kmp"] }] })
+		let result = remote.dialog.showOpenDialogSync(remote.getCurrentWindow(), { properties: ["openFile"], filters: [{ name: "KMP Files (*.kmp)", extensions: ["kmp"] }] })
 		if (result)
 			this.openKmp(result[0])
 	}
@@ -560,7 +567,7 @@ class MainWindow
 		let filters =
 			[ { name: "Supported model formats (*.obj, *.brres, *.kcl)", extensions: ["obj", "brres", "kcl"] } ]
 			
-		let result = remote.dialog.showOpenDialog({ properties: ["openFile"], filters })
+		let result = remote.dialog.showOpenDialogSync({ properties: ["openFile"], filters })
 		if (result)
 		{
 			let filename = result[0]
