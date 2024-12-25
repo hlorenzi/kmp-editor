@@ -574,7 +574,7 @@ class ViewerCheckpoints
 	
 	onKeyDown(ev)
 	{
-		if (ev.ctrlKey)
+		if (ev.ctrlKey || ev.metaKey)
 			return false
 		
 		switch (ev.key)
@@ -625,10 +625,10 @@ class ViewerCheckpoints
 		
 		let hoveringOverElem = this.getHoveringOverElement(cameraPos, ray, distToHit)
 		
-		if (ev.altKey || (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.point.selected[hoveringOverElem.which])))
+		if (ev.altKey || (!(ev.ctrlKey || ev.metaKey) && (hoveringOverElem == null || !hoveringOverElem.point.selected[hoveringOverElem.which])))
 			this.unselectAll()
 
-		if (ev.ctrlKey)
+		if (ev.ctrlKey || ev.metaKey)
 			this.multiSelect = true
 		
 		if (hoveringOverElem != null)
@@ -710,7 +710,7 @@ class ViewerCheckpoints
 			else if (lastHover != null)
 				this.viewer.render()
 		}
-		else if (ev.ctrlKey)
+		else if (ev.ctrlKey || ev.metaKey)
 		{
 			let lastHover = this.hoveringOverPoint
 			this.hoveringOverPoint = this.getHoveringOverElement(cameraPos, ray, distToHit)

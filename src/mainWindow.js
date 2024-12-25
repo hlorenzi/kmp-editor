@@ -70,7 +70,7 @@ class MainWindow
 		// To prevent strange bug with the browser undoing/redoing changes in destroyed input elements
 		document.body.onkeydown = (ev) =>
 		{
-			if (ev.ctrlKey && (ev.key == "Z" || ev.key == "z"))
+			if ((ev.ctrlKey || ev.metaKey) && (ev.key == "Z" || ev.key == "z"))
 			{
 				ev.preventDefault()
 				ev.stopPropagation()
@@ -406,7 +406,7 @@ class MainWindow
 		if (!this.currentNotSaved)
 			return true
 		
-		let result = remote.dialog.showMessageBox(remote.getCurrentWindow(),
+		let result = remote.dialog.showMessageBoxSync(remote.getCurrentWindow(),
 		{
 			type: "warning",
 			title: "Unsaved Changes",
@@ -521,7 +521,7 @@ class MainWindow
 	
 	saveKmpAs()
 	{
-		let result = remote.dialog.showSaveDialog(remote.getCurrentWindow(), { filters: [{ name: "KMP Files (*.kmp)", extensions: ["kmp"] }] })
+		let result = remote.dialog.showSaveDialogSync(remote.getCurrentWindow(), { filters: [{ name: "KMP Files (*.kmp)", extensions: ["kmp"] }] })
 		if (result)
 			return this.saveKmp(result)
 		
@@ -774,6 +774,12 @@ class Panel
 
 	addText(group, str)
 	{
+		if (process.platform === "darwin")
+		{
+			str = str.replace("Alt", "⌥")
+			str = str.replace("Ctrl", "⌘")
+		}
+
 		let div = document.createElement("div")
 		div.className = "panelRowElement"
 		

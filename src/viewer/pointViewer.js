@@ -313,10 +313,10 @@ class PointViewer
 		
 		let hoveringOverElem = this.getHoveringOverElement(cameraPos, ray, distToHit)
 		
-		if (ev.altKey || (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.selected)))
+		if (ev.altKey || (!(ev.ctrlKey || ev.metaKey) && (hoveringOverElem == null || !hoveringOverElem.selected)))
 			this.unselectAll()
 
-		if (ev.ctrlKey)
+		if (ev.ctrlKey || ev.metaKey)
 			this.ctrlIsHeld = true
 		
 		if (hoveringOverElem != null)

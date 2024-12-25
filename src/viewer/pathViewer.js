@@ -286,7 +286,7 @@ class PathViewer
 	
 	onKeyDown(ev)
 	{
-		if (this.viewer.mouseDown && !ev.ctrlKey && this.viewer.mouseAction == "move")
+		if (this.viewer.mouseDown && !(ev.ctrlKey || ev.metaKey) && this.viewer.mouseAction == "move")
 		{
 			const setAxisLocks = (s, x, y, z) =>
 			{
@@ -387,10 +387,10 @@ class PathViewer
 		
 		let hoveringOverElem = this.getHoveringOverElement(cameraPos, ray, distToHit)
 		
-		if (ev.altKey || (!ev.ctrlKey && (hoveringOverElem == null || !hoveringOverElem.selected)))
+		if (ev.altKey || (!(ev.ctrlKey || ev.metaKey) && (hoveringOverElem == null || !hoveringOverElem.selected)))
 			this.unselectAll()
 
-		if (ev.ctrlKey)
+		if (ev.ctrlKey || ev.metaKey)
 			this.ctrlIsHeld = true
 
 		if (ev.altKey)
