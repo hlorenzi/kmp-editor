@@ -348,6 +348,7 @@ class ViewerObjects extends PointViewer
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
 		
 		panel.addCheckbox(null, "Draw rotation guides", this.viewer.cfg.enableRotationRender, (x) => this.viewer.cfg.enableRotationRender = x)
+		panel.addCheckbox(null, "Use signed settings (-32768...32767)", this.viewer.cfg.objectsEnableSignedSettings, (x) => { this.viewer.cfg.objectsEnableSignedSettings = x; this.refreshPanels(); })
 		panel.addSpacer(null)
 
 		panel.addButton(null, "(A) Select/Unselect All", () => this.toggleAllSelection())
@@ -394,7 +395,10 @@ class ViewerObjects extends PointViewer
 		panel.addSelectionDropdown(selectionGroup, "Route", selectedPoints.map(p => p.routeIndex), routeOptions, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].routeIndex = x })
 		
 		for (let s = 0; s < 8; s++)
-			panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+			if (this.viewer.cfg.objectsEnableSignedSettings)
+				panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+			else
+				panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
 		
 		panel.addSelectionNumericInput(selectionGroup, "Presence", 0, 0xffff, selectedPoints.map(p => p.presence), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].presence = x })
 	}

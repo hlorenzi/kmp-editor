@@ -112,6 +112,8 @@ class MainWindow
 
 			respawnsEnablePlayerSlots: true,
 
+			objectsEnableSignedSettings: false,
+
 			cannonsEnableDirectionRender: false,
 			cannonsEnableKclHighlight: true,
 
