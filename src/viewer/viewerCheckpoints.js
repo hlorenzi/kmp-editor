@@ -159,14 +159,14 @@ class ViewerCheckpoints
 			const getCompletion = () =>
 			{
 				let maxLayer = this.data.checkpointPoints.maxLayer
-				let groupComp = selectedPoints[0].pathPointIndex / selectedPoints[0].pathLen
-				let overallComp = (groupComp + selectedPoints[0].pathLayer - 1) / maxLayer
-				return overallComp !== NaN ? (100 * overallComp).toFixed(4).toString() + "%" : "N/A"
+				let groupCompletion = selectedPoints[0].pathPointIndex / selectedPoints[0].pathLen
+				let overallCompletion = (groupCompletion + selectedPoints[0].pathLayer - 1) / maxLayer
+				return overallCompletion !== NaN ? (100 * overallCompletion).toFixed(4).toString() + "%" : "N/A"
 			}
 			
 			panel.addText(selectionGroup, "<strong>CKPH Index:</strong> " + formatNumHex(selectedPoints[0].pathIndex) + ", point #" + formatNum(selectedPoints[0].pathPointIndex))
 			panel.addText(selectionGroup, "<strong>CKPT Index:</strong> " + formatNumHex(selectedPoints[0].pointIndex))
-			// panel.addText(selectionGroup, "<strong>Group Layer:</strong> " + formatNum(selectedPoints[0].pathLayer))
+			panel.addText(selectionGroup, "<strong>Group Layer:</strong> " + formatNum(selectedPoints[0].pathLayer))
 			panel.addText(selectionGroup, "<strong>Lap Completion:</strong> " + getCompletion())
 			panel.addCheckbox(selectionGroup, "Start new checkpoint group", selectedPoints[0].firstInPath, setPath)
 		}
@@ -643,6 +643,7 @@ class ViewerCheckpoints
 
 				let newPoint = this.data.checkpointPoints.addNode()
 				newPoint.pos = [hoveringOverElem.point.pos[0], hoveringOverElem.point.pos[1]]
+				newPoint.respawnNode = hoveringOverElem.point.respawnNode
 				
 				this.data.checkpointPoints.linkNodes(hoveringOverElem.point, newPoint)
 
