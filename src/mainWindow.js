@@ -92,6 +92,7 @@ class MainWindow
 			kclEnableItemRoad: false,
 			kclEnableEffects: false,
 			kclHighlighter: 0,
+			kclTriIndex: [-1, -1],
 
 			enableRotationRender: true,
 
@@ -243,30 +244,36 @@ class MainWindow
 			{ str: "Trickable Road", value: 1 },
 			{ str: "Horizontal Walls", value: 2 },
 			{ str: "Barrel Roll Walls", value: 3 },
-			{ str: "Custom", value: 4 },
+			{ str: "Custom Flag", value: 4 },
+			{ str: "Triangle Index", value: 5 },
+			{ str: "Sloped Walls", value: 6 },
 		]
 		panel.addSelectionDropdown(kclGroup, "Highlight", this.cfg.kclHighlighter, hlOptions, true, false, (x) => { this.cfg.kclHighlighter = x; this.refreshPanels() })
 	
-		if (this.cfg.kclHighlighter == 4)
+		const onBlur = (x) =>
 		{
-			const onBlur = (x) =>
-			{
-				this.openKcl(this.currentKclFilename)
-				this.viewer.render()
-				return x
-			}
-			
+			this.openKcl(this.currentKclFilename)
+			this.viewer.render()
+			return x
+		}
+		
+		if (this.cfg.kclHighlighter === 4)
+		{	
 			let flagOptions = [{ str: "None", value: -1 }]
 			for (let i = 0; i <= 0x1f; i++)
 				flagOptions.push({ str: "(0x" + i.toString(16) + ") " + collisionTypeData[i].name, value: i })
 
 			panel.addSelectionDropdown(kclGroup, "Base Type", this.hl.baseType, flagOptions, true, false, (x, i) => { this.hl.baseType = x; onBlur(null) })
 			
-			//panel.addSelectionNumericInput(kclGroup, "Base Type", 		 -1, 0x1f, this.hl.baseType, 		1.0, 0.0, true, false, (x) => { this.hl.baseType = x 		}, onBlur)
 			panel.addSelectionNumericInput(kclGroup, "Variant", 	 	 -1, 0x7,  this.hl.basicEffect, 	1.0, 0.0, true, false, (x) => { this.hl.basicEffect = x 	}, onBlur)
 			panel.addSelectionNumericInput(kclGroup, "BLIGHT Index", 	 -1, 0x7,  this.hl.blightEffect, 	1.0, 0.0, true, false, (x) => { this.hl.blightEffect = x 	}, onBlur)
 			panel.addSelectionNumericInput(kclGroup, "Wheel Depth", 	 -1, 0x3,  this.hl.intensity, 		1.0, 0.0, true, false, (x) => { this.hl.intensity = x	 	}, onBlur)
 			panel.addSelectionNumericInput(kclGroup, "Collision Effect", -1, 0x7,  this.hl.collisionEffect, 1.0, 0.0, true, false, (x) => { this.hl.collisionEffect = x }, onBlur)
+		}
+		else if (this.cfg.kclHighlighter === 5)
+		{
+			panel.addSelectionNumericInput(kclGroup, "Tri Index Min", -1, 0xffff,  this.cfg.kclTriIndex[0], 1.0, 1.0, true, false, (x) => { this.cfg.kclTriIndex[0] = x }, onBlur)
+			panel.addSelectionNumericInput(kclGroup, "Tri Index Max", -1, 0xffff,  this.cfg.kclTriIndex[1], 1.0, 1.0, true, false, (x) => { this.cfg.kclTriIndex[1] = x }, onBlur)
 		}
 		else
 		{
