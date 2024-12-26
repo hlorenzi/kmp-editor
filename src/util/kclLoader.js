@@ -81,10 +81,14 @@ class KclLoader
 			model.addTri(new Vec3(0, 0, 0), new Vec3(1, 0, 0), new Vec3(0, 1, 0))
 			return model.calculateNormals()
 		}
+
+		let triIndex = -1;
 		
 		parser.seek(section3Offset + 0x10)
 		while (parser.head < section4Offset)
 		{
+			triIndex++
+
 			let len = parser.readFloat32()
 			let posIndex = parser.readUInt16()
 			let dirIndex = parser.readUInt16()
@@ -120,13 +124,16 @@ class KclLoader
 				continue
 			
 			let data = collisionTypeData[flagBasicType]
-
-			if (!(hl.baseType < 0 && hl.basicEffect < 0 && hl.blightEffect < 0 && hl.intensity < 0 && hl.collisionEffect < 0) &&
+			
+			let isTargetFlag = 
+				!(hl.baseType < 0 && hl.basicEffect < 0 && hl.blightEffect < 0 && hl.intensity < 0 && hl.collisionEffect < 0) &&
 				(hl.baseType == -1 || flagBasicType == hl.baseType) &&
 				(hl.basicEffect == -1 || ((collisionFlags >>> 5) & 0x7) == hl.basicEffect) &&
 				(hl.blightEffect == -1 || ((collisionFlags >>> 8) & 0x7) == hl.blightEffect) &&
 				(hl.intensity == -1 || ((collisionFlags >>> 11) & 0x3) == hl.intensity) &&
-				(hl.collisionEffect == -1 || ((collisionFlags >>> 13) & 0x7) == hl.collisionEffect))
+				(hl.collisionEffect == -1 || ((collisionFlags >>> 13) & 0x7) == hl.collisionEffect)
+
+			if (isTargetFlag || (cfg.kclTriIndex[0] <= triIndex && cfg.kclTriIndex[1] >= triIndex))
 			{
 				let color = [1, 1, 0, 1]
 				triLists[data.priority].push({ v1, v2, v3, color })
@@ -154,6 +161,10 @@ class KclLoader
 
 			if (cfg && cfg.kclHighlighter !== undefined)
 			{
+				let v1to2 = v2.sub(v1)
+				let v1to3 = v3.sub(v1)
+				let normal = v1to2.cross(v1to3).normalize()
+
 				let highlighted = false
 				switch (cfg.kclHighlighter)
 				{
@@ -162,14 +173,15 @@ class KclLoader
 						break
 
 					case 2:
-						let v1to2 = v2.sub(v1)
-						let v1to3 = v3.sub(v1)
-						let normal = v1to2.cross(v1to3).normalize()
 						highlighted = data.f.isWall && normal.dot(new Vec3(0, 0, 1)) > 0.9
 						break
 
 					case 3:
 						highlighted = data.f.isWall && collisionFlags & 0x8000
+						break
+					
+					case 6:
+						highlighted = data.f.isWall && normal.dot(new Vec3(0, 0, 1)) > 0
 						break
 				}
 
