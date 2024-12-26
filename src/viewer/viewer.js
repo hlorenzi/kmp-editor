@@ -137,12 +137,13 @@ class Viewer
 	
 	resize()
 	{
-		let rect = this.canvas.getBoundingClientRect()
+		let width = this.canvas.getBoundingClientRect().width
+		let height = window.innerHeight // client height may be erroneously larger to try to preserve original canvas aspect ratio
 		
-		this.width = this.canvas.width = rect.width
-		this.height = this.canvas.height = rect.height
+		this.width = this.canvas.width = width
+		this.height = this.canvas.height = height
 		
-		this.gl.viewport(0, 0, rect.width, rect.height)
+		this.gl.viewport(0, 0, width, height)
 	}
 	
 	
