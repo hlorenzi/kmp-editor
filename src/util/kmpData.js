@@ -1429,9 +1429,11 @@ class NodeGraph
 		let checkpointPaths = paths.filter(p => 'firstInPath' in p.nodes[0])
 		if (checkpointPaths.length > 0)
 		{
-			for (let path of checkpointPaths)
-				for (let node of path.nodes)
+			for (let group of checkpointPaths) {
+				group.layer = -1
+				for (let node of group.nodes)
 					node.pathLayer = null
+			}
 
 			const calculateGroupLayers = (group, layer) =>
 			{
@@ -1441,16 +1443,13 @@ class NodeGraph
 				if (checkpointPaths.length > 1)
 				{
 					for (let next of group.next)
-						if (!('layer' in next) || next.layer == null)
+						if (next.layer === -1)
 							calculateGroupLayers(next, layer + 1)
-					for (let prev of group.prev)
-						if (!('layer' in prev) || prev.layer == null)
-							calculateGroupLayers(prev, layer - 1)
 				}
 			}
 		
-			this.maxLayer = 1
-			calculateGroupLayers(checkpointPaths[0], 1)
+			this.maxLayer = 0
+			calculateGroupLayers(checkpointPaths[0], 0)
 		
 			for (let path of checkpointPaths)
 				for (let node of path.nodes)

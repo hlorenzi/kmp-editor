@@ -160,7 +160,7 @@ class ViewerCheckpoints
 			{
 				let maxLayer = this.data.checkpointPoints.maxLayer
 				let groupCompletion = selectedPoints[0].pathPointIndex / selectedPoints[0].pathLen
-				let overallCompletion = (groupCompletion + selectedPoints[0].pathLayer - 1) / maxLayer
+				let overallCompletion = (groupCompletion + selectedPoints[0].pathLayer) / (maxLayer + 1)
 				return overallCompletion !== NaN ? (100 * overallCompletion).toFixed(4).toString() + "%" : "N/A"
 			}
 			
