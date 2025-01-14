@@ -329,6 +329,7 @@ class ViewerObjects extends PointViewer
 	constructor(window, viewer, data)
 	{
 		super(window, viewer, data)
+		this.interCloneCount = 3
 	}
 	
 	
@@ -355,6 +356,10 @@ class ViewerObjects extends PointViewer
 		panel.addButton(null, "(T) Select All With Same ID", () => this.toggleAllSelectionByID())
 		panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
+		panel.addSpacer(null)
+		panel.addButton(null, "Add Duplicates Between 2 Selected", () => this.interClone(this.interCloneCount))
+		panel.addSelectionNumericInput(null, "Dupe Count", 1, 100, this.interCloneCount, 1, 1, true, false, (x) => { this.interCloneCount = x })
+
 		panel.addSpacer(null, 2)
 		
 		panel.addButton(null, "Open Object Database", () => this.window.openExternalLink("https://szs.wiimm.de/cgi/mkw/object"))
@@ -419,6 +424,34 @@ class ViewerObjects extends PointViewer
 			point.selected = (selectedObjs.find(p => p.id == point.id) != null)
 		
 		this.refreshPanels()
+	}
+
+	interClone(count) {
+		let selectedObjs = this.data.objects.nodes.filter(p => p.selected)
+
+		if (selectedObjs.length !== 2)
+			return
+
+		if (this.points().nodes.length + count > this.points().maxNodes)
+		{
+			alert("KMP error!\n\nMaximum number of points surpassed (" + this.points().maxNodes + ")")
+			return
+		}
+
+		let newPoints = []
+		for (let i = 0; i < count; i++)
+		{
+			newPoints.push(this.points().addNode())
+			this.points().onCloneNode(newPoints[i], selectedObjs[0])
+			newPoints[i].pos.x = (selectedObjs[0].pos.x * (i+1) + selectedObjs[1].pos.x * (count-i)) / (count+1)
+			newPoints[i].pos.y = (selectedObjs[0].pos.y * (i+1) + selectedObjs[1].pos.y * (count-i)) / (count+1)
+			newPoints[i].pos.z = (selectedObjs[0].pos.z * (i+1) + selectedObjs[1].pos.z * (count-i)) / (count+1)
+			newPoints[i].selected = true
+		}
+
+		this.refresh()
+		this.refreshPanels()
+		this.window.setNotSaved()
 	}
 	
 	
