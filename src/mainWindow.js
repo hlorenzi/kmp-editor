@@ -240,6 +240,7 @@ class MainWindow
 		panel.addSpacer(null)
 		//panel.addButton(null, "Load course_model.brres", () => this.openCourseBrres())
 		//panel.addButton(null, "Load course.kcl", () => this.openCourseKcl())
+		panel.addButton(null, "Load KMP", () => this.askOpenKmp())
 		panel.addButton(null, "Load Model", () => this.openCustomModel())
 		panel.addButton(null, "(5) Toggle Projection", () => this.cfg.useOrthoProjection = !this.cfg.useOrthoProjection)
 		panel.addButton(null, "Center view", () => this.viewer.centerView())
