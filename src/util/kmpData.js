@@ -974,6 +974,7 @@ class KmpData
 		this.objects.maxNodes = 0xffff
 		this.objects.onAddNode = (node) =>
 		{
+			node.padding = 0
 			node.pos = new Vec3(0, 0, 0)
 			node.rotation = new Vec3(0, 0, 0)
 			node.scale = new Vec3(1, 1, 1)
