@@ -6,92 +6,92 @@ const { Mat4 } = require("../math/mat4.js")
 const { Geometry } = require("../math/geometry.js")
 
 let objectNames = []
-objectNames[0x1]   = "airblock          "
-objectNames[0x2]   = "Psea              "
-objectNames[0x3]   = "lensFX            "
-objectNames[0x4]   = "venice_nami       "
-objectNames[0x5]   = "sound_river       "
-objectNames[0x6]   = "sound_water_fall  "
-objectNames[0x7]   = "pocha             "
-objectNames[0x8]   = "sound_lake        "
-objectNames[0x9]   = "sound_big_fall    "
-objectNames[0xa]   = "sound_sea         "
-objectNames[0xb]   = "sound_fountain    "
-objectNames[0xc]   = "sound_volcano     "
-objectNames[0xd]   = "sound_audience    "
-objectNames[0xe]   = "sound_big_river   "
-objectNames[0xf]   = "sound_sand_fall   "
-objectNames[0x10]  = "sound_lift        "
-objectNames[0x11]  = "pochaYogan        "
-objectNames[0x12]  = "entry             "
-objectNames[0x13]  = "pochaMori         "
-objectNames[0x14]  = "eline_control     "
-objectNames[0x15]  = "sound_Mii         "
-objectNames[0x16]  = "begoman_manager   "
-objectNames[0x17]  = "ice               "
-objectNames[0x18]  = "startline2D       "
-objectNames[0x65]  = "itembox           "
-objectNames[0x66]  = "DummyPole         "
-objectNames[0x67]  = "flag              "
-objectNames[0x68]  = "flagBlend         "
-objectNames[0x69]  = "gnd_sphere        "
-objectNames[0x6a]  = "gnd_trapezoid     "
-objectNames[0x6b]  = "gnd_wave1         "
-objectNames[0x6c]  = "gnd_wave2         "
-objectNames[0x6d]  = "gnd_wave3         "
-objectNames[0x6e]  = "gnd_wave4         "
-objectNames[0x6f]  = "sun               "
-objectNames[0x70]  = "woodbox           "
-objectNames[0x71]  = "KmoonZ            "
-objectNames[0x72]  = "sunDS             "
-objectNames[0x73]  = "coin              "
-objectNames[0x74]  = "ironbox           "
-objectNames[0x75]  = "ItemDirect        "
-objectNames[0x76]  = "s_itembox         "
-objectNames[0x77]  = "pile_coin         "
-objectNames[0xc9]  = "f_itembox         "
-objectNames[0xca]  = "MashBalloonGC     "
-objectNames[0xcb]  = "WLwallGC          "
-objectNames[0xcc]  = "CarA1             "
-objectNames[0xcd]  = "basabasa          "
-objectNames[0xce]  = "HeyhoShipGBA      "
-objectNames[0xcf]  = "koopaBall         "
-objectNames[0xd0]  = "kart_truck        "
-objectNames[0xd1]  = "car_body          "
-objectNames[0xd2]  = "skyship           "
-objectNames[0xd3]  = "w_woodbox         "
-objectNames[0xd4]  = "w_itembox         "
-objectNames[0xd5]  = "w_itemboxline     "
-objectNames[0xd6]  = "VolcanoBall1      "
-objectNames[0xd7]  = "penguin_s         "
-objectNames[0xd8]  = "penguin_m         "
-objectNames[0xd9]  = "penguin_l         "
-objectNames[0xda]  = "castleballoon1    "
-objectNames[0xdb]  = "dossunc           "
-objectNames[0xdc]  = "dossunc_soko      "
-objectNames[0xdd]  = "boble             "
-objectNames[0xde]  = "K_bomb_car        "
-objectNames[0xdf]  = "K_bomb_car_dummy  "
-objectNames[0xe0]  = "car_body_dummy    "
-objectNames[0xe1]  = "kart_truck_dummy  "
-objectNames[0xe2]  = "hanachan          "
-objectNames[0xe3]  = "seagull           "
-objectNames[0xe4]  = "moray             "
-objectNames[0xe5]  = "crab              "
-objectNames[0xe6]  = "basabasa_dummy    "
-objectNames[0xe7]  = "CarA2             "
-objectNames[0xe8]  = "CarA3             "
-objectNames[0xe9]  = "Hwanwan           "
-objectNames[0xea]  = "HeyhoBallGBA      "
-objectNames[0xeb]  = "Twanwan           "
-objectNames[0xec]  = "cruiserR          "
-objectNames[0xed]  = "bird              "
-objectNames[0xee]  = "sin_itembox       "
-objectNames[0xef]  = "Twanwan_ue        "
-objectNames[0xf0]  = "BossHanachan      "
-objectNames[0xf1]  = "Kdossunc          "
-objectNames[0xf2]  = "BossHanachanHead  "
-objectNames[0xf3]  = "K_bomb_car1       "
+objectNames[0x1] = "airblock          "
+objectNames[0x2] = "Psea              "
+objectNames[0x3] = "lensFX            "
+objectNames[0x4] = "venice_nami       "
+objectNames[0x5] = "sound_river       "
+objectNames[0x6] = "sound_water_fall  "
+objectNames[0x7] = "pocha             "
+objectNames[0x8] = "sound_lake        "
+objectNames[0x9] = "sound_big_fall    "
+objectNames[0xa] = "sound_sea         "
+objectNames[0xb] = "sound_fountain    "
+objectNames[0xc] = "sound_volcano     "
+objectNames[0xd] = "sound_audience    "
+objectNames[0xe] = "sound_big_river   "
+objectNames[0xf] = "sound_sand_fall   "
+objectNames[0x10] = "sound_lift        "
+objectNames[0x11] = "pochaYogan        "
+objectNames[0x12] = "entry             "
+objectNames[0x13] = "pochaMori         "
+objectNames[0x14] = "eline_control     "
+objectNames[0x15] = "sound_Mii         "
+objectNames[0x16] = "begoman_manager   "
+objectNames[0x17] = "ice               "
+objectNames[0x18] = "startline2D       "
+objectNames[0x65] = "itembox           "
+objectNames[0x66] = "DummyPole         "
+objectNames[0x67] = "flag              "
+objectNames[0x68] = "flagBlend         "
+objectNames[0x69] = "gnd_sphere        "
+objectNames[0x6a] = "gnd_trapezoid     "
+objectNames[0x6b] = "gnd_wave1         "
+objectNames[0x6c] = "gnd_wave2         "
+objectNames[0x6d] = "gnd_wave3         "
+objectNames[0x6e] = "gnd_wave4         "
+objectNames[0x6f] = "sun               "
+objectNames[0x70] = "woodbox           "
+objectNames[0x71] = "KmoonZ            "
+objectNames[0x72] = "sunDS             "
+objectNames[0x73] = "coin              "
+objectNames[0x74] = "ironbox           "
+objectNames[0x75] = "ItemDirect        "
+objectNames[0x76] = "s_itembox         "
+objectNames[0x77] = "pile_coin         "
+objectNames[0xc9] = "f_itembox         "
+objectNames[0xca] = "MashBalloonGC     "
+objectNames[0xcb] = "WLwallGC          "
+objectNames[0xcc] = "CarA1             "
+objectNames[0xcd] = "basabasa          "
+objectNames[0xce] = "HeyhoShipGBA      "
+objectNames[0xcf] = "koopaBall         "
+objectNames[0xd0] = "kart_truck        "
+objectNames[0xd1] = "car_body          "
+objectNames[0xd2] = "skyship           "
+objectNames[0xd3] = "w_woodbox         "
+objectNames[0xd4] = "w_itembox         "
+objectNames[0xd5] = "w_itemboxline     "
+objectNames[0xd6] = "VolcanoBall1      "
+objectNames[0xd7] = "penguin_s         "
+objectNames[0xd8] = "penguin_m         "
+objectNames[0xd9] = "penguin_l         "
+objectNames[0xda] = "castleballoon1    "
+objectNames[0xdb] = "dossunc           "
+objectNames[0xdc] = "dossunc_soko      "
+objectNames[0xdd] = "boble             "
+objectNames[0xde] = "K_bomb_car        "
+objectNames[0xdf] = "K_bomb_car_dummy  "
+objectNames[0xe0] = "car_body_dummy    "
+objectNames[0xe1] = "kart_truck_dummy  "
+objectNames[0xe2] = "hanachan          "
+objectNames[0xe3] = "seagull           "
+objectNames[0xe4] = "moray             "
+objectNames[0xe5] = "crab              "
+objectNames[0xe6] = "basabasa_dummy    "
+objectNames[0xe7] = "CarA2             "
+objectNames[0xe8] = "CarA3             "
+objectNames[0xe9] = "Hwanwan           "
+objectNames[0xea] = "HeyhoBallGBA      "
+objectNames[0xeb] = "Twanwan           "
+objectNames[0xec] = "cruiserR          "
+objectNames[0xed] = "bird              "
+objectNames[0xee] = "sin_itembox       "
+objectNames[0xef] = "Twanwan_ue        "
+objectNames[0xf0] = "BossHanachan      "
+objectNames[0xf1] = "Kdossunc          "
+objectNames[0xf2] = "BossHanachanHead  "
+objectNames[0xf3] = "K_bomb_car1       "
 objectNames[0x12d] = "dummy             "
 objectNames[0x12e] = "dokan_sfc         "
 objectNames[0x12f] = "castletree1       "
@@ -323,7 +323,49 @@ objectNames[0x2f1] = "EnvKarehaUp       "
 objectNames[0x2f2] = "M_obj_kanban_y    "
 objectNames[0x2f3] = "DKfalls           "
 
-
+/*
+list of all Objects working with COOBJ
+0x065
+0x076
+0x0CC
+0x0CD
+0x0CF
+0x0D6
+0x0DB
+0x0E3
+0x144
+0x147
+0x16D
+0x171
+0x17C
+0x17D
+0x185
+0x199
+0x1A1
+0x1A5
+0x1A8
+0x1F7
+0x1FC
+0x1FD
+0x1FE
+0x203
+0x208
+0x209
+0x212
+0x2BD
+0x2BE
+0x2BF
+0x2C3
+0x2CE
+0x2DC
+0x2DD
+0x2E3
+0x2E4
+0x2E5
+0x2E8
+0x2E9
+0x2EA
+*/
 class ViewerObjects extends PointViewer
 {
 	constructor(window, viewer, data)
@@ -370,6 +412,7 @@ class ViewerObjects extends PointViewer
 		let selectionGroup = panel.addGroup(null, "Selection:")
 		let enabled = (selectedPoints.length > 0)
 		let multiedit = (selectedPoints.length > 1)
+		
 
 		if (selectedPoints.length == 1)
 		{
@@ -378,10 +421,12 @@ class ViewerObjects extends PointViewer
 		}
 		
 		let objName = panel.addText(selectionGroup, "<strong>Name:</strong> " + (selectedPoints.length > 0 ? objectNames[selectedPoints[0].id] : ""))
-		panel.addSelectionNumericInput(selectionGroup,      "ID",        0,  0xffff, selectedPoints.map(p =>  p.id),           1.0, 1.0, enabled, multiedit, (x, i) => {
-			this.window.setNotSaved()
-			selectedPoints[i].id = x
-			objName.innerHTML = "<strong>Name:</strong> " + objectNames[x]
+		panel.addSelectionNumericInput(selectionGroup, "ID", 0, 0xffff, selectedPoints.map(p => p.id), 1.0, 1.0, enabled, multiedit, (x, i) => {
+    		this.window.setNotSaved()
+    		selectedPoints[i].id = x
+    		objName.innerHTML = "<strong>Name:</strong> " + objectNames[x]
+			}, () => {
+    		this.refresh()
 		})
 		
 		panel.addSelectionNumericInput(selectionGroup,       "X", -1000000, 1000000, selectedPoints.map(p =>  p.pos.x),       null, 100.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].pos.x = x })
@@ -399,12 +444,974 @@ class ViewerObjects extends PointViewer
 			routeOptions.push({ str: "Route " + i + " (0x" + i.toString(16) + ")", value: i })
 		panel.addSelectionDropdown(selectionGroup, "Route", selectedPoints.map(p => p.routeIndex), routeOptions, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].routeIndex = x })
 		
-		for (let s = 0; s < 8; s++)
-			if (this.viewer.cfg.objectsEnableSignedSettings)
-				panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
-			else
-				panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
-		
+		let selectionID = (enabled && selectedPoints.every(p => p.id == selectedPoints[0].id) ? selectedPoints[0].id : -1)
+		switch (selectionID)
+		{
+			case 0x4: // venice_nami
+				for (let s of [0, 1, 2, 3, 4, 5, 6])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x7: // pocha
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x11: // pochaYogan
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x13: // pochaMori
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x65: // itembox
+				for (let s of [0, 1, 2, 3, 5, 6, 7])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				panel.addSelectionNumericInput(selectionGroup, "connector")
+				break
+			case 0x70: // woodbox
+				for (let s of [1, 2, 7])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x72: // sunDS
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x73: // coin
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x76: // s_itembox
+				for (let s of [0, 1, 2, 3, 5, 6, 7])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xc9: // f_itembox
+				for (let s of [0, 1, 2, 3, 4])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xca: // MashBalloonGC
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xcb: // WLwallGC
+				for (let s of [0, 1, 2, 3, 4])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xcc: // CarA1
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xcd: // basabasa
+				for (let s of [0, 1, 2, 3, 4, 5, 6, 7])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xce: // HeyhoShipGBA
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xd0: // kart_truck
+				for (let s of [0, 1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xd1: // car_body
+				for (let s of [0, 1, 2, 3, 4])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xd2: // skyship
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xd3: // w_woodbox
+				for (let s of [0, 1, 2, 3, 4, 5, 6])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xd4: // w_itembox
+				for (let s of [0, 1, 2, 3, 4, 5, 6])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xd5: // w_itemboxline
+				for (let s of [0, 4, 5, 6])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xd6: // VolcanoBall1
+				for (let s of [0, 1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xd7: // penguin_s
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xd8: // penguin_m
+				for (let s of [0, 1, 2, 7])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xd9: // penguin_l
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xda: // castleballoon1
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xdb: // dossunc
+				for (let s of [0, 1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xdd: // boble
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xde: // K_bomb_car
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xe2: // hanachan
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xe3: // seagull
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xe4: // moray
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xe5: // crab
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xe7: // CarA2
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xe8: // CarA3
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xe9: // Hwanwan
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xea: // HeyhoBallGBA
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xeb: // Twanwan
+				for (let s of [0, 1, 2, 3, 4, 5])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xec: // cruiserR
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xed: // bird
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xee: // sin_itembox
+				for (let s of [0, 3, 4])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0xf0: // BossHanachan
+				for (let s of [0, 1, 2, 3, 4, 5, 6])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x13c: // obakeblockSFCc
+				for (let s of [1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x144: // pylon01
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x149: // heyho2
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x14c: // truckChimSmk
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x165: // monte_a
+				for (let s of [1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x16a: // Hanabi
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x16e: // r_parasol
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x16f: // obakeblock2SFCc
+				for (let s of [1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x170: // obakeblock3SFCc
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x176: // karehayama
+				for (let s of [1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x183: // Steam
+				for (let s of [1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x18b: // KoopaFigure64
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x191: // kuribo
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x192: // choropu
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x193: // cow
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x194: // pakkun_f
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x195: // WLfirebarGC
+				for (let s of [0, 1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x196: // wanwan
+				for (let s of [0, 1, 3, 4, 5, 6])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x197: // poihana
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x198: // DKrockGC
+				for (let s of [0, 1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x199: // sanbo
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x19a: // choropu2
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x19b: // TruckWagon
+				for (let s of [0, 1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x19c: // heyho
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x19d: // Press
+				for (let s of [1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1a1: // WLfireringGC
+				for (let s of [0, 1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1a3: // begoman_spike
+				for (let s of [0, 1, 2, 3, 4, 5, 6, 7])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1a4: // FireSnake
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1a5: // koopaFirebar
+				for (let s of [0, 1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1a6: // Epropeller
+				for (let s of [0, 1, 7])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1a8: // FireSnake_v
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1f5: // kinoko_ud
+				for (let s of [0, 1, 2, 3, 4])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1f6: // kinoko_bend
+				for (let s of [0, 1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1f7: // VolcanoRock1
+				for (let s of [0, 1, 2, 3, 4, 5])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1f8: // bulldozer_left
+				for (let s of [1, 2, 3, 4])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1f9: // bulldozer_right
+				for (let s of [1, 2, 3, 4])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1fa: // kinoko_nm
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1fb: // Crane
+				for (let s of [1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1fc: // VolcanoPiece
+				for (let s of [0, 1, 2, 3, 4, 5, 6, 7])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1fd: // FlamePole
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x1ff: // TownBridgeDSc
+				for (let s of [0, 1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x200: // DKship64
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x205: // venice_saku
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x208: // dc_pillar
+				for (let s of [0, 1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x209: // dc_sandcone
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x20a: // venice_hasi
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x20b: // venice_gondola
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x20c: // quicksand
+				for (let s of [0, 1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x20d: // bblock
+				for (let s of [0, 1, 2, 3, 4, 5, 6, 7])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x210: // starGate
+				for (let s of [0, 1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x211: // RM_ring1
+				for (let s of [0, 1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x212: // FlamePole_v
+				for (let s of [0, 1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x214: // InsekiA
+				for (let s of [1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x215: // InsekiB
+				for (let s of [1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x216: // FlamePole_v_big
+				for (let s of [0, 1, 2])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x25c: // BeltCurveA
+				for (let s of [1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x25e: // escalator
+				for (let s of [1, 2, 3, 4, 5])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x260: // escalator_group
+				for (let s of [1, 2, 3, 4, 5])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x2c0: // truckChimSmkW
+				for (let s of [1])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x2ce: // volsmk
+				for (let s of [1, 2, 3, 4, 5, 6])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x2d2: // Flash_W
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x2d4: // Flash_S
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x2da: // Fall_Y
+				for (let s of [0])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x2eb: // mare_a
+				for (let s of [1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+			case 0x2ec: // mare_b
+				for (let s of [1, 2, 3])
+				{
+					if (this.viewer.cfg.objectsEnableSignedSettings)
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), -0x8000, 0x7fff, selectedPoints.map(p => p.settings[s] >= 0x8000 ? p.settings[s] - 0x10000 : p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = (x < 0 ? 0x10000 + x : x) })
+					else
+						panel.addSelectionNumericInput(selectionGroup, "Setting " + (s + 1), 0, 0xffff, selectedPoints.map(p => p.settings[s]), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].settings[s] = x })
+				}
+				break
+		}
 		panel.addSelectionNumericInput(selectionGroup, "Presence", 0, 0xffff, selectedPoints.map(p => p.presence), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].presence = x })
 	}
 	
@@ -420,7 +1427,7 @@ class ViewerObjects extends PointViewer
 	{
 		let selectedObjs = this.data.objects.nodes.filter(p => p.selected)
 		
-		for (let point of this.data.objects.nodes)
+				for (let point of this.data.objects.nodes)
 			point.selected = (selectedObjs.find(p => p.id == point.id) != null)
 		
 		this.refreshPanels()
@@ -462,8 +1469,8 @@ class ViewerObjects extends PointViewer
 		
 		switch (ev.key)
 		{
-			case "T":
-			case "t":
+					case "T":
+					case "t":
 				this.toggleAllSelectionByID()
 				return true
 		}
@@ -474,7 +1481,7 @@ class ViewerObjects extends PointViewer
 	
 	drawAfterModel()
 	{
-		for (let point of this.data.objects.nodes)
+				for (let point of this.data.objects.nodes)
 		{
 			let scale = (this.hoveringOverPoint == point ? 1.5 : 1) * this.viewer.getElementScale(point.pos)
 			

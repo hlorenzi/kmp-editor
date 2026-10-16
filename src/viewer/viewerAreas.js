@@ -29,12 +29,70 @@ class ViewerAreas extends PointViewer
 		return this.data.areaPoints
 	}
 
+	kmpAreaExpanderSetup() {
+    	return {
+        	state: [
+        	    { str: "Disabled", value: 0x0000 },
+        	    { str: "Ground", value: 0x0100 },
+				{ str: "Air", value: 0x0200 },
+        	],
+        	justTricked: [
+        	    { str: "Disabled", value: 0x0000 },
+        	    { str: "Enabled", value: 0x0800 },
+        	],
+        	airKCL: [
+        	    { str: "Disabled", value: 0x0000 },
+        	    { str: "Enabled", value: 0x4000 },
+        	],
+        	keepUntilLeaveAREA: [
+        	    { str: "Disabled", value: 0x0000 },
+        	    { str: "Enabled", value: 0x8000 },
+        	],
+    	};
+	}
+
+	kmpAreaExpanderPanel(panel, selectionGroup, selectedPoints, enabled, multiedit)
+	{
+    	let options = this.kmpAreaExpanderSetup();
+
+    	panel.addSelectionNumericInput(selectionGroup, "KCL Type", 0x00, 0xff, selectedPoints.map(p => p.padding & 0xff), 1.0, 1.0, enabled, multiedit, (x, i) => {
+        	this.window.setNotSaved();
+        	selectedPoints[i].padding = (selectedPoints[i].padding & ~0xff) | x;
+    	});
+
+    	panel.addSelectionDropdown(selectionGroup, "State", selectedPoints.map(p => p.padding & 0x0300), options.state, enabled, multiedit, (x, i) => {
+        	this.window.setNotSaved();
+        	selectedPoints[i].padding = (selectedPoints[i].padding & ~0x0300) | x;
+        	this.refresh();
+    	});
+
+		panel.addSelectionDropdown(selectionGroup, "Stop On Trick", selectedPoints.map(p => p.padding & 0x0800), options.justTricked, enabled, multiedit, (x, i) => {
+			this.window.setNotSaved();
+			selectedPoints[i].padding = (selectedPoints[i].padding & ~0x0800) | x;
+			this.refresh();
+		});
+
+		panel.addSelectionDropdown(selectionGroup, "Keep KCL", selectedPoints.map(p => p.padding & 0x4000), options.airKCL, enabled, multiedit, (x, i) => {
+			this.window.setNotSaved();
+			selectedPoints[i].padding = (selectedPoints[i].padding & ~0x4000) | x;
+			this.refresh();
+		});
+
+		panel.addSelectionDropdown(selectionGroup, "Active Until Exit", selectedPoints.map(p => p.padding & 0x8000), options.keepUntilLeaveAREA, enabled, multiedit, (x, i) => {
+			this.window.setNotSaved();
+			selectedPoints[i].padding = (selectedPoints[i].padding & ~0x8000) | x;
+			this.refresh();
+		});
+	}
+
 
     refreshPanels()
 	{
 		let panel = this.window.addPanel("Area", false, (open) => { if (open) this.viewer.setSubviewer(this) })
 		this.panel = panel
-        
+
+        let kae = false
+
 		panel.addText(null, "<strong>Hold Alt + Click:</strong> Create Area")
 		panel.addText(null, "<strong>Hold Alt + Drag Object:</strong> Duplicate Area")
 		panel.addText(null, "<strong>Hold Ctrl:</strong> Multiselect")
@@ -46,13 +104,17 @@ class ViewerAreas extends PointViewer
 		panel.addButton(null, "(T) Select All With Same Type", () => this.toggleAllSelectionByType())
         panel.addButton(null, "(X) Delete Selected", () => this.deleteSelectedPoints())
 		panel.addButton(null, "(Y) Snap To Collision Y", () => this.snapSelectedToY())
+		panel.addCheckbox(null, "enable KMP AREA Expander", this.kae, (x) => { this.kae = x; this.refresh() })
+
 		panel.addSpacer(null)
 
         let selectedPoints = this.data.areaPoints.nodes.filter(p => p.selected)
-		
 		let selectionGroup = panel.addGroup(null, "Selection:")
+
 		let enabled = (selectedPoints.length > 0)
 		let multiedit = (selectedPoints.length > 1)
+
+		
 
 		if (selectedPoints.length == 1)
 		{
@@ -63,7 +125,7 @@ class ViewerAreas extends PointViewer
 		panel.addCheckbox(selectionGroup, "Render Area", (!enabled ? false : multiedit ? selectedPoints.every(p => p.isRendered) : selectedPoints[0].isRendered), (x) => {
             for (let point of selectedPoints)
                 point.isRendered = x
-         })
+        })
 
         let typeOptions =
 		[
@@ -77,8 +139,24 @@ class ViewerAreas extends PointViewer
             { str: "Enable Boos", value: 7 },
             { str: "Object Group", value: 8 },
             { str: "Object Unload", value: 9 },
-            { str: "Fall Boundary", value: 10 },
 		]
+
+		let customTypeOptions = 
+		[
+ 			{ str: "Conditional Objects", value: 12 },
+			{ str: "Configurable Gravity", value: 13 },
+			{ str: "Anti Gravity", value: 14 },
+			{ str: "Point Gravity", value: 15 },
+			{ str: "Glider", value: 16 },
+			{ str: "Wind", value: 17 },
+			{ str: "Air Boost", value: 18 },
+			{ str: "Rail Ride", value: 19 },
+			{ str: "Teleportation", value: 20 },
+		]
+
+		if (this.kae)
+    		typeOptions = typeOptions.concat(customTypeOptions);
+
 		panel.addSelectionDropdown(selectionGroup, "Type", selectedPoints.map(p => p.type), typeOptions, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].type = x; this.refresh() })
 		
         let shapeOptions =
@@ -98,7 +176,6 @@ class ViewerAreas extends PointViewer
 		panel.addSelectionNumericInput(selectionGroup, "Scale Y", -1000000, 1000000, selectedPoints.map(p =>  p.scale.y),     null, 0.1, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].scale.y = x })
 		panel.addSelectionNumericInput(selectionGroup, "Scale Z", -1000000, 1000000, selectedPoints.map(p =>  p.scale.z),     null, 0.1, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].scale.z = x })
         panel.addSelectionNumericInput(selectionGroup, "Priority", 0, 0xff, selectedPoints.map(p => p.priority), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].priority = x })
-		
         let selectionType = (enabled && selectedPoints.every(p => p.type == selectedPoints[0].type) ? selectedPoints[0].type : -1)
 
 		switch (selectionType)
@@ -172,7 +249,75 @@ class ViewerAreas extends PointViewer
 					panel.addSelectionNumericInput(selectionGroup, (coobPoints[0].routeIndex == 1 ? "KCP Number" : "End Index"), 0, 0xffff, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
 				}
 				break
+			case 11:
+				break
+			case 12:
+				panel.addSelectionNumericInput(selectionGroup, "Connector", 0, 0xffff, selectedPoints.map(p => p.routeIndex), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].routeIndex = x })
+				panel.addSelectionNumericInput(selectionGroup, "Action", 0, 0xffff, selectedPoints.map(p => p.enemyIndex), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].enemyIndex = x })
+				panel.addSelectionNumericInput(selectionGroup, "Wait", 0, 0xffff, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
+    			panel.addSelectionNumericInput(selectionGroup, "Duration", 0, 0xffff, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
+    			
+				this.kmpAreaExpanderPanel(panel, selectionGroup, selectedPoints, enabled, multiedit);
+
+    			break;
+			case 13:
+				let gravDir = [
+        	    	{ str: "Down", value: 0xff },
+        	    	{ str: "Up", value: 0x01 },
+        		]
+
+				panel.addSelectionDropdown(selectionGroup, "Gravity Dir", selectedPoints.map(p => p.routeIndex), gravDir, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].routeIndex = x; this.refresh(); })
+				panel.addSelectionNumericInput(selectionGroup, "Strength", 0, 0xffff, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
+			
+				this.kmpAreaExpanderPanel(panel, selectionGroup, selectedPoints, enabled, multiedit);
+				break;
+			
+			case 14:
+				this.kmpAreaExpanderPanel(panel, selectionGroup, selectedPoints, enabled, multiedit);
+				break;
+			
+			case 15: 
+				this.kmpAreaExpanderPanel(panel, selectionGroup, selectedPoints, enabled, multiedit);
+				break;
+
+			case 16:
+				let gravDirGlider = [
+        	    	{ str: "Down", value: 0xff },
+        	    	{ str: "Up", value: 0x01 },
+        		]
+
+				panel.addSelectionDropdown(selectionGroup, "Gravity Dir", selectedPoints.map(p => p.routeIndex), gravDirGlider, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].routeIndex = x; this.refresh();})
+				panel.addSelectionNumericInput(selectionGroup, "Strength", 0, 0xffff, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
+			
+				this.kmpAreaExpanderPanel(panel, selectionGroup, selectedPoints, enabled, multiedit);
+				break;
+			
+			case 17:
+				panel.addSelectionNumericInput(selectionGroup, "Wind Power", 0, 0xffff, selectedPoints.map(p => p.setting2), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting2 = x })
+
+				this.kmpAreaExpanderPanel(panel, selectionGroup, selectedPoints, enabled, multiedit);
+				break;
+			
+			case 18:
+				panel.addSelectionNumericInput(selectionGroup, "Duration", 0, 0xffff, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
+
+				this.kmpAreaExpanderPanel(panel, selectionGroup, selectedPoints, enabled, multiedit);
+				break;
+			
+			case 19:
+				panel.addSelectionNumericInput(selectionGroup, "Connector", 0, 0xffff, selectedPoints.map(p => p.routeIndex), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].routeIndex = x })
+
+				this.kmpAreaExpanderPanel(panel, selectionGroup, selectedPoints, enabled, multiedit);
+				break;
+
+			case 20:
+				panel.addSelectionNumericInput(selectionGroup, "Connector", 0, 0xffff, selectedPoints.map(p => p.routeIndex), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].routeIndex = x })
+				panel.addSelectionNumericInput(selectionGroup, "Wait Time", 0, 0xffff, selectedPoints.map(p => p.setting1), 1.0, 1.0, enabled, multiedit, (x, i) => { this.window.setNotSaved(); selectedPoints[i].setting1 = x })
+
+				this.kmpAreaExpanderPanel(panel, selectionGroup, selectedPoints, enabled, multiedit);
+				break;
 		}
+
     }
 
 
